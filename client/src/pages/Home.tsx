@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Server, Shield, Cpu, Brain, Headphones, GraduationCap, FileCheck,
-  ArrowRight, ChevronRight, CheckCircle2, Zap, Globe, Award,
+  ArrowRight, ChevronRight, Send, Loader2, Sparkles, Zap, Globe, Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import AgentChat from "@/components/AgentChat";
 import LeadForm from "@/components/LeadForm";
 import { trpc } from "@/lib/trpc";
+import { Streamdown } from "streamdown";
+import { nanoid } from "nanoid";
 
 // ─── Vertical Icon Map ────────────────────────────────────────────────────────
 const VERTICAL_ICONS: Record<string, React.ElementType> = {
@@ -25,162 +26,343 @@ const VERTICAL_COLORS: Record<string, string> = {
   compliance: "var(--color-v-comply)",
 };
 
-const STATS = [
-  { value: "200+", label: "Proyectos entregados" },
-  { value: "15+", label: "Años de experiencia" },
-  { value: "99.9%", label: "Uptime garantizado" },
-  { value: "24/7", label: "Soporte activo" },
+const QUICK_SUGGESTIONS = [
+  "¿Cómo mejorar la seguridad de mi empresa?",
+  "Necesito monitorear mi infraestructura 24/7",
+  "¿Qué soluciones de RFID existen?",
+  "Quiero automatizar procesos con IA",
 ];
 
-const TRUSTED_BY = [
-  "Manufactura", "Retail", "Salud", "Gobierno", "Logística", "Educación",
-];
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  id: string;
+}
 
+// ─── Inline Chat Component (Gemini-style) ────────────────────────────────────
+function GeminiChat() {
+  const [sessionId] = useState(() => {
+    const stored = sessionStorage.getItem("iamet_session_home");
+    if (stored) return stored;
+    const id = nanoid(16);
+    sessionStorage.setItem("iamet_session_home", id);
+    return id;
+  });
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startSession = trpc.agent.startSession.useMutation();
+  const sendMessage = trpc.agent.sendMessage.useMutation();
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const ensureSession = async () => {
+    if (!sessionStarted) {
+      await startSession.mutateAsync({ visitorId: sessionId });
+      setSessionStarted(true);
+    }
+  };
+
+  const handleSend = async (text?: string) => {
+    const content = (text ?? input).trim();
+    if (!content || isLoading) return;
+
+    setChatOpen(true);
+    setInput("");
+    setIsLoading(true);
+
+    const userMsg: ChatMessage = { id: nanoid(), role: "user", content };
+    setMessages((prev) => [...prev, userMsg]);
+
+    try {
+      await ensureSession();
+      const res = await sendMessage.mutateAsync({ sessionId, message: content });
+      const assistantMsg: ChatMessage = {
+        id: nanoid(),
+        role: "assistant",
+        content: res.reply,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { id: nanoid(), role: "assistant", content: "Lo siento, hubo un error. Por favor intenta de nuevo." },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      {/* Chat messages — only shown after first message */}
+      <AnimatePresence>
+        {chatOpen && messages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+            className="mb-4 max-h-72 overflow-y-auto space-y-4 px-1"
+          >
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {msg.role === "assistant" && (
+                  <div className="w-7 h-7 rounded-full bg-[var(--color-iamet-accent-muted)] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[var(--color-iamet-accent)]" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === "user"
+                      ? "bg-[var(--color-iamet-accent)] text-white rounded-tr-sm"
+                      : "bg-[var(--color-iamet-surface)] text-[var(--color-iamet-text-muted)] rounded-tl-sm"
+                  }`}
+                >
+                  {msg.role === "assistant" ? (
+                    <Streamdown>{msg.content}</Streamdown>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
+              </motion.div>
+            ))}
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-7 h-7 rounded-full bg-[var(--color-iamet-accent-muted)] flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--color-iamet-accent)]" />
+                </div>
+                <div className="bg-[var(--color-iamet-surface)] rounded-2xl rounded-tl-sm px-4 py-3">
+                  <Loader2 className="w-4 h-4 animate-spin text-[var(--color-iamet-accent)]" />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main input bar — Gemini style */}
+      <div
+        className="relative flex items-center gap-3 rounded-2xl px-5 py-4 transition-all duration-200"
+        style={{
+          background: "var(--color-iamet-surface)",
+          border: "1px solid var(--color-iamet-border)",
+          boxShadow: "0 0 0 0 transparent",
+        }}
+        onFocus={() => {}}
+      >
+        {/* Plus icon */}
+        <button
+          className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-iamet-text-subtle)] hover:text-[var(--color-iamet-accent)] transition-colors duration-150 flex-shrink-0"
+          onClick={() => inputRef.current?.focus()}
+          type="button"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+
+        {/* Input */}
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Pregúntale al Agente Virtual IAMET..."
+          className="flex-1 bg-transparent text-[var(--color-iamet-text)] placeholder:text-[var(--color-iamet-text-subtle)] text-sm outline-none"
+        />
+
+        {/* Right side: model badge + send */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="hidden sm:flex items-center gap-1.5 text-xs text-[var(--color-iamet-text-subtle)] border border-[var(--color-iamet-border-subtle)] rounded-full px-2.5 py-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-iamet-accent)]" />
+            IAMET AI
+          </span>
+          <button
+            onClick={() => handleSend()}
+            disabled={!input.trim() || isLoading}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 disabled:opacity-30 btn-press"
+            style={{
+              background: input.trim() ? "var(--color-iamet-accent)" : "var(--color-iamet-bg-tertiary)",
+            }}
+            type="button"
+          >
+            {isLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+            ) : (
+              <Send className="w-3.5 h-3.5 text-white" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Quick suggestions — hidden once chat opens */}
+      <AnimatePresence>
+        {!chatOpen && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-wrap justify-center gap-2 mt-4"
+          >
+            {QUICK_SUGGESTIONS.map((s) => (
+              <button
+                key={s}
+                onClick={() => handleSend(s)}
+                className="text-xs px-3.5 py-2 rounded-full border border-[var(--color-iamet-border)] text-[var(--color-iamet-text-subtle)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] transition-all duration-150 btn-press"
+              >
+                {s}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Main Home Component ──────────────────────────────────────────────────────
 export default function Home() {
   const [showLeadForm, setShowLeadForm] = useState(false);
   const { data: verticals = [] } = trpc.verticals.list.useQuery();
 
   return (
     <div className="min-h-screen bg-[var(--color-iamet-bg)]">
-      {/* ── Hero Section ─────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-16">
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-grid opacity-40" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-[var(--color-iamet-accent)] opacity-5 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[var(--color-iamet-cyan)] opacity-5 blur-3xl" />
 
-        <div className="container relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[calc(100vh-4rem)] py-16">
-            {/* Left: Headline */}
-            <div className="space-y-8">
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-              >
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--color-iamet-accent-muted)] bg-[var(--color-iamet-accent-muted)] text-xs font-semibold text-[var(--color-iamet-accent)] uppercase tracking-widest">
-                  <Zap className="w-3 h-3" />
-                  Asesor Tecnológico Digital
-                </span>
-              </motion.div>
+      {/* ── HERO — Gemini-style ────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
+        {/* Radial glow background — subtle blue center like Gemini */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse 80% 50% at 50% 60%, oklch(0.25 0.08 240 / 0.5) 0%, transparent 70%)",
+          }}
+        />
+        {/* Very subtle grid */}
+        <div className="absolute inset-0 bg-grid opacity-20" />
 
-              {/* Headline */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-                className="space-y-3"
-              >
-                <h1 className="font-display text-5xl lg:text-6xl xl:text-7xl font-900 leading-[1.05] tracking-tight">
-                  <span className="text-[var(--color-iamet-text)]">Tecnología que</span>
-                  <br />
-                  <span className="gradient-text text-glow">transforma</span>
-                  <br />
-                  <span className="text-[var(--color-iamet-text)]">tu empresa</span>
-                </h1>
-              </motion.div>
-
-              {/* Subheadline */}
-              <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-                className="text-lg text-[var(--color-iamet-text-muted)] leading-relaxed max-w-lg"
-              >
-                IAMET integra infraestructura, seguridad, automatización e inteligencia artificial
-                en una plataforma unificada. Desde el diagnóstico hasta la operación continua.
-              </motion.p>
-
-              {/* Value props */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                className="flex flex-col gap-2"
-              >
-                {[
-                  "Diagnóstico tecnológico gratuito con IA",
-                  "Pólizas de mantenimiento con SLA garantizado",
-                  "Implementación en menos de 30 días",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[var(--color-iamet-accent)] flex-shrink-0" />
-                    <span className="text-sm text-[var(--color-iamet-text-muted)]">{item}</span>
-                  </div>
-                ))}
-              </motion.div>
-
-              {/* CTAs */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                className="flex flex-wrap gap-3"
-              >
-                <Link href="/tech-advisor">
-                  <Button
-                    size="lg"
-                    className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold px-6 btn-press glow-accent"
-                  >
-                    Iniciar Diagnóstico Gratis
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => setShowLeadForm(true)}
-                  className="border-[var(--color-iamet-border)] text-[var(--color-iamet-text-muted)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] bg-transparent btn-press"
-                >
-                  Hablar con un Experto
-                </Button>
-              </motion.div>
-
-              {/* Stats */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.55 }}
-                className="grid grid-cols-4 gap-4 pt-4 border-t border-[var(--color-iamet-border-subtle)]"
-              >
-                {STATS.map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <p className="font-display text-xl font-800 gradient-text">{stat.value}</p>
-                    <p className="text-xs text-[var(--color-iamet-text-subtle)] mt-0.5 leading-tight">{stat.label}</p>
-                  </div>
-                ))}
-              </motion.div>
+        <div className="relative z-10 w-full flex flex-col items-center px-4 gap-10">
+          {/* IAMET logo mark */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-col items-center gap-3"
+          >
+            {/* Animated gem icon */}
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-2xl bg-[var(--color-iamet-accent)] opacity-20 blur-xl animate-pulse" />
+              <div className="relative w-14 h-14 rounded-2xl bg-[var(--color-iamet-accent-muted)] flex items-center justify-center border border-[var(--color-iamet-accent)] border-opacity-30">
+                <Sparkles className="w-7 h-7 text-[var(--color-iamet-accent)]" />
+              </div>
             </div>
+          </motion.div>
 
-            {/* Right: Agent Chat */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-              className="relative"
+          {/* Headline — large, centered, minimal */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+            className="text-center space-y-3"
+          >
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-800 text-[var(--color-iamet-text)] tracking-tight leading-[1.1]">
+              ¿En qué podemos ayudarte?
+            </h1>
+            <p className="text-[var(--color-iamet-text-subtle)] text-base sm:text-lg max-w-md mx-auto">
+              El Agente Virtual IAMET diagnostica tus necesidades y recomienda soluciones tecnológicas en minutos.
+            </p>
+          </motion.div>
+
+          {/* Chat input — the hero element */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="w-full max-w-2xl"
+          >
+            <GeminiChat />
+          </motion.div>
+
+          {/* Secondary CTAs — small, below chat */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+            className="flex flex-wrap justify-center gap-3"
+          >
+            <Link href="/tech-advisor">
+              <Button
+                size="sm"
+                className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-medium px-5 btn-press glow-accent-sm"
+              >
+                <Zap className="w-3.5 h-3.5 mr-1.5" />
+                Diagnóstico Gratuito
+              </Button>
+            </Link>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowLeadForm(true)}
+              className="border-[var(--color-iamet-border)] text-[var(--color-iamet-text-muted)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] bg-transparent btn-press"
             >
-              {/* Glow behind chat */}
-              <div className="absolute -inset-4 bg-[var(--color-iamet-accent)] opacity-5 rounded-3xl blur-2xl" />
-              <AgentChat />
-            </motion.div>
-          </div>
+              Hablar con un Experto
+            </Button>
+          </motion.div>
+
+          {/* Stats strip — minimal */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="flex flex-wrap justify-center gap-8 pt-2"
+          >
+            {[
+              { value: "200+", label: "Proyectos" },
+              { value: "15+", label: "Años de experiencia" },
+              { value: "99.9%", label: "Uptime" },
+              { value: "24/7", label: "Soporte" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <p className="font-display text-lg font-800 gradient-text">{stat.value}</p>
+                <p className="text-xs text-[var(--color-iamet-text-subtle)]">{stat.label}</p>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
       {/* ── Trusted By ───────────────────────────────────────────────────────── */}
-      <section className="py-8 border-y border-[var(--color-iamet-border-subtle)]">
+      <section className="py-6 border-y border-[var(--color-iamet-border-subtle)]">
         <div className="container">
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
             <span className="text-xs text-[var(--color-iamet-text-subtle)] uppercase tracking-widest">
               Sectores que confían en IAMET
             </span>
-            {TRUSTED_BY.map((sector) => (
-              <span
-                key={sector}
-                className="flex items-center gap-1.5 text-sm text-[var(--color-iamet-text-muted)]"
-              >
-                <Globe className="w-3.5 h-3.5 text-[var(--color-iamet-accent)]" />
+            {["Manufactura", "Retail", "Salud", "Gobierno", "Logística", "Educación"].map((sector) => (
+              <span key={sector} className="flex items-center gap-1.5 text-sm text-[var(--color-iamet-text-muted)]">
+                <Globe className="w-3 h-3 text-[var(--color-iamet-accent)]" />
                 {sector}
               </span>
             ))}
@@ -188,11 +370,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 7 Verticales de Negocio ───────────────────────────────────────────── */}
+      {/* ── 7 Verticales ─────────────────────────────────────────────────────── */}
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-dots opacity-20" />
         <div className="container relative z-10">
-          {/* Section header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -213,16 +394,11 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* Verticals Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {(verticals.length > 0
-              ? verticals
-              : FALLBACK_VERTICALS
-            ).map((v, i) => {
+            {(verticals.length > 0 ? verticals : FALLBACK_VERTICALS).map((v, i) => {
               const Icon = VERTICAL_ICONS[v.icon ?? "Server"] ?? Server;
               const color = VERTICAL_COLORS[v.slug] ?? "var(--color-iamet-accent)";
               const solutions = Array.isArray(v.solutions) ? v.solutions as string[] : [];
-
               return (
                 <motion.div
                   key={v.slug}
@@ -233,15 +409,12 @@ export default function Home() {
                 >
                   <Link href={`/soluciones/${v.slug}`}>
                     <div className="group neumorphic neumorphic-hover rounded-2xl p-5 h-full flex flex-col gap-4 cursor-pointer">
-                      {/* Icon */}
                       <div
                         className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
                         style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}
                       >
                         <Icon className="w-5 h-5" style={{ color }} />
                       </div>
-
-                      {/* Name */}
                       <div>
                         <h3 className="font-display font-700 text-[var(--color-iamet-text)] text-base leading-tight mb-1.5">
                           {v.name}
@@ -250,16 +423,10 @@ export default function Home() {
                           {v.description}
                         </p>
                       </div>
-
-                      {/* Solutions preview */}
                       {solutions.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-auto">
                           {solutions.slice(0, 3).map((sol) => (
-                            <span
-                              key={sol}
-                              className="text-[10px] px-2 py-0.5 rounded-full"
-                              style={{ backgroundColor: `${color}15`, color }}
-                            >
+                            <span key={sol} className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${color}15`, color }}>
                               {sol}
                             </span>
                           ))}
@@ -270,8 +437,6 @@ export default function Home() {
                           )}
                         </div>
                       )}
-
-                      {/* Arrow */}
                       <div className="flex items-center gap-1 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ color }}>
                         Ver soluciones <ChevronRight className="w-3.5 h-3.5" />
                       </div>
@@ -282,7 +447,6 @@ export default function Home() {
             })}
           </div>
 
-          {/* CTA */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -291,10 +455,7 @@ export default function Home() {
             className="text-center mt-12"
           >
             <Link href="/tech-advisor">
-              <Button
-                size="lg"
-                className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold btn-press glow-accent-sm"
-              >
+              <Button size="lg" className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold btn-press glow-accent-sm">
                 Descubrir qué necesita mi empresa
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -344,8 +505,6 @@ export default function Home() {
                 ))}
               </div>
             </motion.div>
-
-            {/* Lead Form */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -391,21 +550,13 @@ export default function Home() {
             className="flex flex-wrap justify-center gap-3"
           >
             <Link href="/academy">
-              <Button
-                size="lg"
-                className="bg-[var(--color-v-edu)] hover:opacity-90 text-white font-semibold btn-press"
-                style={{ backgroundColor: "var(--color-v-edu)" }}
-              >
+              <Button size="lg" className="text-white font-semibold btn-press" style={{ backgroundColor: "var(--color-v-edu)" }}>
                 Explorar Cursos
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
             <Link href="/tech-advisor">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-[var(--color-iamet-border)] text-[var(--color-iamet-text-muted)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] bg-transparent btn-press"
-              >
+              <Button size="lg" variant="outline" className="border-[var(--color-iamet-border)] text-[var(--color-iamet-text-muted)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] bg-transparent btn-press">
                 Diagnóstico Tecnológico
               </Button>
             </Link>
