@@ -280,7 +280,7 @@ export default function Home() {
               <img
                 src="/manus-storage/logo-iamet-2026-transparent_9ec12b64.png"
                 alt="IAMET Evolución Tecnológica"
-                className="relative h-20 w-auto object-contain"
+                className="relative h-[132px] w-auto object-contain"
                 style={{ filter: "drop-shadow(0 0 16px oklch(0.55 0.22 240 / 0.5))" }}
               />
             </div>

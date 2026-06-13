@@ -58,7 +58,7 @@ export default function Navbar() {
             <img
               src="/manus-storage/logo-iamet-2026-transparent_9ec12b64.png"
               alt="IAMET Evolución Tecnológica"
-              className="h-10 w-auto object-contain group-hover:opacity-90 transition-opacity duration-200"
+              className="h-[66px] w-auto object-contain group-hover:opacity-90 transition-opacity duration-200"
               style={{ filter: "drop-shadow(0 0 6px oklch(0.55 0.22 240 / 0.4))" }}
             />
           </Link>
