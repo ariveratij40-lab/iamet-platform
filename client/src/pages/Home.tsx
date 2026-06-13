@@ -266,17 +266,23 @@ export default function Home() {
         <div className="relative z-10 w-full flex flex-col items-center px-4 gap-10">
           {/* IAMET logo mark */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            initial={{ opacity: 0, scale: 0.9, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
             className="flex flex-col items-center gap-3"
           >
-            {/* Animated gem icon */}
-            <div className="relative w-14 h-14">
-              <div className="absolute inset-0 rounded-2xl bg-[var(--color-iamet-accent)] opacity-20 blur-xl animate-pulse" />
-              <div className="relative w-14 h-14 rounded-2xl bg-[var(--color-iamet-accent-muted)] flex items-center justify-center border border-[var(--color-iamet-accent)] border-opacity-30">
-                <Sparkles className="w-7 h-7 text-[var(--color-iamet-accent)]" />
-              </div>
+            <div className="relative">
+              {/* Glow halo behind logo */}
+              <div
+                className="absolute inset-0 blur-2xl opacity-30 animate-pulse"
+                style={{ background: "radial-gradient(circle, oklch(0.55 0.22 240) 0%, transparent 70%)" }}
+              />
+              <img
+                src="/manus-storage/logo-iamet-2026-transparent_9ec12b64.png"
+                alt="IAMET Evolución Tecnológica"
+                className="relative h-20 w-auto object-contain"
+                style={{ filter: "drop-shadow(0 0 16px oklch(0.55 0.22 240 / 0.5))" }}
+              />
             </div>
           </motion.div>
 

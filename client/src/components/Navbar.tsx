@@ -54,18 +54,13 @@ export default function Navbar() {
       <div className="container">
         <div className="flex items-center justify-between h-16 lg:h-18">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-iamet-accent)] flex items-center justify-center glow-accent-sm group-hover:scale-105 transition-transform duration-200">
-              <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-display font-800 text-base text-[var(--color-iamet-text)] tracking-tight">
-                IAMET
-              </span>
-              <span className="text-[10px] text-[var(--color-iamet-text-subtle)] tracking-widest uppercase">
-                Evolución Tecnológica
-              </span>
-            </div>
+          <Link href="/" className="flex items-center group">
+            <img
+              src="/manus-storage/logo-iamet-2026-transparent_9ec12b64.png"
+              alt="IAMET Evolución Tecnológica"
+              className="h-10 w-auto object-contain group-hover:opacity-90 transition-opacity duration-200"
+              style={{ filter: "drop-shadow(0 0 6px oklch(0.55 0.22 240 / 0.4))" }}
+            />
           </Link>
 
           {/* Desktop Nav */}
