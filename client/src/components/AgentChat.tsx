@@ -28,13 +28,16 @@ interface ChatMessage {
 }
 
 export default function AgentChat({ compact = false }: { compact?: boolean }) {
-  const [sessionId] = useState(() => {
-    const stored = sessionStorage.getItem("iamet_session");
+  // visitorId: identificador del visitante (persistente en sessionStorage)
+  const [visitorId] = useState(() => {
+    const stored = sessionStorage.getItem("iamet_visitor");
     if (stored) return stored;
     const id = nanoid(16);
-    sessionStorage.setItem("iamet_session", id);
+    sessionStorage.setItem("iamet_visitor", id);
     return id;
   });
+  // conversationSessionId: el sessionId REAL retornado por el backend
+  const [conversationSessionId, setConversationSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -44,7 +47,6 @@ export default function AgentChat({ compact = false }: { compact?: boolean }) {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionStarted, setSessionStarted] = useState(false);
   const [isInfraMode, setIsInfraMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,11 +58,11 @@ export default function AgentChat({ compact = false }: { compact?: boolean }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const ensureSession = async () => {
-    if (!sessionStarted) {
-      await startSession.mutateAsync({ visitorId: sessionId });
-      setSessionStarted(true);
-    }
+  const ensureSession = async (): Promise<string> => {
+    if (conversationSessionId) return conversationSessionId;
+    const result = await startSession.mutateAsync({ visitorId });
+    setConversationSessionId(result.sessionId);
+    return result.sessionId;
   };
 
   const handleSend = async (text?: string) => {
@@ -74,8 +76,8 @@ export default function AgentChat({ compact = false }: { compact?: boolean }) {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      await ensureSession();
-      const result = await sendMessage.mutateAsync({ sessionId, message: content });
+      const activeSessionId = await ensureSession();
+      const result = await sendMessage.mutateAsync({ sessionId: activeSessionId, message: content });
       const assistantMsg: ChatMessage = {
         id: nanoid(),
         role: "assistant",

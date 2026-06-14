@@ -41,17 +41,19 @@ interface ChatMessage {
 
 // ─── Inline Chat Component (Gemini-style) ────────────────────────────────────
 function GeminiChat() {
-  const [sessionId] = useState(() => {
-    const stored = sessionStorage.getItem("iamet_session_home");
+  // visitorId: identificador del visitante (persistente en sessionStorage)
+  const [visitorId] = useState(() => {
+    const stored = sessionStorage.getItem("iamet_visitor_home");
     if (stored) return stored;
     const id = nanoid(16);
-    sessionStorage.setItem("iamet_session_home", id);
+    sessionStorage.setItem("iamet_visitor_home", id);
     return id;
   });
+  // conversationSessionId: el sessionId REAL retornado por el backend al crear la sesión
+  const [conversationSessionId, setConversationSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionStarted, setSessionStarted] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [isInfraMode, setIsInfraMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,11 +66,11 @@ function GeminiChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const ensureSession = async () => {
-    if (!sessionStarted) {
-      await startSession.mutateAsync({ visitorId: sessionId });
-      setSessionStarted(true);
-    }
+  const ensureSession = async (): Promise<string> => {
+    if (conversationSessionId) return conversationSessionId;
+    const result = await startSession.mutateAsync({ visitorId });
+    setConversationSessionId(result.sessionId);
+    return result.sessionId;
   };
 
   const handleSend = async (text?: string) => {
@@ -83,8 +85,8 @@ function GeminiChat() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      await ensureSession();
-      const res = await sendMessage.mutateAsync({ sessionId, message: content });
+      const activeSessionId = await ensureSession();
+      const res = await sendMessage.mutateAsync({ sessionId: activeSessionId, message: content });
       const assistantMsg: ChatMessage = {
         id: nanoid(),
         role: "assistant",
