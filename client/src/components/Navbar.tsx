@@ -56,7 +56,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <img
-              src="/manus-storage/logo-iamet-v2026-transparent_e88846a1.png"
+              src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
               alt="IAMET Evolución Tecnológica"
               className="h-[66px] w-auto object-contain group-hover:opacity-90 transition-opacity duration-200"
               style={{ filter: "drop-shadow(0 0 6px oklch(0.55 0.22 240 / 0.4))" }}

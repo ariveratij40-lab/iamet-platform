@@ -251,37 +251,109 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--color-iamet-bg)]">
 
-      {/* ── HERO — Gemini-style ────────────────────────────────────────────────── */}
+      {/* ── HERO — Gemini-style with cinematic logo reveal ──────────────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
-        {/* Radial glow background — subtle blue center like Gemini */}
-        <div
+        {/* Stage 1: Deep dark base */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "var(--color-iamet-bg)" }} />
+
+        {/* Stage 2: Animated radial burst — expands from center on load */}
+        <motion.div
           className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.8, ease: [0.23, 1, 0.32, 1] }}
           style={{
-            background: "radial-gradient(ellipse 80% 50% at 50% 60%, oklch(0.25 0.08 240 / 0.5) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 70% 55% at 50% 48%, oklch(0.28 0.12 240 / 0.75) 0%, oklch(0.20 0.08 240 / 0.35) 40%, transparent 72%)",
           }}
         />
+
+        {/* Stage 3: Secondary warm glow ring */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2.4, delay: 0.4, ease: "easeOut" }}
+          style={{
+            background: "radial-gradient(ellipse 45% 35% at 50% 46%, oklch(0.45 0.18 220 / 0.18) 0%, transparent 65%)",
+          }}
+        />
+
+        {/* Stage 4: Subtle animated pulse ring behind logo */}
+        <motion.div
+          className="absolute pointer-events-none"
+          style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 480, height: 480 }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: [0, 0.15, 0.08], scale: [0.5, 1.1, 1.3] }}
+          transition={{ duration: 3, delay: 0.2, ease: "easeOut" }}
+        >
+          <div
+            className="w-full h-full rounded-full"
+            style={{
+              background: "radial-gradient(circle, oklch(0.55 0.22 240 / 0.6) 0%, transparent 65%)",
+              filter: "blur(32px)",
+            }}
+          />
+        </motion.div>
+
         {/* Very subtle grid */}
-        <div className="absolute inset-0 bg-grid opacity-20" />
+        <motion.div
+          className="absolute inset-0 bg-grid"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.15 }}
+          transition={{ duration: 2, delay: 0.6 }}
+        />
 
         <div className="relative z-10 w-full flex flex-col items-center px-4 gap-10">
-          {/* IAMET logo mark */}
+          {/* IAMET logo — cinematic reveal: scale + fade + glow burst */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -10 }}
+            initial={{ opacity: 0, scale: 0.75, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.9, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
             className="flex flex-col items-center gap-3"
           >
             <div className="relative">
-              {/* Glow halo behind logo */}
-              <div
-                className="absolute inset-0 blur-2xl opacity-30 animate-pulse"
-                style={{ background: "radial-gradient(circle, oklch(0.55 0.22 240) 0%, transparent 70%)" }}
-              />
+              {/* Persistent soft glow halo */}
+              <motion.div
+                className="absolute pointer-events-none"
+                style={{ inset: "-40px", borderRadius: "50%" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.5, 0.3] }}
+                transition={{ duration: 1.6, delay: 0.4, ease: "easeOut" }}
+              >
+                <div
+                  className="w-full h-full"
+                  style={{
+                    background: "radial-gradient(circle, oklch(0.6 0.22 230 / 0.55) 0%, transparent 70%)",
+                    filter: "blur(20px)",
+                  }}
+                />
+              </motion.div>
+
+              {/* Burst flash on entry — fades quickly */}
+              <motion.div
+                className="absolute pointer-events-none"
+                style={{ inset: "-80px" }}
+                initial={{ opacity: 0.7, scale: 0.8 }}
+                animate={{ opacity: 0, scale: 1.6 }}
+                transition={{ duration: 1.0, delay: 0.2, ease: "easeOut" }}
+              >
+                <div
+                  className="w-full h-full rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, oklch(0.65 0.25 225 / 0.5) 0%, transparent 60%)",
+                    filter: "blur(16px)",
+                  }}
+                />
+              </motion.div>
+
+              {/* The logo itself */}
               <img
-                src="/manus-storage/logo-iamet-v2026-transparent_e88846a1.png"
+                src="/manus-storage/logo-iamet-v2-hero_138c8f54.png"
                 alt="IAMET Evolución Tecnológica"
-                className="relative h-[132px] w-auto object-contain"
-                style={{ filter: "drop-shadow(0 0 16px oklch(0.55 0.22 240 / 0.5))" }}
+                className="relative w-[320px] sm:w-[380px] lg:w-[440px] h-auto object-contain"
+                style={{
+                  filter: "brightness(1.15) saturate(1.2) drop-shadow(0 0 28px oklch(0.55 0.22 240 / 0.7)) drop-shadow(0 0 12px oklch(0.65 0.25 225 / 0.4))",
+                }}
               />
             </div>
           </motion.div>
