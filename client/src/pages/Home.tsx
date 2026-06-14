@@ -1,37 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Server, Shield, Cpu, Brain, Headphones, GraduationCap, FileCheck,
-  ArrowRight, ChevronRight, Send, Loader2, Sparkles, Zap, Globe, Award, ShieldCheck, Network,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import LeadForm from "@/components/LeadForm";
+import { Send, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
 import { nanoid } from "nanoid";
-
-// ─── Vertical Icon Map ────────────────────────────────────────────────────────
-const VERTICAL_ICONS: Record<string, React.ElementType> = {
-  Server, Shield, Cpu, Brain, Headphones, GraduationCap, FileCheck,
-};
-
-const VERTICAL_COLORS: Record<string, string> = {
-  infraestructura: "var(--color-v-infra)",
-  seguridad: "var(--color-v-security)",
-  rfid: "var(--color-v-rfid)",
-  "software-ia": "var(--color-v-software)",
-  "servicios-administrados": "var(--color-v-managed)",
-  educacion: "var(--color-v-edu)",
-  compliance: "var(--color-v-comply)",
-};
-
-const QUICK_SUGGESTIONS = [
-  "¿Cómo mejorar la seguridad de mi empresa?",
-  "Necesito monitorear mi infraestructura 24/7",
-  "¿Qué soluciones de RFID existen?",
-  "Quiero automatizar procesos con IA",
-];
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -39,9 +11,48 @@ interface ChatMessage {
   id: string;
 }
 
-// ─── Inline Chat Component (Gemini-style) ────────────────────────────────────
-function GeminiChat() {
-  // visitorId: identificador del visitante (persistente en sessionStorage)
+const QUICK_SUGGESTIONS = [
+  "¿Cómo mejorar la seguridad de mi empresa?",
+  "Necesito cableado estructurado Cat6A",
+  "¿Qué soluciones de RFID existen?",
+  "Quiero automatizar procesos con IA",
+];
+
+// ─── WhatsApp Floating Button ─────────────────────────────────────────────────
+function WhatsAppButton() {
+  return (
+    <motion.a
+      href="https://wa.me/5215512345678?text=Hola%2C%20me%20interesa%20conocer%20las%20soluciones%20de%20IAMET"
+      target="_blank"
+      rel="noopener noreferrer"
+      initial={{ opacity: 0, scale: 0.7, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.8, ease: [0.23, 1, 0.32, 1] }}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.95 }}
+      className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full px-4 py-3 shadow-lg"
+      style={{
+        background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+        boxShadow: "0 4px 24px rgba(37, 211, 102, 0.45)",
+      }}
+      aria-label="Contactar por WhatsApp"
+    >
+      {/* WhatsApp SVG icon */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="white"
+        className="w-5 h-5 flex-shrink-0"
+      >
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+      </svg>
+      <span className="text-white text-sm font-semibold hidden sm:block">WhatsApp</span>
+    </motion.a>
+  );
+}
+
+// ─── Main Chat Component ──────────────────────────────────────────────────────
+function AgentPrompt() {
   const [visitorId] = useState(() => {
     const stored = sessionStorage.getItem("iamet_visitor_home");
     if (stored) return stored;
@@ -49,7 +60,6 @@ function GeminiChat() {
     sessionStorage.setItem("iamet_visitor_home", id);
     return id;
   });
-  // conversationSessionId: el sessionId REAL retornado por el backend al crear la sesión
   const [conversationSessionId, setConversationSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -87,15 +97,11 @@ function GeminiChat() {
     try {
       const activeSessionId = await ensureSession();
       const res = await sendMessage.mutateAsync({ sessionId: activeSessionId, message: content });
-      const assistantMsg: ChatMessage = {
-        id: nanoid(),
-        role: "assistant",
-        content: res.reply,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      if (res.isInfraMode !== undefined) {
-        setIsInfraMode(res.isInfraMode);
-      }
+      setMessages((prev) => [
+        ...prev,
+        { id: nanoid(), role: "assistant", content: res.reply },
+      ]);
+      if (res.isInfraMode !== undefined) setIsInfraMode(res.isInfraMode);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -114,8 +120,8 @@ function GeminiChat() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Chat messages — only shown after first message */}
+    <div className="w-full max-w-2xl mx-auto flex flex-col">
+      {/* Messages area */}
       <AnimatePresence>
         {chatOpen && messages.length > 0 && (
           <motion.div
@@ -123,7 +129,7 @@ function GeminiChat() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-            className="mb-4 max-h-72 overflow-y-auto space-y-4 px-1"
+            className="mb-5 max-h-[55vh] overflow-y-auto space-y-4 px-1 scrollbar-thin"
           >
             {messages.map((msg) => (
               <motion.div
@@ -139,7 +145,7 @@ function GeminiChat() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     msg.role === "user"
                       ? "bg-[var(--color-iamet-accent)] text-white rounded-tr-sm"
                       : "bg-[var(--color-iamet-surface)] text-[var(--color-iamet-text-muted)] rounded-tl-sm"
@@ -168,17 +174,14 @@ function GeminiChat() {
         )}
       </AnimatePresence>
 
-      {/* Main input bar — Gemini style */}
+      {/* Input bar */}
       <div
         className="relative flex items-center gap-3 rounded-2xl px-5 py-4 transition-all duration-200"
         style={{
           background: "var(--color-iamet-surface)",
           border: "1px solid var(--color-iamet-border)",
-          boxShadow: "0 0 0 0 transparent",
         }}
-        onFocus={() => {}}
       >
-        {/* Plus icon */}
         <button
           className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-iamet-text-subtle)] hover:text-[var(--color-iamet-accent)] transition-colors duration-150 flex-shrink-0"
           onClick={() => inputRef.current?.focus()}
@@ -189,18 +192,20 @@ function GeminiChat() {
           </svg>
         </button>
 
-        {/* Input */}
         <input
           ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isInfraMode ? "Pregunta sobre cableado, Panduit, certificación TIA..." : "Pregúntale al Agente Virtual IAMET..."}
+          placeholder={
+            isInfraMode
+              ? "Pregunta sobre cableado, Panduit, certificación TIA..."
+              : "Pregúntale al Agente Virtual IAMET..."
+          }
           className="flex-1 bg-transparent text-[var(--color-iamet-text)] placeholder:text-[var(--color-iamet-text-subtle)] text-sm outline-none"
         />
 
-        {/* Right side: model badge + send */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <AnimatePresence mode="wait">
             {isInfraMode ? (
@@ -272,428 +277,74 @@ function GeminiChat() {
   );
 }
 
-// ─── Main Home Component ──────────────────────────────────────────────────────
+// ─── Home Page ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [showLeadForm, setShowLeadForm] = useState(false);
-  const { data: verticals = [] } = trpc.verticals.list.useQuery();
-
   return (
-    <div className="min-h-screen bg-[var(--color-iamet-bg)]">
-
-      {/* ── HERO — Gemini-style with cinematic logo reveal ──────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
-        {/* Stage 1: Deep dark base */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "var(--color-iamet-bg)" }} />
-
-        {/* Stage 2: Animated radial burst — expands from center on load */}
+    <div className="min-h-screen bg-[var(--color-iamet-bg)] flex flex-col">
+      {/* Full-screen hero: centered agent prompt */}
+      <section className="flex-1 flex flex-col items-center justify-center relative overflow-hidden px-4 py-20">
+        {/* Background glow */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0, scale: 0.4 }}
+          initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.8, ease: [0.23, 1, 0.32, 1] }}
           style={{
-            background: "radial-gradient(ellipse 70% 55% at 50% 48%, oklch(0.28 0.12 240 / 0.75) 0%, oklch(0.20 0.08 240 / 0.35) 40%, transparent 72%)",
+            background:
+              "radial-gradient(ellipse 70% 55% at 50% 48%, oklch(0.28 0.12 240 / 0.7) 0%, oklch(0.20 0.08 240 / 0.3) 40%, transparent 72%)",
           }}
         />
-
-        {/* Stage 3: Secondary warm glow ring */}
         <motion.div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 bg-grid pointer-events-none"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2.4, delay: 0.4, ease: "easeOut" }}
-          style={{
-            background: "radial-gradient(ellipse 45% 35% at 50% 46%, oklch(0.45 0.18 220 / 0.18) 0%, transparent 65%)",
-          }}
+          animate={{ opacity: 0.12 }}
+          transition={{ duration: 2, delay: 0.4 }}
         />
 
-        {/* Stage 4: Subtle animated pulse ring behind logo */}
-        <motion.div
-          className="absolute pointer-events-none"
-          style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 480, height: 480 }}
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: [0, 0.15, 0.08], scale: [0.5, 1.1, 1.3] }}
-          transition={{ duration: 3, delay: 0.2, ease: "easeOut" }}
-        >
-          <div
-            className="w-full h-full rounded-full"
+        <div className="relative z-10 w-full flex flex-col items-center gap-8">
+          {/* Logo */}
+          <motion.img
+            src="/manus-storage/logo-iamet-v2-hero_138c8f54.png"
+            alt="IAMET Evolución Tecnológica"
+            className="w-[260px] sm:w-[320px] lg:w-[380px] h-auto object-contain"
+            initial={{ opacity: 0, scale: 0.8, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
             style={{
-              background: "radial-gradient(circle, oklch(0.55 0.22 240 / 0.6) 0%, transparent 65%)",
-              filter: "blur(32px)",
+              filter:
+                "brightness(1.15) saturate(1.2) drop-shadow(0 0 24px oklch(0.55 0.22 240 / 0.6))",
             }}
           />
-        </motion.div>
 
-        {/* Very subtle grid */}
-        <motion.div
-          className="absolute inset-0 bg-grid"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.15 }}
-          transition={{ duration: 2, delay: 0.6 }}
-        />
-
-        <div className="relative z-10 w-full flex flex-col items-center px-4 gap-10">
-          {/* IAMET logo — cinematic reveal: scale + fade + glow burst */}
+          {/* Headline */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.75, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.15, ease: [0.23, 1, 0.32, 1] }}
-            className="flex flex-col items-center gap-3"
-          >
-            <div className="relative">
-              {/* Persistent soft glow halo */}
-              <motion.div
-                className="absolute pointer-events-none"
-                style={{ inset: "-40px", borderRadius: "50%" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0.5, 0.3] }}
-                transition={{ duration: 1.6, delay: 0.4, ease: "easeOut" }}
-              >
-                <div
-                  className="w-full h-full"
-                  style={{
-                    background: "radial-gradient(circle, oklch(0.6 0.22 230 / 0.55) 0%, transparent 70%)",
-                    filter: "blur(20px)",
-                  }}
-                />
-              </motion.div>
-
-              {/* Burst flash on entry — fades quickly */}
-              <motion.div
-                className="absolute pointer-events-none"
-                style={{ inset: "-80px" }}
-                initial={{ opacity: 0.7, scale: 0.8 }}
-                animate={{ opacity: 0, scale: 1.6 }}
-                transition={{ duration: 1.0, delay: 0.2, ease: "easeOut" }}
-              >
-                <div
-                  className="w-full h-full rounded-full"
-                  style={{
-                    background: "radial-gradient(circle, oklch(0.65 0.25 225 / 0.5) 0%, transparent 60%)",
-                    filter: "blur(16px)",
-                  }}
-                />
-              </motion.div>
-
-              {/* The logo itself */}
-              <img
-                src="/manus-storage/logo-iamet-v2-hero_138c8f54.png"
-                alt="IAMET Evolución Tecnológica"
-                className="relative w-[320px] sm:w-[380px] lg:w-[440px] h-auto object-contain"
-                style={{
-                  filter: "brightness(1.15) saturate(1.2) drop-shadow(0 0 28px oklch(0.55 0.22 240 / 0.7)) drop-shadow(0 0 12px oklch(0.65 0.25 225 / 0.4))",
-                }}
-              />
-            </div>
-          </motion.div>
-
-          {/* Headline — large, centered, minimal */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-            className="text-center space-y-3"
+            transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="text-center space-y-2"
           >
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-800 text-[var(--color-iamet-text)] tracking-tight leading-[1.1]">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-800 text-[var(--color-iamet-text)] tracking-tight leading-[1.1]">
               ¿En qué podemos ayudarte?
             </h1>
-            <p className="text-[var(--color-iamet-text-subtle)] text-base sm:text-lg max-w-md mx-auto">
-              El Agente Virtual IAMET diagnostica tus necesidades y recomienda soluciones tecnológicas en minutos.
+            <p className="text-[var(--color-iamet-text-subtle)] text-sm sm:text-base max-w-sm mx-auto">
+              El Agente Virtual IAMET diagnostica tus necesidades tecnológicas en minutos.
             </p>
           </motion.div>
 
-          {/* Chat input — the hero element */}
+          {/* Chat prompt — the hero element */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.55, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
             className="w-full max-w-2xl"
           >
-            <GeminiChat />
-          </motion.div>
-
-          {/* Secondary CTAs — small, below chat */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.45 }}
-            className="flex flex-wrap justify-center gap-3"
-          >
-            <Link href="/tech-advisor">
-              <Button
-                size="sm"
-                className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-medium px-5 btn-press glow-accent-sm"
-              >
-                <Zap className="w-3.5 h-3.5 mr-1.5" />
-                Diagnóstico Gratuito
-              </Button>
-            </Link>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowLeadForm(true)}
-              className="border-[var(--color-iamet-border)] text-[var(--color-iamet-text-muted)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] bg-transparent btn-press"
-            >
-              Hablar con un Experto
-            </Button>
-          </motion.div>
-
-          {/* Stats strip — minimal */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-wrap justify-center gap-8 pt-2"
-          >
-            {[
-              { value: "200+", label: "Proyectos" },
-              { value: "15+", label: "Años de experiencia" },
-              { value: "99.9%", label: "Uptime" },
-              { value: "24/7", label: "Soporte" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="font-display text-lg font-800 gradient-text">{stat.value}</p>
-                <p className="text-xs text-[var(--color-iamet-text-subtle)]">{stat.label}</p>
-              </div>
-            ))}
+            <AgentPrompt />
           </motion.div>
         </div>
       </section>
 
-      {/* ── Trusted By ───────────────────────────────────────────────────────── */}
-      <section className="py-6 border-y border-[var(--color-iamet-border-subtle)]">
-        <div className="container">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-            <span className="text-xs text-[var(--color-iamet-text-subtle)] uppercase tracking-widest">
-              Sectores que confían en IAMET
-            </span>
-            {["Manufactura", "Retail", "Salud", "Gobierno", "Logística", "Educación"].map((sector) => (
-              <span key={sector} className="flex items-center gap-1.5 text-sm text-[var(--color-iamet-text-muted)]">
-                <Globe className="w-3 h-3 text-[var(--color-iamet-accent)]" />
-                {sector}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7 Verticales ─────────────────────────────────────────────────────── */}
-      <section className="py-24 relative">
-        <div className="absolute inset-0 bg-dots opacity-20" />
-        <div className="container relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-            className="text-center mb-16 space-y-4"
-          >
-            <span className="inline-block px-3 py-1 rounded-full border border-[var(--color-iamet-border)] text-xs font-semibold text-[var(--color-iamet-text-muted)] uppercase tracking-widest">
-              Nuestras Soluciones
-            </span>
-            <h2 className="font-display text-4xl lg:text-5xl font-800 text-[var(--color-iamet-text)]">
-              7 verticales de{" "}
-              <span className="gradient-text">especialización</span>
-            </h2>
-            <p className="text-[var(--color-iamet-text-muted)] max-w-xl mx-auto">
-              Cubrimos el ecosistema tecnológico completo de tu empresa, desde la infraestructura
-              hasta la inteligencia artificial.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {(verticals.length > 0 ? verticals : FALLBACK_VERTICALS).map((v, i) => {
-              const Icon = VERTICAL_ICONS[v.icon ?? "Server"] ?? Server;
-              const color = VERTICAL_COLORS[v.slug] ?? "var(--color-iamet-accent)";
-              const solutions = Array.isArray(v.solutions) ? v.solutions as string[] : [];
-              return (
-                <motion.div
-                  key={v.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.06, ease: [0.23, 1, 0.32, 1] }}
-                >
-                  <Link href={`/soluciones/${v.slug}`}>
-                    <div className="group neumorphic neumorphic-hover rounded-2xl p-5 h-full flex flex-col gap-4 cursor-pointer">
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
-                        style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}
-                      >
-                        <Icon className="w-5 h-5" style={{ color }} />
-                      </div>
-                      <div>
-                        <h3 className="font-display font-700 text-[var(--color-iamet-text)] text-base leading-tight mb-1.5">
-                          {v.name}
-                        </h3>
-                        <p className="text-xs text-[var(--color-iamet-text-subtle)] leading-relaxed line-clamp-2">
-                          {v.description}
-                        </p>
-                      </div>
-                      {solutions.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-auto">
-                          {solutions.slice(0, 3).map((sol) => (
-                            <span key={sol} className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${color}15`, color }}>
-                              {sol}
-                            </span>
-                          ))}
-                          {solutions.length > 3 && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full text-[var(--color-iamet-text-subtle)] bg-[var(--color-iamet-surface-2)]">
-                              +{solutions.length - 3} más
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ color }}>
-                        Ver soluciones <ChevronRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-center mt-12"
-          >
-            <Link href="/tech-advisor">
-              <Button size="lg" className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold btn-press glow-accent-sm">
-                Descubrir qué necesita mi empresa
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Why IAMET ─────────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-[var(--color-iamet-bg-secondary)]">
-        <div className="container">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-              className="space-y-6"
-            >
-              <span className="inline-block px-3 py-1 rounded-full border border-[var(--color-iamet-border)] text-xs font-semibold text-[var(--color-iamet-text-muted)] uppercase tracking-widest">
-                Por qué IAMET
-              </span>
-              <h2 className="font-display text-4xl font-800 text-[var(--color-iamet-text)] leading-tight">
-                No somos un proveedor.<br />
-                <span className="gradient-text">Somos tu socio tecnológico.</span>
-              </h2>
-              <p className="text-[var(--color-iamet-text-muted)] leading-relaxed">
-                A diferencia de los integradores tradicionales, IAMET combina consultoría estratégica,
-                implementación técnica y operación continua bajo un modelo de ingresos recurrentes
-                que garantiza la continuidad operativa de tu empresa.
-              </p>
-              <div className="space-y-4">
-                {[
-                  { icon: Zap, title: "Diagnóstico con IA", desc: "El Agente Virtual IAMET identifica tus necesidades y recomienda soluciones en minutos." },
-                  { icon: Shield, title: "SLA Garantizado", desc: "Pólizas de servicio con tiempos de respuesta definidos y penalizaciones por incumplimiento." },
-                  { icon: Award, title: "Certificaciones Internacionales", desc: "Equipo certificado en Cisco, Microsoft, Genetec, Axis, Zebra y más fabricantes líderes." },
-                ].map(({ icon: Icon, title, desc }) => (
-                  <div key={title} className="flex gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--color-iamet-accent-muted)] flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-[var(--color-iamet-accent)]" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-[var(--color-iamet-text)] text-sm mb-0.5">{title}</h4>
-                      <p className="text-xs text-[var(--color-iamet-text-muted)] leading-relaxed">{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-            >
-              <LeadForm />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Academy CTA ──────────────────────────────────────────────────────── */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[var(--color-iamet-accent)] opacity-5 blur-3xl rounded-full" />
-        <div className="container relative z-10 text-center space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="space-y-4"
-          >
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--color-v-edu)] bg-[oklch(0.75_0.18_75_/_0.1)] text-xs font-semibold text-[var(--color-v-edu)] uppercase tracking-widest">
-              <GraduationCap className="w-3.5 h-3.5" />
-              IAMET Academy
-            </span>
-            <h2 className="font-display text-4xl lg:text-5xl font-800 text-[var(--color-iamet-text)]">
-              Capacita a tu equipo con los{" "}
-              <span className="gradient-text">expertos</span>
-            </h2>
-            <p className="text-[var(--color-iamet-text-muted)] max-w-xl mx-auto">
-              Cursos especializados, certificaciones internacionales y talleres prácticos
-              en infraestructura, seguridad, IA y más.
-            </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-3"
-          >
-            <Link href="/academy">
-              <Button size="lg" className="text-white font-semibold btn-press" style={{ backgroundColor: "var(--color-v-edu)" }}>
-                Explorar Cursos
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/tech-advisor">
-              <Button size="lg" variant="outline" className="border-[var(--color-iamet-border)] text-[var(--color-iamet-text-muted)] hover:border-[var(--color-iamet-accent)] hover:text-[var(--color-iamet-accent)] bg-transparent btn-press">
-                Diagnóstico Tecnológico
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Lead Form Modal ───────────────────────────────────────────────────── */}
-      {showLeadForm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "oklch(0 0 0 / 0.7)" }}
-          onClick={() => setShowLeadForm(false)}
-        >
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg">
-            <LeadForm onSuccess={() => setShowLeadForm(false)} />
-          </div>
-        </div>
-      )}
+      {/* WhatsApp floating button */}
+      <WhatsAppButton />
     </div>
   );
 }
-
-// Fallback while loading
-const FALLBACK_VERTICALS = [
-  { slug: "infraestructura", name: "Infraestructura Tecnológica", description: "Redes, servidores y centros de datos.", icon: "Server", solutions: ["Redes LAN/WAN", "Cableado Estructurado", "Cloud Híbrida"] },
-  { slug: "seguridad", name: "Seguridad Electrónica", description: "CCTV, control de acceso y alarmas.", icon: "Shield", solutions: ["CCTV", "Control de Acceso", "Monitoreo 24/7"] },
-  { slug: "rfid", name: "RFID y Automatización", description: "Control de inventarios y activos.", icon: "Cpu", solutions: ["Control RFID", "Rastreo de Activos", "IoT"] },
-  { slug: "software-ia", name: "Software e IA", description: "Desarrollo a medida e inteligencia artificial.", icon: "Brain", solutions: ["Desarrollo a Medida", "Agentes IA", "RPA"] },
-  { slug: "servicios-administrados", name: "Servicios Administrados", description: "NOC 24/7 y pólizas de mantenimiento.", icon: "Headphones", solutions: ["NOC 24/7", "Soporte Técnico", "SLA"] },
-  { slug: "educacion", name: "Educación Tecnológica", description: "Cursos y certificaciones especializadas.", icon: "GraduationCap", solutions: ["Cursos", "Certificaciones", "IAMET Academy"] },
-  { slug: "compliance", name: "Compliance y Auditoría", description: "ISO 27001, NIST y gestión de riesgos.", icon: "FileCheck", solutions: ["ISO 27001", "NIST", "Auditoría"] },
-];
