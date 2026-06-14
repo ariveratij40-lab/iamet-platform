@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Server, Shield, Cpu, Brain, Headphones, GraduationCap, FileCheck,
-  ArrowRight, ChevronRight, Send, Loader2, Sparkles, Zap, Globe, Award,
+  ArrowRight, ChevronRight, Send, Loader2, Sparkles, Zap, Globe, Award, ShieldCheck, Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LeadForm from "@/components/LeadForm";
@@ -53,6 +53,7 @@ function GeminiChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [isInfraMode, setIsInfraMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -90,6 +91,9 @@ function GeminiChat() {
         content: res.reply,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      if (res.isInfraMode !== undefined) {
+        setIsInfraMode(res.isInfraMode);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -190,16 +194,39 @@ function GeminiChat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Pregúntale al Agente Virtual IAMET..."
+          placeholder={isInfraMode ? "Pregunta sobre cableado, Panduit, certificación TIA..." : "Pregúntale al Agente Virtual IAMET..."}
           className="flex-1 bg-transparent text-[var(--color-iamet-text)] placeholder:text-[var(--color-iamet-text-subtle)] text-sm outline-none"
         />
 
         {/* Right side: model badge + send */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="hidden sm:flex items-center gap-1.5 text-xs text-[var(--color-iamet-text-subtle)] border border-[var(--color-iamet-border-subtle)] rounded-full px-2.5 py-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-iamet-accent)]" />
-            IAMET AI
-          </span>
+          <AnimatePresence mode="wait">
+            {isInfraMode ? (
+              <motion.span
+                key="panduit"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.2 }}
+                className="hidden sm:flex items-center gap-1.5 text-xs text-[var(--color-iamet-accent)] border border-[var(--color-iamet-accent)]/50 rounded-full px-2.5 py-1 bg-[var(--color-iamet-accent-muted)]"
+              >
+                <ShieldCheck className="w-3 h-3" />
+                Panduit Certified
+              </motion.span>
+            ) : (
+              <motion.span
+                key="iamet"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.2 }}
+                className="hidden sm:flex items-center gap-1.5 text-xs text-[var(--color-iamet-text-subtle)] border border-[var(--color-iamet-border-subtle)] rounded-full px-2.5 py-1"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-iamet-accent)]" />
+                IAMET AI
+              </motion.span>
+            )}
+          </AnimatePresence>
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || isLoading}

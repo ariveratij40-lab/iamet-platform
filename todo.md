@@ -63,3 +63,15 @@
 - [x] Test: verticals.list (7 verticales con slugs correctos)
 - [x] Test: academy.listCourses (arreglo con title/level)
 - [x] Test: agent.startSession (retorna sessionId)
+
+## Integración Panduit — Habilidad Especializada del Agente Virtual
+- [x] Análisis de 15 PDFs Panduit (infraestructura física, cobre, fibra, healthcare, enterprise networks)
+- [x] Base de conocimiento estructurada IAMET + Panduit (playbooks por vertical, preguntas de discovery, pólizas TIA)
+- [x] System prompt enriquecido con habilidad especializada Panduit en el backend (routers.ts)
+- [x] Función detectInfrastructureTopic() para activación dinámica del modo especialista
+- [x] buildSystemPrompt() que inyecta la habilidad Panduit cuando se detecta el tema
+- [x] El backend retorna isInfraMode en la respuesta del agente para el frontend
+- [x] Badge visual "Panduit Certified" en el header del AgentChat cuando se activa el modo especialista
+- [x] Banner informativo de especialista en Infraestructura Física con garantías y certificaciones
+- [x] Sugerencias rápidas contextuales para infraestructura cuando está en modo especialista
+- [x] Placeholder del input adaptativo según el modo activo

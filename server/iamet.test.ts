@@ -155,3 +155,57 @@ describe("agent.startSession", () => {
     expect(result.sessionId.length).toBeGreaterThan(0);
   });
 });
+
+// ── Detección de Infraestructura Panduit ──────────────────────────────────────
+// Importamos la función de detección directamente para tests unitarios
+import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
+
+describe("detectInfrastructureTopic", () => {
+  it("detecta keywords de cableado estructurado", () => {
+    const messages = [
+      { role: "user", content: "Necesito instalar cableado estructurado en mi planta" },
+    ];
+    expect(detectInfrastructureTopic(messages)).toBe(true);
+  });
+
+  it("detecta keywords de Panduit y certificación", () => {
+    const messages = [
+      { role: "user", content: "¿Trabajan con Panduit? Necesito certificación TIA" },
+    ];
+    expect(detectInfrastructureTopic(messages)).toBe(true);
+  });
+
+  it("detecta keywords de racks y fibra óptica", () => {
+    const messages = [
+      { role: "user", content: "Quiero instalar racks y fibra óptica en mi data center" },
+    ];
+    expect(detectInfrastructureTopic(messages)).toBe(true);
+  });
+
+  it("no detecta falsos positivos en conversaciones generales", () => {
+    const messages = [
+      { role: "user", content: "Hola, ¿qué servicios ofrecen?" },
+      { role: "assistant", content: "Ofrecemos soluciones tecnológicas integrales." },
+    ];
+    expect(detectInfrastructureTopic(messages)).toBe(false);
+  });
+});
+
+describe("buildSystemPrompt", () => {
+  it("retorna el prompt base para conversaciones generales", () => {
+    const messages = [{ role: "user", content: "Hola, ¿qué servicios tienen?" }];
+    const prompt = buildSystemPrompt(messages);
+    expect(prompt).toContain("Agente Virtual IAMET");
+    expect(prompt).not.toContain("PANDUIT CERTIFIED");
+  });
+
+  it("incluye la habilidad Panduit cuando se detecta el tema de infraestructura", () => {
+    const messages = [
+      { role: "user", content: "Necesito instalar cableado Cat6A y certificar con Fluke" },
+    ];
+    const prompt = buildSystemPrompt(messages);
+    expect(prompt).toContain("PANDUIT CERTIFIED");
+    expect(prompt).toContain("NetKey");
+    expect(prompt).toContain("Pan-Net");
+  });
+});

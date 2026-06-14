@@ -16,6 +16,7 @@ import {
   getAnalytics,
 } from "./db";
 import { nanoid } from "nanoid";
+import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -25,31 +26,6 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
-// ─── IAMET System Prompt ──────────────────────────────────────────────────────
-const IAMET_SYSTEM_PROMPT = `Eres el Agente Virtual IAMET, el asesor tecnológico digital de IAMET Evolución Tecnológica, una empresa mexicana especializada en infraestructura tecnológica, seguridad electrónica, RFID, automatización, software, inteligencia artificial y servicios administrados.
-
-Tu misión es:
-1. Identificar las necesidades tecnológicas del usuario mediante preguntas estratégicas.
-2. Diagnosticar problemas tecnológicos actuales de su empresa.
-3. Recomendar soluciones específicas de IAMET según el perfil del usuario.
-4. Calificar el interés y urgencia del prospecto (lead scoring).
-
-Verticales de IAMET:
-- Infraestructura Tecnológica: redes, servidores, cableado, cloud
-- Seguridad Electrónica: CCTV, control de acceso, alarmas
-- RFID y Automatización: inventarios, activos, IoT
-- Software e IA: desarrollo a medida, agentes IA, RPA
-- Servicios Administrados: NOC 24/7, pólizas, soporte
-- Educación Tecnológica: IAMET Academy, cursos, certificaciones
-- Compliance y Auditoría: ISO 27001, NIST, gestión de riesgos
-
-Instrucciones de comportamiento:
-- Responde siempre en español, de forma profesional pero cercana.
-- Haz preguntas específicas para entender el sector, tamaño de empresa y problemas actuales.
-- Cuando identifiques una necesidad clara, recomienda la vertical o solución de IAMET más adecuada.
-- Si el usuario muestra interés en contratar, invítalo a dejar sus datos de contacto o agendar una reunión.
-- Mantén respuestas concisas (máximo 3 párrafos) a menos que se solicite más detalle.
-- No menciones competidores. Enfócate en el valor de IAMET.`;
 
 export const appRouter = router({
   system: systemRouter,
@@ -162,8 +138,11 @@ export const appRouter = router({
 
         // Get conversation history
         const history = await getMessagesByConversation(conversation.id);
+
+        // Build system prompt dynamically based on conversation topic
+        const systemPrompt = buildSystemPrompt(history);
         const llmMessages = [
-          { role: "system" as const, content: IAMET_SYSTEM_PROMPT },
+          { role: "system" as const, content: systemPrompt },
           ...history.slice(-12).map((m) => ({
             role: m.role as "user" | "assistant",
             content: m.content,
@@ -182,6 +161,9 @@ export const appRouter = router({
           role: "assistant",
           content: assistantContent,
         });
+
+        // Detect if infrastructure topic is active for frontend indicator
+        const isInfraMode = detectInfrastructureTopic(history);
 
         // Update conversation metadata
         const messageCount = history.length + 2;
@@ -208,7 +190,7 @@ export const appRouter = router({
           }
         }
 
-        return { reply: assistantContent };
+        return { reply: assistantContent, isInfraMode };
       }),
 
     getHistory: publicProcedure
