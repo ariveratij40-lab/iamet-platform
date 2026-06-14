@@ -17,14 +17,14 @@
   --radius-2xl: 2rem;
 
   /* IAMET Color Palette — OKLCH */
-  /* Deep Navy Background */
-  --color-iamet-bg:           oklch(0.13 0.025 240);
-  --color-iamet-bg-secondary: oklch(0.16 0.022 240);
-  --color-iamet-bg-tertiary:  oklch(0.19 0.020 240);
-  --color-iamet-surface:      oklch(0.18 0.024 240);
-  --color-iamet-surface-2:    oklch(0.22 0.022 240);
-  --color-iamet-border:       oklch(0.28 0.020 240);
-  --color-iamet-border-subtle:oklch(0.22 0.018 240);
+  /* Deep Navy Background — aclarado para mejor legibilidad */
+  --color-iamet-bg:           oklch(0.17 0.028 240);
+  --color-iamet-bg-secondary: oklch(0.20 0.025 240);
+  --color-iamet-bg-tertiary:  oklch(0.23 0.022 240);
+  --color-iamet-surface:      oklch(0.22 0.026 240);
+  --color-iamet-surface-2:    oklch(0.26 0.024 240);
+  --color-iamet-border:       oklch(0.34 0.022 240);
+  --color-iamet-border-subtle:oklch(0.27 0.020 240);
 
   /* Electric Blue Accent */
   --color-iamet-accent:       oklch(0.62 0.22 230);
@@ -36,10 +36,10 @@
   --color-iamet-cyan:         oklch(0.72 0.18 195);
   --color-iamet-cyan-muted:   oklch(0.72 0.18 195 / 0.15);
 
-  /* Text */
-  --color-iamet-text:         oklch(0.95 0.008 240);
-  --color-iamet-text-muted:   oklch(0.65 0.012 240);
-  --color-iamet-text-subtle:  oklch(0.45 0.010 240);
+  /* Text — alto contraste para máxima legibilidad */
+  --color-iamet-text:         oklch(0.97 0.006 240);
+  --color-iamet-text-muted:   oklch(0.78 0.012 240);
+  --color-iamet-text-subtle:  oklch(0.62 0.012 240);
 
   /* Vertical Colors */
   --color-v-infra:    oklch(0.60 0.20 230);
@@ -50,52 +50,52 @@
   --color-v-edu:      oklch(0.75 0.18 75);
   --color-v-comply:   oklch(0.62 0.22 25);
 
-  /* Semantic tokens for shadcn — Tailwind v4 requires --color-* prefix to generate utility classes */
-  --color-background:         oklch(0.13 0.025 240);
-  --color-foreground:         oklch(0.95 0.008 240);
-  --color-card:               oklch(0.18 0.024 240);
-  --color-card-foreground:    oklch(0.95 0.008 240);
-  --color-popover:            oklch(0.16 0.022 240);
-  --color-popover-foreground: oklch(0.95 0.008 240);
-  --color-primary:            oklch(0.62 0.22 230);
-  --color-primary-foreground: oklch(0.98 0.005 240);
-  --color-secondary:          oklch(0.22 0.022 240);
-  --color-secondary-foreground: oklch(0.95 0.008 240);
-  --color-muted:              oklch(0.19 0.020 240);
-  --color-muted-foreground:   oklch(0.60 0.012 240);
-  --color-accent:             oklch(0.22 0.022 240);
-  --color-accent-foreground:  oklch(0.95 0.008 240);
+  /* Semantic tokens para shadcn — Tailwind v4 requiere prefijo --color-* */
+  --color-background:         oklch(0.17 0.028 240);
+  --color-foreground:         oklch(0.97 0.006 240);
+  --color-card:               oklch(0.22 0.026 240);
+  --color-card-foreground:    oklch(0.97 0.006 240);
+  --color-popover:            oklch(0.20 0.025 240);
+  --color-popover-foreground: oklch(0.97 0.006 240);
+  --color-primary:            oklch(0.65 0.22 230);
+  --color-primary-foreground: oklch(0.99 0.004 240);
+  --color-secondary:          oklch(0.26 0.024 240);
+  --color-secondary-foreground: oklch(0.97 0.006 240);
+  --color-muted:              oklch(0.23 0.022 240);
+  --color-muted-foreground:   oklch(0.72 0.012 240);
+  --color-accent:             oklch(0.26 0.024 240);
+  --color-accent-foreground:  oklch(0.97 0.006 240);
   --color-destructive:        oklch(0.62 0.22 25);
-  --color-destructive-foreground: oklch(0.98 0.005 240);
-  --color-border:             oklch(0.28 0.020 240);
-  --color-input:              oklch(0.22 0.022 240);
-  --color-ring:               oklch(0.62 0.22 230);
-  --color-sidebar:            oklch(0.15 0.024 240);
-  --color-sidebar-foreground: oklch(0.95 0.008 240);
-  --color-sidebar-accent:     oklch(0.22 0.022 240);
-  --color-sidebar-accent-foreground: oklch(0.95 0.008 240);
-  --color-sidebar-border:     oklch(0.28 0.020 240);
-  --color-sidebar-ring:       oklch(0.62 0.22 230);
-  /* Legacy vars for backward compat */
-  --background:               oklch(0.13 0.025 240);
-  --foreground:               oklch(0.95 0.008 240);
-  --card:               oklch(0.18 0.024 240);
-  --card-foreground:    oklch(0.95 0.008 240);
-  --popover:            oklch(0.16 0.022 240);
-  --popover-foreground: oklch(0.95 0.008 240);
-  --primary:            oklch(0.62 0.22 230);
-  --primary-foreground: oklch(0.98 0.005 240);
-  --secondary:          oklch(0.22 0.022 240);
-  --secondary-foreground:oklch(0.95 0.008 240);
-  --muted:              oklch(0.19 0.020 240);
-  --muted-foreground:   oklch(0.60 0.012 240);
-  --accent:             oklch(0.22 0.022 240);
-  --accent-foreground:  oklch(0.95 0.008 240);
+  --color-destructive-foreground: oklch(0.99 0.004 240);
+  --color-border:             oklch(0.34 0.022 240);
+  --color-input:              oklch(0.26 0.024 240);
+  --color-ring:               oklch(0.65 0.22 230);
+  --color-sidebar:            oklch(0.19 0.026 240);
+  --color-sidebar-foreground: oklch(0.97 0.006 240);
+  --color-sidebar-accent:     oklch(0.26 0.024 240);
+  --color-sidebar-accent-foreground: oklch(0.97 0.006 240);
+  --color-sidebar-border:     oklch(0.34 0.022 240);
+  --color-sidebar-ring:       oklch(0.65 0.22 230);
+  /* Legacy vars para compatibilidad con shadcn */
+  --background:               oklch(0.17 0.028 240);
+  --foreground:               oklch(0.97 0.006 240);
+  --card:               oklch(0.22 0.026 240);
+  --card-foreground:    oklch(0.97 0.006 240);
+  --popover:            oklch(0.20 0.025 240);
+  --popover-foreground: oklch(0.97 0.006 240);
+  --primary:            oklch(0.65 0.22 230);
+  --primary-foreground: oklch(0.99 0.004 240);
+  --secondary:          oklch(0.26 0.024 240);
+  --secondary-foreground:oklch(0.97 0.006 240);
+  --muted:              oklch(0.23 0.022 240);
+  --muted-foreground:   oklch(0.72 0.012 240);
+  --accent:             oklch(0.26 0.024 240);
+  --accent-foreground:  oklch(0.97 0.006 240);
   --destructive:        oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 240);
-  --border:             oklch(0.28 0.020 240);
-  --input:              oklch(0.22 0.022 240);
-  --ring:               oklch(0.62 0.22 230);
+  --destructive-foreground: oklch(0.99 0.004 240);
+  --border:             oklch(0.34 0.022 240);
+  --input:              oklch(0.26 0.024 240);
+  --ring:               oklch(0.65 0.22 230);
   --radius:             0.625rem;
 
   /* Chart colors */
