@@ -291,7 +291,7 @@ export default function Home() {
           transition={{ duration: 1.8, ease: [0.23, 1, 0.32, 1] }}
           style={{
             background:
-              "radial-gradient(ellipse 70% 55% at 50% 48%, oklch(0.28 0.12 240 / 0.7) 0%, oklch(0.20 0.08 240 / 0.3) 40%, transparent 72%)",
+              "radial-gradient(ellipse 60% 45% at 50% 42%, oklch(0.18 0.04 240 / 0.5) 0%, oklch(0.12 0.02 240 / 0.2) 50%, transparent 75%)",
           }}
         />
         <motion.div
