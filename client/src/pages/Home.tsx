@@ -302,19 +302,66 @@ export default function Home() {
         />
 
         <div className="relative z-10 w-full flex flex-col items-center gap-8">
-          {/* Logo */}
-          <motion.img
-            src="/manus-storage/logo-iamet-v2-hero_138c8f54.png"
-            alt="IAMET Evolución Tecnológica"
-            className="w-[260px] sm:w-[320px] lg:w-[380px] h-auto object-contain"
+          {/* Logo con halo multicapa */}
+          <motion.div
+            className="relative flex items-center justify-center"
             initial={{ opacity: 0, scale: 0.8, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-            style={{
-              filter:
-                "brightness(1.15) saturate(1.2) drop-shadow(0 0 24px oklch(0.55 0.22 240 / 0.6))",
-            }}
-          />
+          >
+            {/* Halo exterior — resplandor amplio y difuso */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                width: "140%",
+                height: "200%",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                background:
+                  "radial-gradient(ellipse 80% 60% at 50% 52%, oklch(0.55 0.12 230 / 0.18) 0%, oklch(0.40 0.08 230 / 0.10) 40%, transparent 70%)",
+                filter: "blur(18px)",
+              }}
+            />
+            {/* Halo interior — más concentrado y brillante */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                width: "90%",
+                height: "130%",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                background:
+                  "radial-gradient(ellipse 70% 55% at 50% 55%, oklch(0.75 0.06 220 / 0.22) 0%, oklch(0.55 0.04 220 / 0.10) 50%, transparent 75%)",
+                filter: "blur(10px)",
+              }}
+            />
+            {/* Plato de luz inferior — sombra proyectada hacia abajo */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                width: "70%",
+                height: "30px",
+                bottom: "-18px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background:
+                  "radial-gradient(ellipse 100% 100% at 50% 50%, oklch(0.55 0.18 230 / 0.30) 0%, transparent 70%)",
+                filter: "blur(12px)",
+              }}
+            />
+            {/* El logo */}
+            <img
+              src="/manus-storage/logo-iamet-v2-hero_138c8f54.png"
+              alt="IAMET Evolución Tecnológica"
+              className="relative w-[260px] sm:w-[320px] lg:w-[380px] h-auto object-contain"
+              style={{
+                filter:
+                  "brightness(1.18) saturate(1.25) drop-shadow(0 2px 16px oklch(0.60 0.20 230 / 0.45)) drop-shadow(0 0 6px oklch(0.85 0.05 220 / 0.30))",
+              }}
+            />
+          </motion.div>
 
           {/* Headline */}
           <motion.div
