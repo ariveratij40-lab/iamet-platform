@@ -9,7 +9,7 @@ import { notifyOwner } from "./_core/notification";
 import {
   getVerticals, getVerticalBySlug,
   createLead, getLeads, updateLeadStatus, calculateLeadScore,
-  createConversation, getConversationBySession, updateConversation, getConversations,
+  createConversation,   getConversationBySession, getLatestConversationByVisitor, updateConversation, getConversations,
   addMessage, getMessagesByConversation,
   createAdvisorSession, getAdvisorSession, updateAdvisorSession,
   getCourses, getCourseBySlug, createEnrollment,
@@ -482,16 +482,27 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       }),
 
     // Público: visitante verifica si hay mensajes nuevos del humano (polling cada 3s)
+    // Acepta sessionId (si ya inició chat) O visitorId (para detectar intervención antes de que inicie chat)
     pollMessages: publicProcedure
-      .input(z.object({ sessionId: z.string(), since: z.string().optional() }))
+      .input(z.object({
+        sessionId: z.string().optional(),
+        visitorId: z.string().optional(),
+        since: z.string().optional(),
+      }))
       .query(async ({ input }) => {
         const since = input.since ? new Date(input.since) : undefined;
-        const msgs = await getLiveChatMessages(input.sessionId, since);
-        const conv = await getConversationBySession(input.sessionId);
+        // Buscar la conversación por sessionId o por visitorId (la más reciente)
+        let conv = input.sessionId ? await getConversationBySession(input.sessionId) : undefined;
+        if (!conv && input.visitorId) {
+          conv = await getLatestConversationByVisitor(input.visitorId);
+        }
+        if (!conv) return { messages: [], humanTookOver: false, humanAgentName: null, sessionId: null };
+        const msgs = await getLiveChatMessages(conv.sessionId, since);
         return {
           messages: msgs,
-          humanTookOver: conv?.humanTookOver ?? false,
-          humanAgentName: conv?.humanAgentName ?? null,
+          humanTookOver: conv.humanTookOver ?? false,
+          humanAgentName: conv.humanAgentName ?? null,
+          sessionId: conv.sessionId,
         };
       }),
 

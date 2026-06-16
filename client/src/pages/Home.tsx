@@ -660,7 +660,7 @@ export default function Home() {
   const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
 
   // Tracking de presencia
-  const { logEvent } = useVisitorTracking({
+  const { logEvent, visitorId: trackingVisitorId } = useVisitorTracking({
     currentPage: "/",
     currentSection,
     chatActive,
@@ -725,7 +725,7 @@ export default function Home() {
             className="w-full max-w-2xl"
           >
             <div id="agent-chat-section"><AgentPrompt ref={agentRef} onSessionStart={setLiveSessionId} /></div>
-            <LiveChatWidget sessionId={liveSessionId} />
+            <LiveChatWidget sessionId={liveSessionId} visitorId={trackingVisitorId} />
           </motion.div>
         </div>
       </section>

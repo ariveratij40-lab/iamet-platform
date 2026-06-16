@@ -168,6 +168,15 @@ export async function getConversationBySession(sessionId: string): Promise<Conve
   const result = await db.select().from(conversations).where(eq(conversations.sessionId, sessionId)).limit(1);
   return result[0];
 }
+export async function getLatestConversationByVisitor(visitorId: string): Promise<Conversation | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(conversations)
+    .where(eq(conversations.visitorId, visitorId))
+    .orderBy(desc(conversations.updatedAt))
+    .limit(1);
+  return result[0];
+}
 
 export async function updateConversation(sessionId: string, data: Partial<Conversation>) {
   const db = await getDb();

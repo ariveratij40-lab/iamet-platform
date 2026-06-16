@@ -3,9 +3,10 @@
  * Aparece en la esquina inferior izquierda cuando un agente humano de IAMET
  * toma el control de la sesión y envía el primer mensaje.
  *
- * Flujo:
- * 1. El componente hace polling cada 3s a liveChat.pollMessages con el sessionId.
- * 2. Cuando humanTookOver=true y llega un mensaje de role="human", el widget aparece.
+ * Flujo corregido:
+ * 1. El componente hace polling cada 3s usando visitorId (SIEMPRE disponible)
+ *    y sessionId (si el visitante ya inició chat con el agente IA).
+ * 2. Cuando humanTookOver=true, el widget aparece automáticamente.
  * 3. El visitante puede responder; los mensajes van a liveChat.visitorReply.
  * 4. El admin ve las respuestas en la consola de monitoreo en tiempo real.
  */
@@ -13,17 +14,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { Send, X, Minimize2, Headphones, ChevronDown } from "lucide-react";
+import { Send, Minimize2, Headphones, ChevronDown, RefreshCw } from "lucide-react";
 
 interface LiveChatWidgetProps {
   sessionId: string | null;
+  visitorId: string;
 }
 
-export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
+export default function LiveChatWidget({ sessionId, visitorId }: LiveChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [input, setInput] = useState("");
   const [lastSince, setLastSince] = useState<string | undefined>(undefined);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(sessionId);
   const [localMessages, setLocalMessages] = useState<Array<{
     id: number | string;
     role: "user" | "human";
@@ -36,11 +39,22 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Polling: verificar mensajes nuevos cada 3s
+  // Sync sessionId prop → activeSessionId
+  useEffect(() => {
+    if (sessionId && sessionId !== activeSessionId) {
+      setActiveSessionId(sessionId);
+    }
+  }, [sessionId]);
+
+  // Polling: verificar mensajes nuevos cada 3s usando visitorId o sessionId
   const pollQuery = trpc.liveChat.pollMessages.useQuery(
-    { sessionId: sessionId ?? "", since: lastSince },
     {
-      enabled: !!sessionId,
+      sessionId: activeSessionId ?? undefined,
+      visitorId: visitorId,
+      since: lastSince,
+    },
+    {
+      enabled: true, // SIEMPRE habilitado — el backend busca por visitorId si no hay sessionId
       refetchInterval: 3000,
       refetchIntervalInBackground: true,
     }
@@ -51,10 +65,20 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
   // Procesar mensajes nuevos del polling
   useEffect(() => {
     if (!pollQuery.data) return;
-    const { messages: newMsgs, humanTookOver, humanAgentName } = pollQuery.data;
+    const { messages: newMsgs, humanTookOver, humanAgentName, sessionId: foundSessionId } = pollQuery.data;
+
+    // Si el backend encontró un sessionId (por visitorId), guardarlo para futuras respuestas
+    if (foundSessionId && !activeSessionId) {
+      setActiveSessionId(foundSessionId);
+    }
 
     if (humanTookOver && humanAgentName) {
       setAgentName(humanAgentName);
+    }
+
+    // Mostrar el widget cuando el admin toma control (incluso sin mensajes aún)
+    if (humanTookOver) {
+      setIsVisible(true);
     }
 
     if (newMsgs.length > 0) {
@@ -70,16 +94,17 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
         return [...prev, ...toAdd];
       });
 
-      // Mostrar el widget si llega un mensaje humano
-      const hasHumanMsg = newMsgs.some((m) => m.role === "human");
-      if (hasHumanMsg && humanTookOver) {
-        setIsVisible(true);
-        if (!isOpen) {
-          setUnreadCount((c) => c + newMsgs.filter((m) => m.role === "human").length);
+      // Contar mensajes del humano no leídos
+      if (!isOpen) {
+        const humanMsgs = newMsgs.filter((m) => m.role === "human");
+        if (humanMsgs.length > 0) {
+          setUnreadCount((c) => c + humanMsgs.length);
+          // Auto-abrir el widget cuando llega el primer mensaje del humano
+          setIsOpen(true);
         }
       }
     }
-  }, [pollQuery.data, isOpen]);
+  }, [pollQuery.data, isOpen, activeSessionId]);
 
   // Scroll al último mensaje
   useEffect(() => {
@@ -90,7 +115,9 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
   }, [localMessages, isOpen]);
 
   const handleSend = useCallback(async () => {
-    if (!input.trim() || !sessionId) return;
+    if (!input.trim()) return;
+    const replySessionId = activeSessionId ?? pollQuery.data?.sessionId;
+    if (!replySessionId) return;
     const content = input.trim();
     setInput("");
     // Optimistic update
@@ -99,8 +126,8 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
       ...prev,
       { id: tempId, role: "user", content, createdAt: new Date() },
     ]);
-    await replyMutation.mutateAsync({ sessionId, content });
-  }, [input, sessionId, replyMutation]);
+    await replyMutation.mutateAsync({ sessionId: replySessionId, content });
+  }, [input, activeSessionId, pollQuery.data?.sessionId, replyMutation]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -109,10 +136,10 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
     }
   };
 
-  if (!isVisible || !sessionId) return null;
+  if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-2">
+    <div className="fixed bottom-6 left-6 z-[60] flex flex-col items-start gap-2">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -133,15 +160,17 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
               className="flex items-center gap-3 px-4 py-3"
               style={{ background: "linear-gradient(135deg, #0071E3 0%, #0051A8 100%)" }}
             >
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Headphones className="w-5 h-5 text-white" />
+              {/* Avatar con indicador de en línea */}
+              <div className="relative w-9 h-9 flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                  <Headphones className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-semibold text-sm leading-tight">{agentName}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-white/80 text-xs">En línea · Soporte IAMET</span>
+                  <span className="text-white/80 text-xs">Especialista IAMET · En línea</span>
                 </div>
               </div>
               <button
@@ -155,9 +184,15 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
             {/* Messages */}
             <div className="h-64 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50/50">
               {localMessages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-xs text-gray-400 text-center">
-                    Un especialista de IAMET se ha conectado contigo
+                <div className="flex flex-col items-center justify-center h-full gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                    <Headphones className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <p className="text-xs text-gray-500 text-center font-medium">
+                    Un especialista de IAMET se ha conectado
+                  </p>
+                  <p className="text-[11px] text-gray-400 text-center">
+                    Estamos aquí para ayudarte en tiempo real
                   </p>
                 </div>
               ) : (
@@ -208,7 +243,11 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
                   disabled={!input.trim() || replyMutation.isPending}
                   className="w-7 h-7 rounded-lg bg-blue-500 hover:bg-blue-600 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95"
                 >
-                  <Send className="w-3.5 h-3.5 text-white" />
+                  {replyMutation.isPending ? (
+                    <RefreshCw className="w-3.5 h-3.5 text-white animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5 text-white" />
+                  )}
                 </button>
               </div>
               <p className="text-[10px] text-gray-400 text-center mt-1.5">
@@ -262,8 +301,10 @@ export default function LiveChatWidget({ sessionId }: LiveChatWidgetProps) {
           )}
         </AnimatePresence>
 
-        {/* Pulse ring */}
-        <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-20" />
+        {/* Pulse ring — solo cuando hay mensajes no leídos */}
+        {unreadCount > 0 && (
+          <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-30" />
+        )}
       </motion.button>
     </div>
   );
