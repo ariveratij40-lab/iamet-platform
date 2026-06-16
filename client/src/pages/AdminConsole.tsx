@@ -330,14 +330,6 @@ function ConversationRow({ conv }: { conv: any }) {
           {timeSince(conv.createdAt)}
         </span>
 
-        {/* Take Over */}
-        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-          <TakeOverButton
-            sessionId={conv.sessionId}
-            humanTookOver={conv.humanTookOver ?? false}
-          />
-        </div>
-
         {/* Expand */}
         <div className="flex-shrink-0 text-gray-400">
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -354,6 +346,14 @@ function ConversationRow({ conv }: { conv: any }) {
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
           >
             <Separator />
+            {/* Barra de acciones de intervención */}
+            <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-500">Mensajes del Agente Virtual</span>
+              <TakeOverButton
+                sessionId={conv.sessionId}
+                humanTookOver={conv.humanTookOver ?? false}
+              />
+            </div>
             <div className="px-4 py-3 space-y-2 max-h-80 overflow-y-auto">
               {messagesQuery.isLoading ? (
                 <div className="flex items-center gap-2 text-xs text-gray-400">

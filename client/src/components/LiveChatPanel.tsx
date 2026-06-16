@@ -380,17 +380,17 @@ interface TakeOverButtonProps {
 
 export function TakeOverButton({ sessionId, humanTookOver, agentName = "Soporte IAMET", onTookOver }: TakeOverButtonProps) {
   const utils = trpc.useUtils();
-
   const takeOverMutation = trpc.liveChat.takeOver.useMutation({
     onSuccess: () => {
       utils.liveChat.getActiveSessions.invalidate();
+      utils.adminConsole.chatHistory.invalidate();
       onTookOver?.();
     },
   });
-
   const releaseMutation = trpc.liveChat.release.useMutation({
     onSuccess: () => {
       utils.liveChat.getActiveSessions.invalidate();
+      utils.adminConsole.chatHistory.invalidate();
     },
   });
 
