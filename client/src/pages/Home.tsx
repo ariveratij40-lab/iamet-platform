@@ -413,11 +413,11 @@ function ServiceFan() {
                 style={{ transition: "stroke 200ms, stroke-width 200ms" }}
               />
 
-              {/* Círculo del icono */}
+              {/* Círculo del icono — color de fondo permanente con baja opacidad */}
               <circle
                 cx={ix} cy={iy} r={ICON_R}
-                fill={isHov ? `${svc.color}18` : "rgba(255,255,255,0.85)"}
-                stroke={isHov ? svc.color : "rgba(0,0,0,0.07)"}
+                fill={isHov ? `${svc.color}30` : `${svc.color}14`}
+                stroke={isHov ? svc.color : `${svc.color}55`}
                 strokeWidth={isHov ? 1.8 : 1.2}
                 filter={isHov ? "url(#shadow-hover)" : "url(#shadow-node)"}
                 style={{ transition: "fill 200ms, stroke 200ms" }}
