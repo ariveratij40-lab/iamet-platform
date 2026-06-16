@@ -324,43 +324,31 @@ function ServiceFan() {
       initial="hidden"
       animate="visible"
     >
-      {/* Líneas del abanico */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox={`0 0 760 ${containerH}`}
-        preserveAspectRatio="xMidYMax meet"
+      {/* Badge central “Nuestros Servicios” */}
+      <motion.div
+        className="absolute flex items-center justify-center"
+        style={{
+          left: "50%",
+          top: containerH - FAN_ORIGIN_Y - 18,
+          transform: "translateX(-50%)",
+          zIndex: 20,
+        }}
+        initial={{ opacity: 0, scale: 0.7, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
       >
-        {SERVICES.map((svc, i) => {
-          const rad = (angles[i] * Math.PI) / 180;
-          const cx = 380; // centro del viewBox 760
-          const cy = containerH - FAN_ORIGIN_Y;
-          const nx = cx + FAN_RADIUS * Math.cos(rad);
-          const ny = cy + FAN_RADIUS * Math.sin(rad);
-          return (
-            <motion.line
-              key={i}
-              x1={cx} y1={cy}
-              x2={nx} y2={ny}
-              stroke={svc.color}
-              strokeWidth={hovered === i ? 2.5 : 1.5}
-              strokeOpacity={hovered === i ? 0.9 : 0.35}
-              strokeDasharray="5 4"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 + i * 0.07, ease: [0.23, 1, 0.32, 1] }}
-            />
-          );
-        })}
-        {/* Punto origen */}
-        <motion.circle
-          cx={380} cy={containerH - FAN_ORIGIN_Y}
-          r={6}
-          fill="oklch(0.55 0.22 255)"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.05 }}
-        />
-      </svg>
+        <span
+          className="text-[11px] font-semibold tracking-wide uppercase px-3 py-1 rounded-full"
+          style={{
+            background: "oklch(0.55 0.22 255)",
+            color: "white",
+            letterSpacing: "0.08em",
+            boxShadow: "0 2px 12px oklch(0.55 0.22 255 / 0.35)",
+          }}
+        >
+          Nuestros Servicios
+        </span>
+      </motion.div>
 
       {/* Nodos de servicios */}
       {SERVICES.map((svc, i) => {
