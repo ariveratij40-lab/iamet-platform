@@ -277,6 +277,152 @@ function AgentPrompt() {
   );
 }
 
+// ─── Services Fan ───────────────────────────────────────────────────────────
+const SERVICES = [
+  { label: "Análisis de Redes",        icon: "🖥️",  color: "#C0392B", angle: -90 },
+  { label: "Pólizas de Mantenimiento", icon: "🔧",  color: "#8E1A2E", angle: -63 },
+  { label: "Proyectos Ejecutivos",     icon: "💼",  color: "#E67E22", angle: -36 },
+  { label: "Soluciones de Energía",    icon: "⚡",  color: "#2980B9", angle: -9  },
+  { label: "Redes Wi-Fi",              icon: "📶",  color: "#E74C3C", angle:  18 },
+  { label: "Computadoras y Tecnología",icon: "🖱️",  color: "#2471A3", angle:  45 },
+  { label: "Seguridad",                icon: "📷",  color: "#27AE60", angle:  72 },
+  { label: "Soluciones de Audio/Video",icon: "▶️",  color: "#17A589", angle:  99 },
+  { label: "Cableado Voz, Datos y Video",icon: "🔌", color: "#1E8449", angle: 126 },
+];
+
+// Abanico: los nodos se distribuyen en arco semicircular superior
+// El origen del abanico está en la parte inferior central
+const FAN_RADIUS = 210; // px desde el origen
+const FAN_ORIGIN_Y = 20; // px desde el borde inferior del contenedor
+
+function ServiceFan() {
+  const [hovered, setHovered] = useState<number | null>(null);
+
+  // Ángulos: semicirculo superior estricto de -160° a -20° (9 nodos)
+  // Todos negativos = mitad superior del círculo
+  const angles = [
+    -160, -140, -120, -100, -90, -80, -60, -40, -20,
+  ];
+
+  // Altura del contenedor = radio + margen superior para los nodos
+  const containerH = FAN_RADIUS + FAN_ORIGIN_Y + 60; // 60 = radio del nodo + label
+
+  return (
+    <motion.div
+      className="relative w-full max-w-2xl mx-auto select-none"
+      style={{ height: containerH }}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Líneas del abanico */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        viewBox={`0 0 640 ${containerH}`}
+        preserveAspectRatio="xMidYMax meet"
+      >
+        {SERVICES.map((svc, i) => {
+          const rad = (angles[i] * Math.PI) / 180;
+          const cx = 320;
+          const cy = containerH - FAN_ORIGIN_Y;
+          const nx = cx + FAN_RADIUS * Math.cos(rad);
+          const ny = cy + FAN_RADIUS * Math.sin(rad);
+          return (
+            <motion.line
+              key={i}
+              x1={cx} y1={cy}
+              x2={nx} y2={ny}
+              stroke={svc.color}
+              strokeWidth={hovered === i ? 2.5 : 1.5}
+              strokeOpacity={hovered === i ? 0.9 : 0.35}
+              strokeDasharray="5 4"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 + i * 0.07, ease: [0.23, 1, 0.32, 1] }}
+            />
+          );
+        })}
+        {/* Punto origen */}
+        <motion.circle
+          cx={320} cy={containerH - FAN_ORIGIN_Y}
+          r={6}
+          fill="oklch(0.55 0.22 255)"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.05 }}
+        />
+      </svg>
+
+      {/* Nodos de servicios */}
+      {SERVICES.map((svc, i) => {
+        const rad = (angles[i] * Math.PI) / 180;
+        const cx = 50; // % — usamos posición absoluta calculada
+        const originX = 50; // % del contenedor
+        const originY = containerH - FAN_ORIGIN_Y;
+        // Posición en px desde el centro del contenedor (asumimos 640px de ancho lógico)
+        const nx = 320 + FAN_RADIUS * Math.cos(rad);
+        const ny = originY + FAN_RADIUS * Math.sin(rad);
+        // Convertir a % del contenedor
+        const leftPct = (nx / 640) * 100;
+        const topPx = ny;
+
+        return (
+          <motion.div
+            key={i}
+            className="absolute flex flex-col items-center gap-1 cursor-pointer"
+            style={{
+              left: `${leftPct}%`,
+              top: topPx - 28, // centrar el nodo (radio 28px)
+              transform: "translateX(-50%)",
+            }}
+            initial={{ opacity: 0, scale: 0.3 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.5,
+              delay: 0.2 + i * 0.08,
+              ease: [0.23, 1, 0.32, 1],
+            }}
+            onHoverStart={() => setHovered(i)}
+            onHoverEnd={() => setHovered(null)}
+            whileHover={{ scale: 1.18, y: -4 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {/* Círculo del nodo */}
+            <motion.div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg"
+              style={{
+                background: `radial-gradient(circle at 35% 35%, ${svc.color}ee, ${svc.color}99)`,
+                boxShadow:
+                  hovered === i
+                    ? `0 0 0 3px ${svc.color}55, 0 8px 28px ${svc.color}66`
+                    : `0 4px 16px ${svc.color}44`,
+                transition: "box-shadow 200ms ease",
+              }}
+            >
+              <span role="img" aria-label={svc.label}>{svc.icon}</span>
+            </motion.div>
+
+            {/* Label — aparece en hover */}
+            <AnimatePresence>
+              {hovered === i && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.9 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute -bottom-8 whitespace-nowrap text-[11px] font-semibold px-2 py-0.5 rounded-full text-white shadow-md"
+                  style={{ background: svc.color, zIndex: 10 }}
+                >
+                  {svc.label}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+}
+
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export default function Home() {
   return (
@@ -302,6 +448,9 @@ export default function Home() {
         />
 
         <div className="relative z-10 w-full flex flex-col items-center gap-8">
+          {/* Abanico de Servicios */}
+          <ServiceFan />
+
           {/* Headline */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
