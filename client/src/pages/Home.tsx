@@ -60,8 +60,11 @@ const AgentPrompt = forwardRef<AgentPromptHandle>(function AgentPrompt(_, ref) {
     return result.sessionId;
   };
 
+  const inputRef2 = useRef(input);
+  useEffect(() => { inputRef2.current = input; }, [input]);
+
   const handleSend = useCallback(async (text?: string) => {
-    const content = (text ?? input).trim();
+    const content = (text ?? inputRef2.current).trim();
     if (!content || isLoading) return;
 
     setChatOpen(true);
@@ -87,7 +90,6 @@ const AgentPrompt = forwardRef<AgentPromptHandle>(function AgentPrompt(_, ref) {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationSessionId, isLoading]);
 
   useImperativeHandle(ref, () => ({
