@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, ShieldCheck,
   Wrench, FolderKanban, Zap,
-  Wifi, Monitor, ShieldCheck as ShieldIcon, Tv2, Cable,
-  X, ChevronRight, ChevronLeft, Layers, MessageSquare, Phone,
+  Monitor, ShieldCheck as ShieldIcon, Tv2, Network, Server, Code2,
   type LucideIcon,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -289,20 +288,66 @@ interface Service {
   Icon: LucideIcon;
   color: string;
   angle: number;
+  description: string;
 }
 
-// Ángulos: semicírculo SUPERIOR simétrico
-// 8 nodos distribuidos simétricamente: -154, -132, -110, -88, -66, -44, -22, 0° → todos sin() < 0
-// Rango: -154° a -26°, paso = 18.3°, centrado en -90°
 const SERVICES: Service[] = [
-  { label: "Pólizas de Mantenimiento",   Icon: Wrench,        color: "#7C3AED", angle: -154 },
-  { label: "Proyectos Ejecutivos",       Icon: FolderKanban,  color: "#0EA5E9", angle: -128 },
-  { label: "Soluciones de Energía",      Icon: Zap,           color: "#F59E0B", angle: -103 },
-  { label: "Redes Wi-Fi",                Icon: Wifi,          color: "#EF4444", angle:  -77 },
-  { label: "Computadoras y Tecnología",  Icon: Monitor,       color: "#3B82F6", angle:  -52 },
-  { label: "Seguridad",                  Icon: ShieldIcon,    color: "#10B981", angle:  -26 },
-  { label: "Soluciones de Audio/Video",  Icon: Tv2,           color: "#06B6D4", angle:   -1 },
-  { label: "Cableado Voz, Datos y Video",Icon: Cable,         color: "#22C55E", angle:   25 },
+  {
+    label: "Pólizas de Mantenimiento",
+    Icon: Wrench,
+    color: "#7C3AED",
+    angle: -154,
+    description: "Contratos preventivos y correctivos para toda tu infraestructura tecnológica. Garantizamos continuidad operativa con SLA definidos, visitas programadas y soporte prioritario 24/7.",
+  },
+  {
+    label: "Proyectos Ejecutivos",
+    Icon: FolderKanban,
+    color: "#0EA5E9",
+    angle: -128,
+    description: "Diseño, gestión e implementación de proyectos tecnológicos llave en mano. Desde el levantamiento de requerimientos hasta la entrega con documentación técnica completa y certificación.",
+  },
+  {
+    label: "Soluciones de Energía",
+    Icon: Zap,
+    color: "#F59E0B",
+    angle: -103,
+    description: "UPS, plantas de emergencia, PDUs inteligentes y sistemas de energía ininterrumpida para proteger tus equipos críticos ante cortes o variaciones de voltaje.",
+  },
+  {
+    label: "Desarrollo de Software",
+    Icon: Code2,
+    color: "#EF4444",
+    angle: -77,
+    description: "Desarrollo de aplicaciones web, móviles y sistemas a medida. Integramos IA, automatización de procesos y APIs para digitalizar y optimizar las operaciones de tu empresa.",
+  },
+  {
+    label: "Computadoras y Tecnología",
+    Icon: Monitor,
+    color: "#3B82F6",
+    angle: -52,
+    description: "Suministro, configuración y soporte de equipos de cómputo, servidores, periféricos y licencias de software. Soluciones para usuarios finales y centros de datos.",
+  },
+  {
+    label: "Seguridad",
+    Icon: ShieldIcon,
+    color: "#10B981",
+    angle: -26,
+    description: "Sistemas de CCTV, control de acceso, voceo y detección de intrusos. Protegemos tus instalaciones con tecnología IP de última generación y monitoreo remoto.",
+  },
+  {
+    label: "Soluciones de Audio/Video",
+    Icon: Tv2,
+    color: "#06B6D4",
+    angle: -1,
+    description: "Salas de videoconferencia, señalización digital, sistemas de sonido profesional y AV integrado. Creamos experiencias de comunicación inmersivas para empresas y espacios públicos.",
+  },
+  {
+    label: "Cableado Estructurado y Data Center",
+    Icon: Network,
+    color: "#22C55E",
+    angle: 25,
+    description: "Infraestructura de red certificada Cat6A/Fibra Óptica con garantía Panduit de hasta 25 años. Diseño y construcción de Data Centers con estándares TIA-942 y certificación Fluke.",
+  },
 ];
 
 // ─── Constantes del abanico SVG ──────────────────────────────────────────────
@@ -320,6 +365,8 @@ const LINE_R_END = R_LABEL - 28; // fin de la línea (antes del label)
 
 function ServiceFan() {
   const [hovered, setHovered] = useState<number | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // 8 nodos centrados en -90° (cima), spread ±70°
   const N = SERVICES.length;
@@ -329,8 +376,33 @@ function ServiceFan() {
     CENTER_DEG - SPREAD_DEG / 2 + (i / (N - 1)) * SPREAD_DEG
   );
 
+  // Convierte coordenadas SVG a posición relativa al contenedor
+  const svgToContainer = (svgX: number, svgY: number) => {
+    const el = containerRef.current?.querySelector("svg") as SVGSVGElement | null;
+    if (!el) return { x: 0, y: 0 };
+    const pt = el.createSVGPoint();
+    pt.x = svgX;
+    pt.y = svgY;
+    const screen = pt.matrixTransform(el.getScreenCTM()!);
+    const rect = containerRef.current!.getBoundingClientRect();
+    return { x: screen.x - rect.left, y: screen.y - rect.top };
+  };
+
+  const handleHoverStart = (i: number, ix: number, iy: number) => {
+    setHovered(i);
+    const pos = svgToContainer(ix, iy);
+    setTooltipPos(pos);
+  };
+
+  const handleHoverEnd = () => {
+    setHovered(null);
+    setTooltipPos(null);
+  };
+
+  const hoveredService = hovered !== null ? SERVICES[hovered] : null;
+
   return (
-    <div className="w-full select-none" style={{ maxWidth: 900 }}>
+    <div ref={containerRef} className="w-full select-none relative" style={{ maxWidth: 900 }}>
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         width="100%"
@@ -398,8 +470,8 @@ function ServiceFan() {
               initial={{ opacity: 0, scale: 0.3 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
-              onHoverStart={() => setHovered(i)}
-              onHoverEnd={() => setHovered(null)}
+              onHoverStart={() => handleHoverStart(i, ix, iy)}
+              onHoverEnd={handleHoverEnd}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
             >
@@ -414,7 +486,7 @@ function ServiceFan() {
                 style={{ transition: "stroke-width 200ms, opacity 200ms" }}
               />
 
-              {/* Círculo del icono — color de fondo permanente con baja opacidad */}
+              {/* Círculo del icono */}
               <circle
                 cx={ix} cy={iy} r={ICON_R}
                 fill={isHov ? `${svc.color}30` : `${svc.color}14`}
@@ -424,7 +496,7 @@ function ServiceFan() {
                 style={{ transition: "fill 200ms, stroke 200ms" }}
               />
 
-              {/* Icono SVG Lucide renderizado como foreignObject */}
+              {/* Icono Lucide */}
               <foreignObject
                 x={ix - 18} y={iy - 18}
                 width={36} height={36}
@@ -444,7 +516,7 @@ function ServiceFan() {
                 </div>
               </foreignObject>
 
-              {/* Label externo — texto en 2 líneas si es largo */}
+              {/* Label externo */}
               <text
                 x={lx} y={ly - 6}
                 textAnchor={textAnchor}
@@ -454,7 +526,6 @@ function ServiceFan() {
                 fill={isHov ? svc.color : "#374151"}
                 style={{ fontFamily: "inherit", transition: "fill 200ms", lineHeight: 1.4 }}
               >
-                {/* Dividir en 2 líneas si tiene espacio */}
                 {svc.label.split(" ").length <= 2 ? (
                   <tspan>{svc.label}</tspan>
                 ) : (
@@ -476,6 +547,95 @@ function ServiceFan() {
           );
         })}
       </svg>
+
+      {/* Tooltip de semblanza — panel HTML flotante posicionado sobre el icono */}
+      <AnimatePresence>
+        {hoveredService && tooltipPos && (
+          <motion.div
+            key={hovered}
+            initial={{ opacity: 0, scale: 0.88, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 6 }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: tooltipPos.x,
+              top: tooltipPos.y - 8,
+              transform: "translate(-50%, -100%)",
+              width: 240,
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(255,255,255,0.97)",
+                border: `1.5px solid ${hoveredService.color}40`,
+                borderRadius: 16,
+                boxShadow: `0 12px 40px rgba(0,0,0,0.13), 0 2px 8px ${hoveredService.color}22`,
+                padding: "14px 16px",
+              }}
+            >
+              {/* Header del tooltip */}
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  style={{
+                    width: 28, height: 28,
+                    borderRadius: 8,
+                    background: `${hoveredService.color}18`,
+                    border: `1.5px solid ${hoveredService.color}40`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <hoveredService.Icon size={15} color={hoveredService.color} strokeWidth={1.8} />
+                </div>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: hoveredService.color,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {hoveredService.label}
+                </span>
+              </div>
+              {/* Descripción */}
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "#4B5563",
+                  lineHeight: 1.6,
+                  margin: 0,
+                  fontWeight: 300,
+                }}
+              >
+                {hoveredService.description}
+              </p>
+              {/* Flecha inferior */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: -7,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 12,
+                  height: 7,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: 12, height: 12,
+                    background: "rgba(255,255,255,0.97)",
+                    border: `1.5px solid ${hoveredService.color}40`,
+                    transform: "rotate(45deg) translate(-1px, -7px)",
+                  }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -538,193 +698,9 @@ export default function Home() {
       {/* WhatsApp floating button */}
       <WhatsAppButton />
 
-      {/* Asistente de onboarding */}
-      <OnboardingAssistant />
     </div>
   );
 }
 
-// ─── Onboarding Assistant ───────────────────────────────────────────────────
-const ONBOARDING_STEPS = [
-  {
-    icon: Layers,
-    title: "Bienvenido a IAMET",
-    body: "Somos especialistas en soluciones tecnológicas para empresas: infraestructura de red, seguridad, audio/video, cómputo y más. El abanico superior muestra nuestras áreas de servicio.",
-    color: "#0071E3",
-  },
-  {
-    icon: MessageSquare,
-    title: "Agente Virtual IAMET",
-    body: "El campo de texto central es nuestro Agente Virtual con IA. Escribe tu necesidad o pregunta — por ejemplo \"Necesito cámaras de seguridad\" — y el agente te dará una recomendación personalizada en segundos.",
-    color: "#7C3AED",
-  },
-  {
-    icon: Layers,
-    title: "Sugerencias rápidas",
-    body: "Debajo del chat encontrarás preguntas frecuentes. Haz clic en cualquiera para iniciar la conversación al instante. El agente detecta automáticamente el tipo de solución que necesitas.",
-    color: "#10B981",
-  },
-  {
-    icon: Phone,
-    title: "Habla con un experto",
-    body: "Si prefieres atención directa, usa el botón de WhatsApp en la esquina inferior derecha. Un asesor IAMET te contactará de inmediato para darte una cotización sin compromiso.",
-    color: "#25D366",
-  },
-];
+// ─── (Onboarding Assistant removed) ─────────────────────────────────────────
 
-function OnboardingAssistant() {
-  const [visible, setVisible] = useState(() => {
-    try {
-      return !localStorage.getItem("iamet_onboarding_done");
-    } catch {
-      return true;
-    }
-  });
-  const [step, setStep] = useState(0);
-  const total = ONBOARDING_STEPS.length;
-  const current = ONBOARDING_STEPS[step];
-
-  const dismiss = () => {
-    try { localStorage.setItem("iamet_onboarding_done", "1"); } catch {}
-    setVisible(false);
-  };
-
-  const next = () => {
-    if (step < total - 1) setStep(step + 1);
-    else dismiss();
-  };
-
-  const prev = () => {
-    if (step > 0) setStep(step - 1);
-  };
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <>
-          {/* Overlay semitransparente */}
-          <motion.div
-            className="fixed inset-0 z-[90] pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ background: "rgba(0,0,0,0.18)", backdropFilter: "blur(2px)" }}
-          />
-
-          {/* Panel del asistente — esquina inferior izquierda */}
-          <motion.div
-            className="fixed bottom-6 left-6 z-[100] w-80 rounded-2xl shadow-2xl overflow-hidden"
-            initial={{ opacity: 0, y: 40, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.94 }}
-            transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
-            style={{
-              background: "rgba(255,255,255,0.97)",
-              border: "1px solid rgba(0,0,0,0.08)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)",
-            }}
-          >
-            {/* Barra de color superior */}
-            <motion.div
-              className="h-1 w-full"
-              style={{ background: current.color }}
-              key={step}
-              initial={{ scaleX: 0, transformOrigin: "left" }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            />
-
-            <div className="p-5">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: `${current.color}18`, border: `1.5px solid ${current.color}33` }}
-                  >
-                    <current.icon size={18} color={current.color} strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-medium tracking-widest uppercase" style={{ color: current.color }}>
-                      Paso {step + 1} de {total}
-                    </p>
-                    <h3 className="text-sm font-semibold text-gray-800 leading-tight">
-                      {current.title}
-                    </h3>
-                  </div>
-                </div>
-                <button
-                  onClick={dismiss}
-                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors flex-shrink-0"
-                  aria-label="Cerrar tour"
-                >
-                  <X size={14} color="#9CA3AF" />
-                </button>
-              </div>
-
-              {/* Cuerpo */}
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={step}
-                  className="text-xs text-gray-500 leading-relaxed mb-4"
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                >
-                  {current.body}
-                </motion.p>
-              </AnimatePresence>
-
-              {/* Indicadores de paso */}
-              <div className="flex items-center gap-1.5 mb-4">
-                {ONBOARDING_STEPS.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setStep(idx)}
-                    className="h-1.5 rounded-full transition-all duration-300"
-                    style={{
-                      width: idx === step ? 20 : 6,
-                      background: idx === step ? current.color : "#E5E7EB",
-                    }}
-                    aria-label={`Ir al paso ${idx + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Botones de navegación */}
-              <div className="flex items-center gap-2">
-                {step > 0 && (
-                  <button
-                    onClick={prev}
-                    className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
-                  >
-                    <ChevronLeft size={14} />
-                    Anterior
-                  </button>
-                )}
-                <button
-                  onClick={next}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-[0.97]"
-                  style={{
-                    background: current.color,
-                    boxShadow: `0 4px 14px ${current.color}44`,
-                  }}
-                >
-                  {step < total - 1 ? (
-                    <>
-                      Siguiente
-                      <ChevronRight size={14} />
-                    </>
-                  ) : (
-                    "Entendido — ¡Empezar!"
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
