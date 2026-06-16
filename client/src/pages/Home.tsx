@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, ShieldCheck,
@@ -24,7 +24,11 @@ const QUICK_SUGGESTIONS = [
 ];
 
 // ─── Main Chat Component ──────────────────────────────────────────────────────
-function AgentPrompt() {
+interface AgentPromptHandle {
+  triggerSend: (text: string) => void;
+}
+
+const AgentPrompt = forwardRef<AgentPromptHandle>(function AgentPrompt(_, ref) {
   const [visitorId] = useState(() => {
     const stored = sessionStorage.getItem("iamet_visitor_home");
     if (stored) return stored;
@@ -55,7 +59,7 @@ function AgentPrompt() {
     return result.sessionId;
   };
 
-  const handleSend = async (text?: string) => {
+  const handleSend = useCallback(async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || isLoading) return;
 
@@ -82,7 +86,12 @@ function AgentPrompt() {
     } finally {
       setIsLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationSessionId, isLoading]);
+
+  useImperativeHandle(ref, () => ({
+    triggerSend: (text: string) => handleSend(text),
+  }), [handleSend]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -247,7 +256,7 @@ function AgentPrompt() {
       </AnimatePresence>
     </div>
   );
-}
+});
 
 // ─── Services Fan ───────────────────────────────────────────────────────────
 interface Service {
@@ -256,6 +265,7 @@ interface Service {
   color: string;
   angle: number;
   description: string;
+  query: string; // Pregunta pre-cargada al hacer clic
 }
 
 const SERVICES: Service[] = [
@@ -265,6 +275,7 @@ const SERVICES: Service[] = [
     color: "#7C3AED",
     angle: -154,
     description: "Contratos preventivos y correctivos para toda tu infraestructura tecnológica. Garantizamos continuidad operativa con SLA definidos, visitas programadas y soporte prioritario 24/7.",
+    query: "Quiero información sobre pólizas de mantenimiento para mi infraestructura tecnológica",
   },
   {
     label: "Proyectos Ejecutivos",
@@ -272,6 +283,7 @@ const SERVICES: Service[] = [
     color: "#0EA5E9",
     angle: -128,
     description: "Diseño, gestión e implementación de proyectos tecnológicos llave en mano. Desde el levantamiento de requerimientos hasta la entrega con documentación técnica completa y certificación.",
+    query: "Necesito asesoría para un proyecto ejecutivo de tecnología en mi empresa",
   },
   {
     label: "Soluciones de Energía",
@@ -279,6 +291,7 @@ const SERVICES: Service[] = [
     color: "#F59E0B",
     angle: -103,
     description: "UPS, plantas de emergencia, PDUs inteligentes y sistemas de energía ininterrumpida para proteger tus equipos críticos ante cortes o variaciones de voltaje.",
+    query: "¿Qué soluciones de energía y UPS ofrecen para proteger equipos críticos?",
   },
   {
     label: "Desarrollo de Software",
@@ -286,6 +299,7 @@ const SERVICES: Service[] = [
     color: "#EF4444",
     angle: -77,
     description: "Desarrollo de aplicaciones web, móviles y sistemas a medida. Integramos IA, automatización de procesos y APIs para digitalizar y optimizar las operaciones de tu empresa.",
+    query: "Me interesa desarrollar software a medida o una aplicación para mi empresa",
   },
   {
     label: "Computadoras y Tecnología",
@@ -293,6 +307,7 @@ const SERVICES: Service[] = [
     color: "#3B82F6",
     angle: -52,
     description: "Suministro, configuración y soporte de equipos de cómputo, servidores, periféricos y licencias de software. Soluciones para usuarios finales y centros de datos.",
+    query: "Necesito equipos de cómputo, servidores o tecnología para mi empresa",
   },
   {
     label: "Seguridad",
@@ -300,6 +315,7 @@ const SERVICES: Service[] = [
     color: "#10B981",
     angle: -26,
     description: "Sistemas de CCTV, control de acceso, voceo y detección de intrusos. Protegemos tus instalaciones con tecnología IP de última generación y monitoreo remoto.",
+    query: "¿Cómo puedo mejorar la seguridad electrónica de mis instalaciones con CCTV y control de acceso?",
   },
   {
     label: "Soluciones de Audio/Video",
@@ -307,6 +323,7 @@ const SERVICES: Service[] = [
     color: "#06B6D4",
     angle: -1,
     description: "Salas de videoconferencia, señalización digital, sistemas de sonido profesional y AV integrado. Creamos experiencias de comunicación inmersivas para empresas y espacios públicos.",
+    query: "Quiero implementar soluciones de audio y video profesional o una sala de videoconferencia",
   },
   {
     label: "Cableado Estructurado y Data Center",
@@ -314,6 +331,7 @@ const SERVICES: Service[] = [
     color: "#22C55E",
     angle: 25,
     description: "Infraestructura de red certificada Cat6A/Fibra Óptica con garantía Panduit de hasta 25 años. Diseño y construcción de Data Centers con estándares TIA-942 y certificación Fluke.",
+    query: "Necesito cableado estructurado certificado Cat6A o diseño de Data Center con estándares TIA-942",
   },
 ];
 
@@ -330,7 +348,7 @@ const ICON_R = 36; // radio del círculo del icono (72px diámetro)
 const LINE_R_START = R_ICON + ICON_R + 6; // inicio de la línea (borde del icono)
 const LINE_R_END = R_LABEL - 28; // fin de la línea (antes del label)
 
-function ServiceFan() {
+function ServiceFan({ onServiceClick }: { onServiceClick: (query: string) => void }) {
   const [hovered, setHovered] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -453,6 +471,7 @@ function ServiceFan() {
               transition={{ duration: 0.5, delay: 0.2 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
               onHoverStart={() => handleHoverStart(i, ix, iy)}
               onHoverEnd={handleHoverEnd}
+              onClick={() => onServiceClick(svc.query)}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
             >
@@ -623,6 +642,17 @@ function ServiceFan() {
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export default function Home() {
+  const agentRef = useRef<{ triggerSend: (text: string) => void }>(null);
+
+  const handleServiceClick = useCallback((query: string) => {
+    agentRef.current?.triggerSend(query);
+    // Scroll suave hacia el chat
+    setTimeout(() => {
+      const chatEl = document.getElementById("agent-chat-section");
+      chatEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--color-iamet-bg)] flex flex-col">
       {/* Full-screen hero: centered agent prompt — pr-14 para no solapar el sidebar colapsado */}
@@ -647,7 +677,7 @@ export default function Home() {
 
         <div className="relative z-10 w-full flex flex-col items-center gap-8">
           {/* Abanico de Servicios */}
-          <ServiceFan />
+          <ServiceFan onServiceClick={handleServiceClick} />
 
           {/* Headline */}
           <motion.div
@@ -671,7 +701,7 @@ export default function Home() {
             transition={{ duration: 0.55, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
             className="w-full max-w-2xl"
           >
-            <AgentPrompt />
+            <div id="agent-chat-section"><AgentPrompt ref={agentRef} /></div>
           </motion.div>
         </div>
       </section>
