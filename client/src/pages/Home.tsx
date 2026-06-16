@@ -4,6 +4,7 @@ import {
   Send, Loader2, Sparkles, ShieldCheck,
   Wrench, FolderKanban, Zap,
   Wifi, Monitor, ShieldCheck as ShieldIcon, Tv2, Cable,
+  X, ChevronRight, ChevronLeft, Layers, MessageSquare, Phone,
   type LucideIcon,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -339,10 +340,10 @@ function ServiceFan() {
         {/* Definiciones de filtros */}
         <defs>
           <filter id="shadow-node" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#00000018" />
+            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.09)" />
           </filter>
           <filter id="shadow-hover" x="-40%" y="-40%" width="180%" height="180%">
-            <feDropShadow dx="0" dy="6" stdDeviation="14" floodColor="#00000028" />
+            <feDropShadow dx="0" dy="6" stdDeviation="14" floodColor="rgba(0,0,0,0.16)" />
           </filter>
         </defs>
 
@@ -402,15 +403,15 @@ function ServiceFan() {
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
             >
-              {/* Línea conectora icono → label */}
+              {/* Línea conectora icono → label — color del servicio permanente */}
               <line
                 x1={ls1x} y1={ls1y}
                 x2={ls2x} y2={ls2y}
-                stroke={isHov ? svc.color : "#CBD5E1"}
-                strokeWidth={isHov ? 1.5 : 1}
-                strokeDasharray={isHov ? "none" : "4 3"}
-                opacity={0.7}
-                style={{ transition: "stroke 200ms, stroke-width 200ms" }}
+                stroke={svc.color}
+                strokeWidth={isHov ? 2 : 1.2}
+                strokeDasharray={isHov ? "none" : "5 3"}
+                opacity={isHov ? 0.9 : 0.45}
+                style={{ transition: "stroke-width 200ms, opacity 200ms" }}
               />
 
               {/* Círculo del icono — color de fondo permanente con baja opacidad */}
@@ -536,6 +537,194 @@ export default function Home() {
 
       {/* WhatsApp floating button */}
       <WhatsAppButton />
+
+      {/* Asistente de onboarding */}
+      <OnboardingAssistant />
     </div>
+  );
+}
+
+// ─── Onboarding Assistant ───────────────────────────────────────────────────
+const ONBOARDING_STEPS = [
+  {
+    icon: Layers,
+    title: "Bienvenido a IAMET",
+    body: "Somos especialistas en soluciones tecnológicas para empresas: infraestructura de red, seguridad, audio/video, cómputo y más. El abanico superior muestra nuestras áreas de servicio.",
+    color: "#0071E3",
+  },
+  {
+    icon: MessageSquare,
+    title: "Agente Virtual IAMET",
+    body: "El campo de texto central es nuestro Agente Virtual con IA. Escribe tu necesidad o pregunta — por ejemplo \"Necesito cámaras de seguridad\" — y el agente te dará una recomendación personalizada en segundos.",
+    color: "#7C3AED",
+  },
+  {
+    icon: Layers,
+    title: "Sugerencias rápidas",
+    body: "Debajo del chat encontrarás preguntas frecuentes. Haz clic en cualquiera para iniciar la conversación al instante. El agente detecta automáticamente el tipo de solución que necesitas.",
+    color: "#10B981",
+  },
+  {
+    icon: Phone,
+    title: "Habla con un experto",
+    body: "Si prefieres atención directa, usa el botón de WhatsApp en la esquina inferior derecha. Un asesor IAMET te contactará de inmediato para darte una cotización sin compromiso.",
+    color: "#25D366",
+  },
+];
+
+function OnboardingAssistant() {
+  const [visible, setVisible] = useState(() => {
+    try {
+      return !localStorage.getItem("iamet_onboarding_done");
+    } catch {
+      return true;
+    }
+  });
+  const [step, setStep] = useState(0);
+  const total = ONBOARDING_STEPS.length;
+  const current = ONBOARDING_STEPS[step];
+
+  const dismiss = () => {
+    try { localStorage.setItem("iamet_onboarding_done", "1"); } catch {}
+    setVisible(false);
+  };
+
+  const next = () => {
+    if (step < total - 1) setStep(step + 1);
+    else dismiss();
+  };
+
+  const prev = () => {
+    if (step > 0) setStep(step - 1);
+  };
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <>
+          {/* Overlay semitransparente */}
+          <motion.div
+            className="fixed inset-0 z-[90] pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ background: "rgba(0,0,0,0.18)", backdropFilter: "blur(2px)" }}
+          />
+
+          {/* Panel del asistente — esquina inferior izquierda */}
+          <motion.div
+            className="fixed bottom-6 left-6 z-[100] w-80 rounded-2xl shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.94 }}
+            transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+            style={{
+              background: "rgba(255,255,255,0.97)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)",
+            }}
+          >
+            {/* Barra de color superior */}
+            <motion.div
+              className="h-1 w-full"
+              style={{ background: current.color }}
+              key={step}
+              initial={{ scaleX: 0, transformOrigin: "left" }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+
+            <div className="p-5">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${current.color}18`, border: `1.5px solid ${current.color}33` }}
+                  >
+                    <current.icon size={18} color={current.color} strokeWidth={1.8} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium tracking-widest uppercase" style={{ color: current.color }}>
+                      Paso {step + 1} de {total}
+                    </p>
+                    <h3 className="text-sm font-semibold text-gray-800 leading-tight">
+                      {current.title}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  onClick={dismiss}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors flex-shrink-0"
+                  aria-label="Cerrar tour"
+                >
+                  <X size={14} color="#9CA3AF" />
+                </button>
+              </div>
+
+              {/* Cuerpo */}
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={step}
+                  className="text-xs text-gray-500 leading-relaxed mb-4"
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                >
+                  {current.body}
+                </motion.p>
+              </AnimatePresence>
+
+              {/* Indicadores de paso */}
+              <div className="flex items-center gap-1.5 mb-4">
+                {ONBOARDING_STEPS.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setStep(idx)}
+                    className="h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      width: idx === step ? 20 : 6,
+                      background: idx === step ? current.color : "#E5E7EB",
+                    }}
+                    aria-label={`Ir al paso ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Botones de navegación */}
+              <div className="flex items-center gap-2">
+                {step > 0 && (
+                  <button
+                    onClick={prev}
+                    className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+                  >
+                    <ChevronLeft size={14} />
+                    Anterior
+                  </button>
+                )}
+                <button
+                  onClick={next}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-[0.97]"
+                  style={{
+                    background: current.color,
+                    boxShadow: `0 4px 14px ${current.color}44`,
+                  }}
+                >
+                  {step < total - 1 ? (
+                    <>
+                      Siguiente
+                      <ChevronRight size={14} />
+                    </>
+                  ) : (
+                    "Entendido — ¡Empezar!"
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
