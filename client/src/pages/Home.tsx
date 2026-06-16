@@ -292,20 +292,18 @@ const SERVICES = [
 
 // Abanico: los nodos se distribuyen en arco semicircular superior
 // El origen del abanico está en la parte inferior central
-const FAN_RADIUS = 210; // px desde el origen
+const FAN_RADIUS = 260; // px desde el origen — mayor separación entre nodos
 const FAN_ORIGIN_Y = 20; // px desde el borde inferior del contenedor
 
 function ServiceFan() {
   const [hovered, setHovered] = useState<number | null>(null);
 
-  // Ángulos: semicirculo superior estricto de -160° a -20° (9 nodos)
+  // Ángulos: distribución uniforme de -170° a -10° (9 nodos, paso = 20°)
   // Todos negativos = mitad superior del círculo
-  const angles = [
-    -160, -140, -120, -100, -90, -80, -60, -40, -20,
-  ];
+  const angles = Array.from({ length: 9 }, (_, i) => -170 + i * 20);
 
-  // Altura del contenedor = radio + margen superior para los nodos
-  const containerH = FAN_RADIUS + FAN_ORIGIN_Y + 60; // 60 = radio del nodo + label
+  // Altura del contenedor = radio + margen superior para los nodos + espacio para labels
+  const containerH = FAN_RADIUS + FAN_ORIGIN_Y + 100; // 100 = nodo (56) + label (44)
 
   return (
     <motion.div
@@ -317,12 +315,12 @@ function ServiceFan() {
       {/* Líneas del abanico */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox={`0 0 640 ${containerH}`}
+        viewBox={`0 0 760 ${containerH}`}
         preserveAspectRatio="xMidYMax meet"
       >
         {SERVICES.map((svc, i) => {
           const rad = (angles[i] * Math.PI) / 180;
-          const cx = 320;
+          const cx = 380; // centro del viewBox 760
           const cy = containerH - FAN_ORIGIN_Y;
           const nx = cx + FAN_RADIUS * Math.cos(rad);
           const ny = cy + FAN_RADIUS * Math.sin(rad);
@@ -343,7 +341,7 @@ function ServiceFan() {
         })}
         {/* Punto origen */}
         <motion.circle
-          cx={320} cy={containerH - FAN_ORIGIN_Y}
+          cx={380} cy={containerH - FAN_ORIGIN_Y}
           r={6}
           fill="oklch(0.55 0.22 255)"
           initial={{ scale: 0, opacity: 0 }}
@@ -358,21 +356,22 @@ function ServiceFan() {
         const cx = 50; // % — usamos posición absoluta calculada
         const originX = 50; // % del contenedor
         const originY = containerH - FAN_ORIGIN_Y;
-        // Posición en px desde el centro del contenedor (asumimos 640px de ancho lógico)
-        const nx = 320 + FAN_RADIUS * Math.cos(rad);
+        // Posición en px desde el centro del contenedor (viewBox 760px)
+        const nx = 380 + FAN_RADIUS * Math.cos(rad);
         const ny = originY + FAN_RADIUS * Math.sin(rad);
         // Convertir a % del contenedor
-        const leftPct = (nx / 640) * 100;
+        const leftPct = (nx / 760) * 100;
         const topPx = ny;
 
         return (
           <motion.div
             key={i}
-            className="absolute flex flex-col items-center gap-1 cursor-pointer"
+            className="absolute flex flex-col items-center gap-1.5 cursor-pointer"
             style={{
               left: `${leftPct}%`,
               top: topPx - 28, // centrar el nodo (radio 28px)
               transform: "translateX(-50%)",
+              width: 88, // ancho fijo para que el label no desborde
             }}
             initial={{ opacity: 0, scale: 0.3 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -401,21 +400,24 @@ function ServiceFan() {
               <span role="img" aria-label={svc.label}>{svc.icon}</span>
             </motion.div>
 
-            {/* Label — aparece en hover */}
-            <AnimatePresence>
-              {hovered === i && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 4, scale: 0.9 }}
-                  transition={{ duration: 0.18 }}
-                  className="absolute -bottom-8 whitespace-nowrap text-[11px] font-semibold px-2 py-0.5 rounded-full text-white shadow-md"
-                  style={{ background: svc.color, zIndex: 10 }}
-                >
-                  {svc.label}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Label permanente debajo del nodo */}
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.35 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
+              className="text-center leading-tight"
+              style={{
+                fontSize: 10,
+                fontWeight: hovered === i ? 700 : 500,
+                color: hovered === i ? svc.color : "oklch(0.38 0.01 255)",
+                transition: "color 180ms ease, font-weight 180ms ease",
+                lineHeight: 1.25,
+                wordBreak: "break-word",
+                hyphens: "auto",
+              }}
+            >
+              {svc.label}
+            </motion.p>
           </motion.div>
         );
       })}
