@@ -9,6 +9,8 @@ import {
   advisorSessions, AdvisorSession, InsertAdvisorSession,
   courses, Course,
   enrollments, InsertEnrollment,
+  visitorSessions, InsertVisitorSession, VisitorSession,
+  pageEvents, InsertPageEvent,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -234,6 +236,112 @@ export async function createEnrollment(data: InsertEnrollment): Promise<number> 
   if (!db) throw new Error("DB not available");
   const result = await db.insert(enrollments).values(data);
   return (result as any)[0]?.insertId ?? 0;
+}
+
+// ─── Visitor Tracking ────────────────────────────────────────────────────────
+export async function upsertVisitorSession(data: {
+  visitorId: string;
+  currentPage?: string;
+  currentSection?: string;
+  chatActive?: boolean;
+  chatDuration?: number;
+  chatMessages?: number;
+  country?: string;
+  city?: string;
+  countryCode?: string;
+  ip?: string;
+  userAgent?: string;
+  referrer?: string;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db
+    .select({ id: visitorSessions.id })
+    .from(visitorSessions)
+    .where(eq(visitorSessions.visitorId, data.visitorId))
+    .limit(1);
+  const now = new Date();
+  if (existing.length > 0) {
+    await db
+      .update(visitorSessions)
+      .set({
+        ...(data.currentPage !== undefined && { currentPage: data.currentPage }),
+        ...(data.currentSection !== undefined && { currentSection: data.currentSection }),
+        ...(data.chatActive !== undefined && { chatActive: data.chatActive }),
+        ...(data.chatDuration !== undefined && { chatDuration: data.chatDuration }),
+        ...(data.chatMessages !== undefined && { chatMessages: data.chatMessages }),
+        lastSeenAt: now,
+      })
+      .where(eq(visitorSessions.visitorId, data.visitorId));
+  } else {
+    await db.insert(visitorSessions).values({
+      visitorId: data.visitorId,
+      currentPage: data.currentPage ?? "/",
+      currentSection: data.currentSection ?? "hero",
+      chatActive: data.chatActive ?? false,
+      chatDuration: data.chatDuration ?? 0,
+      chatMessages: data.chatMessages ?? 0,
+      country: data.country,
+      city: data.city,
+      countryCode: data.countryCode,
+      ip: data.ip,
+      userAgent: data.userAgent,
+      referrer: data.referrer,
+      lastSeenAt: now,
+    });
+  }
+}
+
+export async function addPageEvent(data: InsertPageEvent): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(pageEvents).values(data);
+}
+
+export async function getLiveVisitors(windowMs = 2 * 60 * 1000): Promise<VisitorSession[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const cutoff = new Date(Date.now() - windowMs);
+  return db
+    .select()
+    .from(visitorSessions)
+    .where(sql`${visitorSessions.lastSeenAt} >= ${cutoff}`)
+    .orderBy(desc(visitorSessions.lastSeenAt));
+}
+
+export async function getVisitorEvents(visitorId: string, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(pageEvents)
+    .where(eq(pageEvents.visitorId, visitorId))
+    .orderBy(desc(pageEvents.createdAt))
+    .limit(limit);
+}
+
+export async function getVisitorStats() {
+  const db = await getDb();
+  if (!db) return { total: 0, active: 0, withChat: 0 };
+  const cutoff2m = new Date(Date.now() - 2 * 60 * 1000);
+  const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [totalResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(visitorSessions)
+    .where(sql`${visitorSessions.createdAt} >= ${cutoff24h}`);
+  const [activeResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(visitorSessions)
+    .where(sql`${visitorSessions.lastSeenAt} >= ${cutoff2m}`);
+  const [chatResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(visitorSessions)
+    .where(sql`${visitorSessions.chatMessages} > 0 AND ${visitorSessions.createdAt} >= ${cutoff24h}`);
+  return {
+    total: Number(totalResult?.count ?? 0),
+    active: Number(activeResult?.count ?? 0),
+    withChat: Number(chatResult?.count ?? 0),
+  };
 }
 
 // ─── Analytics ────────────────────────────────────────────────────────────────

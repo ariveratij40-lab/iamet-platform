@@ -150,3 +150,38 @@ export const enrollments = mysqlTable("enrollments", {
 
 export type Enrollment = typeof enrollments.$inferSelect;
 export type InsertEnrollment = typeof enrollments.$inferInsert;
+
+// ─── Visitor Presence Tracking ───────────────────────────────────────────────
+export const visitorSessions = mysqlTable("visitor_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  visitorId: varchar("visitorId", { length: 64 }).notNull(),
+  currentPage: varchar("currentPage", { length: 256 }).default("/").notNull(),
+  currentSection: varchar("currentSection", { length: 128 }).default("hero").notNull(),
+  chatActive: boolean("chatActive").default(false).notNull(),
+  chatDuration: int("chatDuration").default(0).notNull(), // segundos
+  chatMessages: int("chatMessages").default(0).notNull(),
+  country: varchar("country", { length: 64 }),
+  city: varchar("city", { length: 128 }),
+  countryCode: varchar("countryCode", { length: 4 }),
+  ip: varchar("ip", { length: 64 }),
+  userAgent: text("userAgent"),
+  referrer: text("referrer"),
+  lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type VisitorSession = typeof visitorSessions.$inferSelect;
+export type InsertVisitorSession = typeof visitorSessions.$inferInsert;
+
+export const pageEvents = mysqlTable("page_events", {
+  id: int("id").autoincrement().primaryKey(),
+  visitorId: varchar("visitorId", { length: 64 }).notNull(),
+  event: mysqlEnum("event", ["page_view", "section_change", "chat_open", "chat_message", "service_click", "heartbeat"]).notNull(),
+  page: varchar("page", { length: 256 }),
+  section: varchar("section", { length: 128 }),
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PageEvent = typeof pageEvents.$inferSelect;
+export type InsertPageEvent = typeof pageEvents.$inferInsert;

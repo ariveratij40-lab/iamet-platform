@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+import { useVisitorTracking } from "@/hooks/useVisitorTracking";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, ShieldCheck,
@@ -643,6 +644,17 @@ function ServiceFan({ onServiceClick }: { onServiceClick: (query: string) => voi
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export default function Home() {
   const agentRef = useRef<{ triggerSend: (text: string) => void }>(null);
+  const [chatActive, setChatActive] = useState(false);
+  const [chatMessages, setChatMessages] = useState(0);
+  const [currentSection, setCurrentSection] = useState("hero");
+
+  // Tracking de presencia
+  const { logEvent } = useVisitorTracking({
+    currentPage: "/",
+    currentSection,
+    chatActive,
+    chatMessages,
+  });
 
   const handleServiceClick = useCallback((query: string) => {
     agentRef.current?.triggerSend(query);

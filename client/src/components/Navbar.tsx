@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid, Shield, Cpu, Zap, BookOpen, Phone, LogIn,
   LayoutDashboard, ChevronRight, ChevronLeft, X, Home,
-  Server, Brain, Headphones, FileCheck, Globe,
+  Server, Brain, Headphones, FileCheck, Globe, Activity,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -219,6 +219,28 @@ export default function Navbar() {
         {/* Auth section */}
         <div className="border-t border-[var(--color-iamet-border-subtle)] py-3 flex-shrink-0">
           {user ? (
+            <>
+            <Link href="/admin/monitor" onClick={() => setExpanded(false)}>
+              <button
+                className="w-full flex items-center gap-3 px-4 py-2 text-[var(--color-iamet-text-muted)] hover:text-green-600 hover:bg-green-50 transition-all duration-150"
+                title={!expanded ? "Monitor en Vivo" : undefined}
+              >
+                <Activity style={{ width: 18, height: 18 }} className="flex-shrink-0" />
+                <AnimatePresence>
+                  {expanded && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.18 }}
+                      className="text-sm font-medium whitespace-nowrap"
+                    >
+                      Monitor en Vivo
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+            </Link>
             <Link href="/admin" onClick={() => setExpanded(false)}>
               <button
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-surface)] transition-all duration-150"
@@ -240,6 +262,7 @@ export default function Navbar() {
                 </AnimatePresence>
               </button>
             </Link>
+            </>
           ) : (
             <a href={getLoginUrl()}>
               <button

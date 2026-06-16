@@ -75,3 +75,20 @@
 - [x] Banner informativo de especialista en Infraestructura Física con garantías y certificaciones
 - [x] Sugerencias rápidas contextuales para infraestructura cuando está en modo especialista
 - [x] Placeholder del input adaptativo según el modo activo
+
+## Consola de Administración — Monitoreo en Tiempo Real
+
+- [ ] Tabla `visitor_sessions` en DB: visitorId, page, section, chatActive, chatDuration, country, city, ip, userAgent, lastSeenAt, createdAt
+- [ ] Tabla `page_events` en DB: visitorId, event, page, section, timestamp
+- [ ] tRPC procedure `tracking.heartbeat`: recibe visitorId, page, section, chatActive, chatDuration
+- [ ] tRPC procedure `admin.getLiveVisitors`: retorna visitantes activos (lastSeenAt < 2 min)
+- [ ] tRPC procedure `admin.getVisitorEvents`: retorna historial de eventos de un visitante
+- [ ] Hook `usePresenceTracker` en frontend: envía heartbeat cada 30s con página/sección activa
+- [ ] Detección de sección activa con IntersectionObserver en Home.tsx
+- [ ] Geolocalización por IP usando API pública (ip-api.com)
+- [ ] Página `/admin/console` con tabla de visitantes en tiempo real (auto-refresh cada 15s)
+- [ ] Columnas: ID visitante, página actual, sección activa, tiempo en chat, país/ciudad, última actividad
+- [ ] Indicadores de estado: verde (activo <1min), amarillo (idle 1-2min), gris (inactivo)
+- [ ] Detalle expandible por visitante: historial de páginas y eventos
+- [ ] Proteger ruta /admin/console con verificación de rol admin
+- [ ] Enlace a /admin/console desde el sidebar del admin

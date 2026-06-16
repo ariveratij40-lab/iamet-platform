@@ -9,6 +9,7 @@ import VerticalLanding from "./pages/VerticalLanding";
 import TechAdvisor from "./pages/TechAdvisor";
 import Academy from "./pages/Academy";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminConsole from "./pages/AdminConsole";
 import Navbar from "./components/Navbar";
 import Contact from "./pages/Contact";
 
@@ -28,6 +29,7 @@ function Router() {
         <Route path="/contacto" component={Contact} />
         {/* Admin */}
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/monitor" component={AdminConsole} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

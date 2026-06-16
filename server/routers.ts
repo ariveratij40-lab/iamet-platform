@@ -14,6 +14,11 @@ import {
   createAdvisorSession, getAdvisorSession, updateAdvisorSession,
   getCourses, getCourseBySlug, createEnrollment,
   getAnalytics,
+  upsertVisitorSession,
+  addPageEvent,
+  getLiveVisitors,
+  getVisitorEvents,
+  getVisitorStats,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -340,6 +345,86 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   // ─── Analytics (Admin) ─────────────────────────────────────────────────────
   analytics: router({
     dashboard: adminProcedure.query(() => getAnalytics()),
+  }),
+
+  // ─── Visitor Tracking (público) ──────────────────────────────────────────────
+  tracking: router({
+    heartbeat: publicProcedure
+      .input(
+        z.object({
+          visitorId: z.string(),
+          currentPage: z.string().optional(),
+          currentSection: z.string().optional(),
+          chatActive: z.boolean().optional(),
+          chatDuration: z.number().optional(),
+          chatMessages: z.number().optional(),
+          referrer: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const ip =
+          (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+          (ctx.req.socket as any)?.remoteAddress ||
+          "";
+        const userAgent = ctx.req.headers["user-agent"] ?? "";
+        let geoData: { country?: string; city?: string; countryCode?: string } = {};
+        if (ip && ip !== "::1" && ip !== "127.0.0.1") {
+          try {
+            const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,countryCode,status`);
+            const geo = await geoRes.json() as any;
+            if (geo.status === "success") {
+              geoData = { country: geo.country, city: geo.city, countryCode: geo.countryCode };
+            }
+          } catch { /* silencioso */ }
+        }
+        await upsertVisitorSession({
+          visitorId: input.visitorId,
+          currentPage: input.currentPage,
+          currentSection: input.currentSection,
+          chatActive: input.chatActive,
+          chatDuration: input.chatDuration,
+          chatMessages: input.chatMessages,
+          referrer: input.referrer,
+          ip,
+          userAgent,
+          ...geoData,
+        });
+        return { ok: true };
+      }),
+
+    logEvent: publicProcedure
+      .input(
+        z.object({
+          visitorId: z.string(),
+          event: z.enum(["page_view", "section_change", "chat_open", "chat_message", "service_click", "heartbeat"]),
+          page: z.string().optional(),
+          section: z.string().optional(),
+          metadata: z.record(z.string(), z.unknown()).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await addPageEvent({
+          visitorId: input.visitorId,
+          event: input.event,
+          page: input.page,
+          section: input.section,
+          metadata: input.metadata as any,
+        });
+        return { ok: true };
+      }),
+  }),
+
+  // ─── Admin Console (protegido) ────────────────────────────────────────────────
+  adminConsole: router({
+    liveVisitors: adminProcedure
+      .input(z.object({ windowMinutes: z.number().optional() }).optional())
+      .query(({ input }) => getLiveVisitors((input?.windowMinutes ?? 2) * 60 * 1000)),
+
+    visitorEvents: adminProcedure
+      .input(z.object({ visitorId: z.string(), limit: z.number().optional() }))
+      .query(({ input }) => getVisitorEvents(input.visitorId, input.limit)),
+
+    stats: adminProcedure.query(() => getVisitorStats()),
   }),
 });
 
