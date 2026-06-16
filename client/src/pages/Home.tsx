@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, ShieldCheck,
-  Network, Wrench, FolderKanban, Zap,
+  Wrench, FolderKanban, Zap,
   Wifi, Monitor, ShieldCheck as ShieldIcon, Tv2, Cable,
   type LucideIcon,
 } from "lucide-react";
@@ -290,29 +290,37 @@ interface Service {
   angle: number;
 }
 
+// Ángulos: semicírculo SUPERIOR simétrico
+// 8 nodos distribuidos simétricamente: -154, -132, -110, -88, -66, -44, -22, 0° → todos sin() < 0
+// Rango: -154° a -26°, paso = 18.3°, centrado en -90°
 const SERVICES: Service[] = [
-  { label: "Análisis de Redes",          Icon: Network,       color: "#C0392B", angle: -90 },
-  { label: "Pólizas de Mantenimiento",   Icon: Wrench,        color: "#8E1A2E", angle: -63 },
-  { label: "Proyectos Ejecutivos",       Icon: FolderKanban,  color: "#E67E22", angle: -36 },
-  { label: "Soluciones de Energía",      Icon: Zap,           color: "#2980B9", angle: -9  },
-  { label: "Redes Wi-Fi",                Icon: Wifi,          color: "#E74C3C", angle:  18 },
-  { label: "Computadoras y Tecnología",  Icon: Monitor,       color: "#2471A3", angle:  45 },
-  { label: "Seguridad",                  Icon: ShieldIcon,    color: "#27AE60", angle:  72 },
-  { label: "Soluciones de Audio/Video",  Icon: Tv2,           color: "#17A589", angle:  99 },
-  { label: "Cableado Voz, Datos y Video",Icon: Cable,         color: "#1E8449", angle: 126 },
+  { label: "Pólizas de Mantenimiento",   Icon: Wrench,        color: "#7C3AED", angle: -154 },
+  { label: "Proyectos Ejecutivos",       Icon: FolderKanban,  color: "#0EA5E9", angle: -128 },
+  { label: "Soluciones de Energía",      Icon: Zap,           color: "#F59E0B", angle: -103 },
+  { label: "Redes Wi-Fi",                Icon: Wifi,          color: "#EF4444", angle:  -77 },
+  { label: "Computadoras y Tecnología",  Icon: Monitor,       color: "#3B82F6", angle:  -52 },
+  { label: "Seguridad",                  Icon: ShieldIcon,    color: "#10B981", angle:  -26 },
+  { label: "Soluciones de Audio/Video",  Icon: Tv2,           color: "#06B6D4", angle:   -1 },
+  { label: "Cableado Voz, Datos y Video",Icon: Cable,         color: "#22C55E", angle:   25 },
 ];
 
 // Abanico: los nodos se distribuyen en arco semicircular superior
 // El origen del abanico está en la parte inferior central
-const FAN_RADIUS = 260; // px desde el origen — mayor separación entre nodos
+const FAN_RADIUS = 230; // px desde el origen
 const FAN_ORIGIN_Y = 20; // px desde el borde inferior del contenedor
 
 function ServiceFan() {
   const [hovered, setHovered] = useState<number | null>(null);
 
-  // Ángulos: distribución uniforme de -170° a -10° (9 nodos, paso = 20°)
-  // Todos negativos = mitad superior del círculo
-  const angles = Array.from({ length: 9 }, (_, i) => -170 + i * 20);
+  // Ángulos: 8 nodos simétricos centrados en -90° (cima), rango ±70°
+  // Centro = -90°, spread total = 140°, paso = 20°
+  // Resultado: -160, -140, -120, -100, -80, -60, -40, -20
+  const N = SERVICES.length;
+  const CENTER = -90;
+  const SPREAD = 140; // grados totales
+  const angles = Array.from({ length: N }, (_, i) =>
+    CENTER - SPREAD / 2 + (i / (N - 1)) * SPREAD
+  );
 
   // Altura del contenedor = radio + margen superior para los nodos + espacio para labels
   const containerH = FAN_RADIUS + FAN_ORIGIN_Y + 100; // 100 = nodo (56) + label (44)
@@ -324,26 +332,21 @@ function ServiceFan() {
       initial="hidden"
       animate="visible"
     >
-      {/* Badge central “Nuestros Servicios” */}
+            {/* Badge central "Nuestros Servicios" — centrado exacto */}
       <motion.div
-        className="absolute flex items-center justify-center"
-        style={{
-          left: "50%",
-          top: containerH - FAN_ORIGIN_Y - 18,
-          transform: "translateX(-50%)",
-          zIndex: 20,
-        }}
+        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
+        style={{ bottom: 0, zIndex: 20 }}
         initial={{ opacity: 0, scale: 0.7, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
       >
         <span
-          className="text-[11px] font-semibold tracking-wide uppercase px-3 py-1 rounded-full"
+          className="text-[10px] font-light tracking-[0.18em] uppercase px-4 py-1.5 rounded-full border"
           style={{
-            background: "oklch(0.55 0.22 255)",
-            color: "white",
-            letterSpacing: "0.08em",
-            boxShadow: "0 2px 12px oklch(0.55 0.22 255 / 0.35)",
+            background: "rgba(0,113,227,0.08)",
+            color: "#0071E3",
+            borderColor: "rgba(0,113,227,0.25)",
+            backdropFilter: "blur(8px)",
           }}
         >
           Nuestros Servicios
@@ -385,19 +388,27 @@ function ServiceFan() {
             whileHover={{ scale: 1.18, y: -4 }}
             whileTap={{ scale: 0.95 }}
           >
-            {/* Círculo del nodo */}
+            {/* Círculo del nodo — estilo glassmorphism hero */}
             <motion.div
-              className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center"
               style={{
-                background: `radial-gradient(circle at 35% 35%, ${svc.color}ee, ${svc.color}99)`,
-                boxShadow:
-                  hovered === i
-                    ? `0 0 0 3px ${svc.color}55, 0 8px 28px ${svc.color}66`
-                    : `0 4px 16px ${svc.color}44`,
-                transition: "box-shadow 200ms ease",
+                background: hovered === i
+                  ? `linear-gradient(135deg, ${svc.color}22, ${svc.color}11)`
+                  : "rgba(255,255,255,0.72)",
+                border: `1.5px solid ${hovered === i ? svc.color + "66" : "rgba(0,0,0,0.07)"}`,
+                boxShadow: hovered === i
+                  ? `0 0 0 3px ${svc.color}22, 0 8px 32px ${svc.color}33`
+                  : "0 2px 12px rgba(0,0,0,0.08)",
+                backdropFilter: "blur(12px)",
+                transition: "all 200ms cubic-bezier(0.23,1,0.32,1)",
               }}
             >
-              <svc.Icon size={24} color="white" strokeWidth={1.75} aria-label={svc.label} />
+              <svc.Icon
+                size={22}
+                color={hovered === i ? svc.color : "#374151"}
+                strokeWidth={1.5}
+                aria-label={svc.label}
+              />
             </motion.div>
 
             {/* Label permanente debajo del nodo */}
@@ -407,11 +418,12 @@ function ServiceFan() {
               transition={{ duration: 0.4, delay: 0.35 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
               className="text-center leading-tight"
               style={{
-                fontSize: 10,
-                fontWeight: hovered === i ? 700 : 500,
-                color: hovered === i ? svc.color : "oklch(0.38 0.01 255)",
-                transition: "color 180ms ease, font-weight 180ms ease",
-                lineHeight: 1.25,
+                fontSize: 9.5,
+                fontWeight: 300,
+                letterSpacing: "0.02em",
+                color: hovered === i ? svc.color : "#6B7280",
+                transition: "color 180ms ease",
+                lineHeight: 1.3,
                 wordBreak: "break-word",
                 hyphens: "auto",
               }}
