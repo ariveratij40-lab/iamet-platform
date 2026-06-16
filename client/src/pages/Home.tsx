@@ -291,13 +291,13 @@ export default function Home() {
           transition={{ duration: 1.8, ease: [0.23, 1, 0.32, 1] }}
           style={{
             background:
-              "radial-gradient(ellipse 60% 45% at 50% 42%, oklch(0.18 0.04 240 / 0.5) 0%, oklch(0.12 0.02 240 / 0.2) 50%, transparent 75%)",
+              "radial-gradient(ellipse 65% 50% at 50% 42%, oklch(0.75 0.12 255 / 0.12) 0%, oklch(0.85 0.06 255 / 0.06) 50%, transparent 75%)",
           }}
         />
         <motion.div
           className="absolute inset-0 bg-grid pointer-events-none"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.12 }}
+          animate={{ opacity: 0.06 }}
           transition={{ duration: 2, delay: 0.4 }}
         />
 
@@ -309,7 +309,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
           >
-            {/* Halo exterior — resplandor amplio y difuso */}
+            {/* Halo exterior — resplandor amplio en tema claro */}
             <div
               className="absolute pointer-events-none"
               style={{
@@ -319,11 +319,11 @@ export default function Home() {
                 left: "50%",
                 transform: "translate(-50%, -50%)",
                 background:
-                  "radial-gradient(ellipse 80% 60% at 50% 52%, oklch(0.55 0.12 230 / 0.18) 0%, oklch(0.40 0.08 230 / 0.10) 40%, transparent 70%)",
-                filter: "blur(18px)",
+                  "radial-gradient(ellipse 80% 60% at 50% 52%, oklch(0.65 0.15 255 / 0.12) 0%, oklch(0.75 0.08 255 / 0.06) 40%, transparent 70%)",
+                filter: "blur(20px)",
               }}
             />
-            {/* Halo interior — más concentrado y brillante */}
+            {/* Halo interior — concentrado */}
             <div
               className="absolute pointer-events-none"
               style={{
@@ -333,11 +333,11 @@ export default function Home() {
                 left: "50%",
                 transform: "translate(-50%, -50%)",
                 background:
-                  "radial-gradient(ellipse 70% 55% at 50% 55%, oklch(0.75 0.06 220 / 0.22) 0%, oklch(0.55 0.04 220 / 0.10) 50%, transparent 75%)",
-                filter: "blur(10px)",
+                  "radial-gradient(ellipse 70% 55% at 50% 55%, oklch(0.85 0.05 255 / 0.18) 0%, oklch(0.90 0.03 255 / 0.08) 50%, transparent 75%)",
+                filter: "blur(12px)",
               }}
             />
-            {/* Plato de luz inferior — sombra proyectada hacia abajo */}
+            {/* Plato de luz inferior — sombra suave */}
             <div
               className="absolute pointer-events-none"
               style={{
@@ -347,8 +347,8 @@ export default function Home() {
                 left: "50%",
                 transform: "translateX(-50%)",
                 background:
-                  "radial-gradient(ellipse 100% 100% at 50% 50%, oklch(0.55 0.18 230 / 0.30) 0%, transparent 70%)",
-                filter: "blur(12px)",
+                  "radial-gradient(ellipse 100% 100% at 50% 50%, oklch(0.65 0.15 255 / 0.18) 0%, transparent 70%)",
+                filter: "blur(14px)",
               }}
             />
             {/* El logo */}
@@ -358,7 +358,7 @@ export default function Home() {
               className="relative w-[260px] sm:w-[320px] lg:w-[380px] h-auto object-contain"
               style={{
                 filter:
-                  "brightness(1.18) saturate(1.25) drop-shadow(0 2px 16px oklch(0.60 0.20 230 / 0.45)) drop-shadow(0 0 6px oklch(0.85 0.05 220 / 0.30))",
+                  "brightness(1.05) saturate(1.10) drop-shadow(0 4px 20px oklch(0.55 0.18 255 / 0.25)) drop-shadow(0 1px 4px oklch(0.40 0.05 240 / 0.15))",
               }}
             />
           </motion.div>

@@ -58,7 +58,7 @@ export default function Navbar() {
             src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
             alt="IAMET"
             className="h-[52px] w-auto object-contain hover:opacity-90 transition-opacity duration-200"
-            style={{ filter: "drop-shadow(0 0 6px oklch(0.55 0.22 240 / 0.4))" }}
+            style={{ filter: "drop-shadow(0 1px 4px oklch(0.55 0.18 255 / 0.20))" }}
           />
         </Link>
       </div>
