@@ -1,205 +1,241 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  LayoutGrid, Shield, Cpu, Zap, BookOpen, Phone, LogIn,
+  LayoutDashboard, ChevronRight, ChevronLeft, X,
+  Server, Brain, Headphones, FileCheck, Globe,
+} from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
+// ─── Nav items con iconos ─────────────────────────────────────────────────────
 const navItems = [
   {
     label: "Soluciones",
+    icon: LayoutGrid,
     href: "/soluciones",
     children: [
-      { label: "Infraestructura Tecnológica", href: "/soluciones/infraestructura" },
-      { label: "Seguridad Electrónica", href: "/soluciones/seguridad" },
-      { label: "RFID y Automatización", href: "/soluciones/rfid" },
-      { label: "Software e IA", href: "/soluciones/software-ia" },
-      { label: "Servicios Administrados", href: "/soluciones/servicios-administrados" },
-      { label: "Compliance y Auditoría", href: "/soluciones/compliance" },
+      { label: "Infraestructura Tecnológica", href: "/soluciones/infraestructura", icon: Server },
+      { label: "Seguridad Electrónica", href: "/soluciones/seguridad", icon: Shield },
+      { label: "RFID y Automatización", href: "/soluciones/rfid", icon: Cpu },
+      { label: "Software e IA", href: "/soluciones/software-ia", icon: Brain },
+      { label: "Servicios Administrados", href: "/soluciones/servicios-administrados", icon: Headphones },
+      { label: "Compliance y Auditoría", href: "/soluciones/compliance", icon: FileCheck },
     ],
   },
-  { label: "Industrias", href: "/industrias" },
-  { label: "Tech Advisor", href: "/tech-advisor" },
-  { label: "Academy", href: "/academy" },
-  { label: "Contacto", href: "/contacto" },
+  { label: "Industrias", icon: Globe, href: "/industrias" },
+  { label: "Tech Advisor", icon: Zap, href: "/tech-advisor" },
+  { label: "Academy", icon: BookOpen, href: "/academy" },
+  { label: "Contacto", icon: Phone, href: "/contacto" },
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const [location] = useLocation();
   const { user } = useAuth();
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const isActive = (href: string) => location === href || location.startsWith(href + "/");
 
-  useEffect(() => {
-    setMobileOpen(false);
-    setActiveDropdown(null);
-  }, [location]);
+  const handleItemClick = (item: typeof navItems[0]) => {
+    if (item.children) {
+      setActiveSubmenu(activeSubmenu === item.label ? null : item.label);
+    } else {
+      setExpanded(false);
+      setActiveSubmenu(null);
+    }
+  };
+
+  const sidebarWidth = expanded ? 260 : 56;
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "glass border-b border-[var(--color-iamet-border-subtle)]"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="container">
-        <div className="flex items-center justify-between h-16 lg:h-18">
-          {/* Logo */}
-          <Link href="/" className="flex items-center group">
-            <img
-              src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
-              alt="IAMET Evolución Tecnológica"
-              className="h-[66px] w-auto object-contain group-hover:opacity-90 transition-opacity duration-200"
-              style={{ filter: "drop-shadow(0 0 6px oklch(0.55 0.22 240 / 0.4))" }}
-            />
-          </Link>
+    <>
+      {/* ── Logo fijo — esquina superior izquierda ──────────────────────────── */}
+      <div className="fixed top-0 left-0 z-50 p-3">
+        <Link href="/">
+          <img
+            src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+            alt="IAMET"
+            className="h-[52px] w-auto object-contain hover:opacity-90 transition-opacity duration-200"
+            style={{ filter: "drop-shadow(0 0 6px oklch(0.55 0.22 240 / 0.4))" }}
+          />
+        </Link>
+      </div>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => item.children && setActiveDropdown(item.label)}
-                onMouseLeave={() => setActiveDropdown(null)}
-              >
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
-                    location.startsWith(item.href)
+      {/* ── Overlay cuando el sidebar está expandido ────────────────────────── */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            key="overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40"
+            style={{ background: "oklch(0 0 0 / 0.45)", backdropFilter: "blur(2px)" }}
+            onClick={() => { setExpanded(false); setActiveSubmenu(null); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Sidebar derecho ─────────────────────────────────────────────────── */}
+      <motion.aside
+        animate={{ width: sidebarWidth }}
+        transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+        className="fixed top-0 right-0 h-full z-50 flex flex-col overflow-hidden"
+        style={{
+          background: "var(--color-iamet-bg-secondary)",
+          borderLeft: "1px solid var(--color-iamet-border-subtle)",
+          boxShadow: expanded ? "-4px 0 32px oklch(0 0 0 / 0.4)" : "-2px 0 12px oklch(0 0 0 / 0.2)",
+        }}
+      >
+        {/* Toggle button */}
+        <div className="flex items-center justify-end p-3 border-b border-[var(--color-iamet-border-subtle)] h-[68px] flex-shrink-0">
+          <button
+            onClick={() => { setExpanded(!expanded); if (expanded) setActiveSubmenu(null); }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-iamet-text-subtle)] hover:text-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-surface)] transition-all duration-150 btn-press"
+            aria-label={expanded ? "Colapsar menú" : "Expandir menú"}
+          >
+            {expanded ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {/* Nav items */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+            const submenuOpen = activeSubmenu === item.label;
+
+            return (
+              <div key={item.label}>
+                {/* Main item */}
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150 group relative ${
+                    active
                       ? "text-[var(--color-iamet-accent)] bg-[var(--color-iamet-accent-muted)]"
                       : "text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-text)] hover:bg-[var(--color-iamet-surface)]"
                   }`}
+                  title={!expanded ? item.label : undefined}
                 >
-                  {item.label}
-                  {item.children && (
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${activeDropdown === item.label ? "rotate-180" : ""}`}
+                  {/* Active indicator */}
+                  {active && (
+                    <span
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
+                      style={{ background: "var(--color-iamet-accent)" }}
                     />
                   )}
-                </Link>
-
-                {/* Dropdown */}
-                <AnimatePresence>
-                  {item.children && activeDropdown === item.label && (
+                  <Icon className="w-4.5 h-4.5 flex-shrink-0" style={{ width: 18, height: 18 }} />
+                  <AnimatePresence>
+                    {expanded && (
+                      <motion.span
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -8 }}
+                        transition={{ duration: 0.18 }}
+                        className="text-sm font-medium whitespace-nowrap flex-1"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                  {expanded && item.children && (
                     <motion.div
-                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                      transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
-                      className="absolute top-full left-0 mt-1 w-64 neumorphic rounded-xl overflow-hidden"
+                      animate={{ rotate: submenuOpen ? 90 : 0 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className="block px-4 py-2.5 text-sm text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-text)] hover:bg-[var(--color-iamet-surface-2)] transition-colors duration-150"
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
+                      <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
+                    </motion.div>
+                  )}
+                </button>
+
+                {/* Submenu */}
+                <AnimatePresence>
+                  {expanded && item.children && submenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                      className="overflow-hidden"
+                      style={{ background: "var(--color-iamet-bg)" }}
+                    >
+                      {item.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => { setExpanded(false); setActiveSubmenu(null); }}
+                            className="flex items-center gap-2.5 px-5 py-2 text-xs text-[var(--color-iamet-text-subtle)] hover:text-[var(--color-iamet-text)] hover:bg-[var(--color-iamet-surface)] transition-colors duration-150"
+                          >
+                            <ChildIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
+                            <span className="whitespace-nowrap">{child.label}</span>
+                          </Link>
+                        );
+                      })}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-            ))}
-          </nav>
+            );
+          })}
+        </nav>
 
-          {/* CTA + Auth */}
-          <div className="hidden lg:flex items-center gap-3">
-            {user ? (
-              <Link href="/admin">
-                <Button
-                  size="sm"
-                  className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold btn-press glow-accent-sm"
-                >
-                  Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <a href={getLoginUrl()}>
-                  <Button variant="ghost" size="sm" className="text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-text)]">
-                    Iniciar Sesión
-                  </Button>
-                </a>
-                <Link href="/contacto">
-                  <Button
-                    size="sm"
-                    className="bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold btn-press glow-accent-sm"
-                  >
-                    Hablar con un Experto
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="lg:hidden p-2 rounded-lg text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-text)] hover:bg-[var(--color-iamet-surface)] transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="lg:hidden glass border-t border-[var(--color-iamet-border-subtle)] overflow-hidden"
-          >
-            <nav className="container py-4 flex flex-col gap-1">
-              {navItems.map((item) => (
-                <div key={item.label}>
-                  <Link
-                    href={item.href}
-                    className="block px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-text)] hover:bg-[var(--color-iamet-surface)] transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                  {item.children && (
-                    <div className="ml-4 mt-1 flex flex-col gap-0.5">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className="block px-3 py-2 rounded-lg text-xs text-[var(--color-iamet-text-subtle)] hover:text-[var(--color-iamet-text-muted)] hover:bg-[var(--color-iamet-surface)] transition-colors"
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
+        {/* Auth section */}
+        <div className="border-t border-[var(--color-iamet-border-subtle)] py-3 flex-shrink-0">
+          {user ? (
+            <Link href="/admin" onClick={() => setExpanded(false)}>
+              <button
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-surface)] transition-all duration-150"
+                title={!expanded ? "Dashboard" : undefined}
+              >
+                <LayoutDashboard style={{ width: 18, height: 18 }} className="flex-shrink-0" />
+                <AnimatePresence>
+                  {expanded && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.18 }}
+                      className="text-sm font-medium whitespace-nowrap"
+                    >
+                      Dashboard
+                    </motion.span>
                   )}
-                </div>
-              ))}
-              <div className="pt-3 border-t border-[var(--color-iamet-border-subtle)] flex flex-col gap-2">
-                <Link href="/contacto">
-                  <Button className="w-full bg-[var(--color-iamet-accent)] text-white font-semibold">
-                    Hablar con un Experto
-                  </Button>
-                </Link>
-              </div>
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+                </AnimatePresence>
+              </button>
+            </Link>
+          ) : (
+            <a href={getLoginUrl()}>
+              <button
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-surface)] transition-all duration-150"
+                title={!expanded ? "Iniciar Sesión" : undefined}
+              >
+                <LogIn style={{ width: 18, height: 18 }} className="flex-shrink-0" />
+                <AnimatePresence>
+                  {expanded && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.18 }}
+                      className="text-sm font-medium whitespace-nowrap"
+                    >
+                      Iniciar Sesión
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+            </a>
+          )}
+        </div>
+      </motion.aside>
+
+      {/* Spacer para que el contenido no quede debajo del sidebar */}
+      <div className="fixed top-0 right-0 pointer-events-none" style={{ width: sidebarWidth }} />
+    </>
   );
 }

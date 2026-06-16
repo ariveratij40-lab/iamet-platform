@@ -281,8 +281,8 @@ function AgentPrompt() {
 export default function Home() {
   return (
     <div className="min-h-screen bg-[var(--color-iamet-bg)] flex flex-col">
-      {/* Full-screen hero: centered agent prompt */}
-      <section className="flex-1 flex flex-col items-center justify-center relative overflow-hidden px-4 py-20">
+      {/* Full-screen hero: centered agent prompt — pr-14 para no solapar el sidebar colapsado */}
+      <section className="flex-1 flex flex-col items-center justify-center relative overflow-hidden px-4 pr-[72px] py-20">
         {/* Background glow */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
