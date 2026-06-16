@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid, Shield, Cpu, Zap, BookOpen, Phone, LogIn,
-  LayoutDashboard, ChevronRight, ChevronLeft, X,
+  LayoutDashboard, ChevronRight, ChevronLeft, X, Home,
   Server, Brain, Headphones, FileCheck, Globe,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -103,6 +103,38 @@ export default function Navbar() {
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3">
+          {/* Inicio */}
+          <Link href="/" onClick={() => { setExpanded(false); setActiveSubmenu(null); }}>
+            <button
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150 group relative ${
+                location === "/"
+                  ? "text-[var(--color-iamet-accent)] bg-[var(--color-iamet-accent-muted)]"
+                  : "text-[var(--color-iamet-text-muted)] hover:text-[var(--color-iamet-text)] hover:bg-[var(--color-iamet-surface)]"
+              }`}
+              title={!expanded ? "Inicio" : undefined}
+            >
+              {location === "/" && (
+                <span
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
+                  style={{ background: "var(--color-iamet-accent)" }}
+                />
+              )}
+              <Home className="flex-shrink-0" style={{ width: 18, height: 18 }} />
+              <AnimatePresence>
+                {expanded && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.18 }}
+                    className="text-sm font-medium whitespace-nowrap flex-1"
+                  >
+                    Inicio
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          </Link>
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
