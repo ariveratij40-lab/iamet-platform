@@ -75,6 +75,8 @@ export const conversations = mysqlTable("conversations", {
   summary: text("summary"),
   detectedIntent: varchar("detectedIntent", { length: 128 }),
   leadScore: int("leadScore").default(0),
+  humanTookOver: boolean("humanTookOver").default(false).notNull(),
+  humanAgentName: varchar("humanAgentName", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -185,3 +187,17 @@ export const pageEvents = mysqlTable("page_events", {
 
 export type PageEvent = typeof pageEvents.$inferSelect;
 export type InsertPageEvent = typeof pageEvents.$inferInsert;
+
+// ─── Live Chat (Intervención Humana) ─────────────────────────────────────────────────────
+export const liveChatMessages = mysqlTable("live_chat_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  role: mysqlEnum("role", ["user", "human"]).notNull(),
+  content: text("content").notNull(),
+  agentName: varchar("agentName", { length: 128 }),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LiveChatMessage = typeof liveChatMessages.$inferSelect;
+export type InsertLiveChatMessage = typeof liveChatMessages.$inferInsert;

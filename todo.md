@@ -95,3 +95,21 @@
 - [x] Historial de conversaciones del Agente Virtual en consola admin (ConversationRow + ChatHistorySection)
 - [x] Vista expandible de mensajes por conversación con burbujas usuario/asistente
 - [x] Indicadores de intención detectada, lead score y estado de conversación
+
+## Live Chat con Intervención Humana
+
+- [x] Campo `humanTookOver` (boolean) y `humanAgentName` (string) en tabla `conversations`
+- [x] Tabla `live_chat_messages`: id, sessionId, role (user/human), content, agentName, read, createdAt
+- [x] tRPC procedure `liveChat.getActiveSessions`: retorna sesiones intervenidas por humano
+- [x] tRPC procedure `liveChat.sendMessage`: admin envía mensaje como humano a una sesión
+- [x] tRPC procedure `liveChat.takeOver`: marca conversación como intervenida por humano
+- [x] tRPC procedure `liveChat.release`: libera sesión de vuelta al agente IA
+- [x] tRPC procedure `liveChat.pollMessages`: visitante consulta nuevos mensajes (polling cada 3s)
+- [x] Widget flotante en visitante (esquina inferior izquierda): aparece cuando admin envía primer mensaje
+- [x] Widget muestra badge "Soporte IAMET" con avatar, estado "En línea", burbuja de mensajes
+- [x] Widget permite al visitante responder al agente humano
+- [x] Panel LiveChatPanel en AdminConsole: lista de sesiones activas con preview del último mensaje
+- [x] Panel admin: caja de texto para escribir y enviar mensaje al visitante seleccionado
+- [x] Botón "Tomar control" en cada conversación del historial (ConversationRow)
+- [x] Indicador visual en admin cuando una sesión está siendo atendida por humano (badge verde "Intervenida")
+- [x] Contador de mensajes no leídos del visitante en la lista de sesiones activas

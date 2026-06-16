@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import LiveChatPanel, { TakeOverButton } from "@/components/LiveChatPanel";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDuration(seconds: number): string {
@@ -328,6 +329,14 @@ function ConversationRow({ conv }: { conv: any }) {
         <span className="text-xs text-gray-400 flex-shrink-0 hidden sm:inline">
           {timeSince(conv.createdAt)}
         </span>
+
+        {/* Take Over */}
+        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          <TakeOverButton
+            sessionId={conv.sessionId}
+            humanTookOver={conv.humanTookOver ?? false}
+          />
+        </div>
 
         {/* Expand */}
         <div className="flex-shrink-0 text-gray-400">
@@ -674,6 +683,9 @@ export default function AdminConsole() {
 
         {/* Chat History */}
         <ChatHistorySection />
+
+        {/* Live Chat — Intervención Humana */}
+        <LiveChatPanel agentName={user?.name ?? "Soporte IAMET"} />
 
       </div>
     </div>

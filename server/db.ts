@@ -11,6 +11,7 @@ import {
   enrollments, InsertEnrollment,
   visitorSessions, InsertVisitorSession, VisitorSession,
   pageEvents, InsertPageEvent,
+  liveChatMessages, LiveChatMessage, InsertLiveChatMessage,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -365,4 +366,73 @@ export async function getAnalytics() {
   const recentLeads = await db.select().from(leads).orderBy(desc(leads.createdAt)).limit(5);
 
   return { totalLeads, byVertical, byStatus, recentLeads };
+}
+
+// ─── Live Chat (Intervención Humana) ─────────────────────────────────────────
+export async function addLiveChatMessage(data: InsertLiveChatMessage): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(liveChatMessages).values(data);
+}
+
+export async function getLiveChatMessages(sessionId: string, since?: Date): Promise<LiveChatMessage[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions: any[] = [eq(liveChatMessages.sessionId, sessionId)];
+  if (since) conditions.push(sql`${liveChatMessages.createdAt} > ${since}`);
+  return db
+    .select()
+    .from(liveChatMessages)
+    .where(and(...conditions))
+    .orderBy(liveChatMessages.createdAt);
+}
+
+export async function markLiveChatRead(sessionId: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(liveChatMessages)
+    .set({ read: true })
+    .where(and(eq(liveChatMessages.sessionId, sessionId), eq(liveChatMessages.read, false)));
+}
+
+export async function getActiveLiveSessions(): Promise<Array<{
+  sessionId: string;
+  lastMessage: LiveChatMessage | null;
+  unreadCount: number;
+  conversation: Conversation | null;
+}>> {
+  const db = await getDb();
+  if (!db) return [];
+  const takenOver = await db
+    .select()
+    .from(conversations)
+    .where(eq(conversations.humanTookOver, true))
+    .orderBy(desc(conversations.updatedAt))
+    .limit(50);
+  const results = await Promise.all(
+    takenOver.map(async (conv) => {
+      const msgs = await db!
+        .select()
+        .from(liveChatMessages)
+        .where(eq(liveChatMessages.sessionId, conv.sessionId))
+        .orderBy(desc(liveChatMessages.createdAt))
+        .limit(1);
+      const [unreadRow] = await db!
+        .select({ count: sql<number>`count(*)` })
+        .from(liveChatMessages)
+        .where(and(
+          eq(liveChatMessages.sessionId, conv.sessionId),
+          eq(liveChatMessages.read, false),
+          eq(liveChatMessages.role, "user")
+        ));
+      return {
+        sessionId: conv.sessionId,
+        lastMessage: msgs[0] ?? null,
+        unreadCount: Number(unreadRow?.count ?? 0),
+        conversation: conv,
+      };
+    })
+  );
+  return results;
 }

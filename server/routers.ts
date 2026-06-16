@@ -19,6 +19,10 @@ import {
   getLiveVisitors,
   getVisitorEvents,
   getVisitorStats,
+  addLiveChatMessage,
+  getLiveChatMessages,
+  markLiveChatRead,
+  getActiveLiveSessions,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -429,7 +433,80 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
     conversationMessages: adminProcedure
       .input(z.object({ conversationId: z.number() }))
       .query(({ input }) => getMessagesByConversation(input.conversationId)),
+    }),
+
+  // ─── Live Chat ────────────────────────────────────────────────────────────────────────────────────────────
+  liveChat: router({
+    // Admin: tomar control de una sesión
+    takeOver: adminProcedure
+      .input(z.object({ sessionId: z.string(), agentName: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        const agentName = input.agentName ?? ctx.user.name ?? "Soporte IAMET";
+        await updateConversation(input.sessionId, { humanTookOver: true, humanAgentName: agentName });
+        return { ok: true, agentName };
+      }),
+
+    // Admin: liberar sesión (vuelve al agente IA)
+    release: adminProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .mutation(async ({ input }) => {
+        await updateConversation(input.sessionId, { humanTookOver: false, humanAgentName: null as any });
+        return { ok: true };
+      }),
+
+    // Admin: enviar mensaje al visitante
+    sendMessage: adminProcedure
+      .input(z.object({ sessionId: z.string(), content: z.string(), agentName: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        const agentName = input.agentName ?? ctx.user.name ?? "Soporte IAMET";
+        await updateConversation(input.sessionId, { humanTookOver: true, humanAgentName: agentName });
+        await addLiveChatMessage({
+          sessionId: input.sessionId,
+          role: "human",
+          content: input.content,
+          agentName,
+          read: true,
+        });
+        return { ok: true };
+      }),
+
+    // Admin: obtener sesiones activas intervenidas
+    getActiveSessions: adminProcedure.query(() => getActiveLiveSessions()),
+
+    // Admin: obtener mensajes de una sesión
+    getMessages: adminProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        await markLiveChatRead(input.sessionId);
+        return getLiveChatMessages(input.sessionId);
+      }),
+
+    // Público: visitante verifica si hay mensajes nuevos del humano (polling cada 3s)
+    pollMessages: publicProcedure
+      .input(z.object({ sessionId: z.string(), since: z.string().optional() }))
+      .query(async ({ input }) => {
+        const since = input.since ? new Date(input.since) : undefined;
+        const msgs = await getLiveChatMessages(input.sessionId, since);
+        const conv = await getConversationBySession(input.sessionId);
+        return {
+          messages: msgs,
+          humanTookOver: conv?.humanTookOver ?? false,
+          humanAgentName: conv?.humanAgentName ?? null,
+        };
+      }),
+
+    // Público: visitante envía mensaje de respuesta al humano
+    visitorReply: publicProcedure
+      .input(z.object({ sessionId: z.string(), content: z.string() }))
+      .mutation(async ({ input }) => {
+        await addLiveChatMessage({
+          sessionId: input.sessionId,
+          role: "user",
+          content: input.content,
+          read: false,
+        });
+        return { ok: true };
+      }),
   }),
 });
-
 export type AppRouter = typeof appRouter;

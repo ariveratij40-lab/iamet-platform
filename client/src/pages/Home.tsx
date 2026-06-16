@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useVisitorTracking } from "@/hooks/useVisitorTracking";
+import LiveChatWidget from "@/components/LiveChatWidget";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, ShieldCheck,
@@ -27,9 +28,14 @@ const QUICK_SUGGESTIONS = [
 // ─── Main Chat Component ──────────────────────────────────────────────────────
 interface AgentPromptHandle {
   triggerSend: (text: string) => void;
+  getSessionId: () => string | null;
 }
 
-const AgentPrompt = forwardRef<AgentPromptHandle>(function AgentPrompt(_, ref) {
+interface AgentPromptProps {
+  onSessionStart?: (sessionId: string) => void;
+}
+
+const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(function AgentPrompt({ onSessionStart }, ref) {
   const [visitorId] = useState(() => {
     const stored = sessionStorage.getItem("iamet_visitor_home");
     if (stored) return stored;
@@ -57,6 +63,7 @@ const AgentPrompt = forwardRef<AgentPromptHandle>(function AgentPrompt(_, ref) {
     if (conversationSessionId) return conversationSessionId;
     const result = await startSession.mutateAsync({ visitorId });
     setConversationSessionId(result.sessionId);
+    onSessionStart?.(result.sessionId);
     return result.sessionId;
   };
 
@@ -94,7 +101,8 @@ const AgentPrompt = forwardRef<AgentPromptHandle>(function AgentPrompt(_, ref) {
 
   useImperativeHandle(ref, () => ({
     triggerSend: (text: string) => handleSend(text),
-  }), [handleSend]);
+    getSessionId: () => conversationSessionId,
+  }), [handleSend, conversationSessionId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -645,10 +653,11 @@ function ServiceFan({ onServiceClick }: { onServiceClick: (query: string) => voi
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const agentRef = useRef<{ triggerSend: (text: string) => void }>(null);
+  const agentRef = useRef<AgentPromptHandle>(null);
   const [chatActive, setChatActive] = useState(false);
   const [chatMessages, setChatMessages] = useState(0);
   const [currentSection, setCurrentSection] = useState("hero");
+  const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
 
   // Tracking de presencia
   const { logEvent } = useVisitorTracking({
@@ -715,7 +724,8 @@ export default function Home() {
             transition={{ duration: 0.55, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
             className="w-full max-w-2xl"
           >
-            <div id="agent-chat-section"><AgentPrompt ref={agentRef} /></div>
+            <div id="agent-chat-section"><AgentPrompt ref={agentRef} onSessionStart={setLiveSessionId} /></div>
+            <LiveChatWidget sessionId={liveSessionId} />
           </motion.div>
         </div>
       </section>
