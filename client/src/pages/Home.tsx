@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import {
+  Send, Loader2, Sparkles, ShieldCheck,
+  Network, Wrench, FolderKanban, Zap,
+  Wifi, Monitor, ShieldCheck as ShieldIcon, Tv2, Cable,
+  type LucideIcon,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
 import { nanoid } from "nanoid";
@@ -278,16 +283,23 @@ function AgentPrompt() {
 }
 
 // ─── Services Fan ───────────────────────────────────────────────────────────
-const SERVICES = [
-  { label: "Análisis de Redes",        icon: "🖥️",  color: "#C0392B", angle: -90 },
-  { label: "Pólizas de Mantenimiento", icon: "🔧",  color: "#8E1A2E", angle: -63 },
-  { label: "Proyectos Ejecutivos",     icon: "💼",  color: "#E67E22", angle: -36 },
-  { label: "Soluciones de Energía",    icon: "⚡",  color: "#2980B9", angle: -9  },
-  { label: "Redes Wi-Fi",              icon: "📶",  color: "#E74C3C", angle:  18 },
-  { label: "Computadoras y Tecnología",icon: "🖱️",  color: "#2471A3", angle:  45 },
-  { label: "Seguridad",                icon: "📷",  color: "#27AE60", angle:  72 },
-  { label: "Soluciones de Audio/Video",icon: "▶️",  color: "#17A589", angle:  99 },
-  { label: "Cableado Voz, Datos y Video",icon: "🔌", color: "#1E8449", angle: 126 },
+interface Service {
+  label: string;
+  Icon: LucideIcon;
+  color: string;
+  angle: number;
+}
+
+const SERVICES: Service[] = [
+  { label: "Análisis de Redes",          Icon: Network,       color: "#C0392B", angle: -90 },
+  { label: "Pólizas de Mantenimiento",   Icon: Wrench,        color: "#8E1A2E", angle: -63 },
+  { label: "Proyectos Ejecutivos",       Icon: FolderKanban,  color: "#E67E22", angle: -36 },
+  { label: "Soluciones de Energía",      Icon: Zap,           color: "#2980B9", angle: -9  },
+  { label: "Redes Wi-Fi",                Icon: Wifi,          color: "#E74C3C", angle:  18 },
+  { label: "Computadoras y Tecnología",  Icon: Monitor,       color: "#2471A3", angle:  45 },
+  { label: "Seguridad",                  Icon: ShieldIcon,    color: "#27AE60", angle:  72 },
+  { label: "Soluciones de Audio/Video",  Icon: Tv2,           color: "#17A589", angle:  99 },
+  { label: "Cableado Voz, Datos y Video",Icon: Cable,         color: "#1E8449", angle: 126 },
 ];
 
 // Abanico: los nodos se distribuyen en arco semicircular superior
@@ -387,7 +399,7 @@ function ServiceFan() {
           >
             {/* Círculo del nodo */}
             <motion.div
-              className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg"
+              className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
               style={{
                 background: `radial-gradient(circle at 35% 35%, ${svc.color}ee, ${svc.color}99)`,
                 boxShadow:
@@ -397,7 +409,7 @@ function ServiceFan() {
                 transition: "box-shadow 200ms ease",
               }}
             >
-              <span role="img" aria-label={svc.label}>{svc.icon}</span>
+              <svc.Icon size={24} color="white" strokeWidth={1.75} aria-label={svc.label} />
             </motion.div>
 
             {/* Label permanente debajo del nodo */}
