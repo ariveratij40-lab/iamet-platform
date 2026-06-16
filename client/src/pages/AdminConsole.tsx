@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, MessageSquare, Globe, Clock, Monitor,
   MapPin, Wifi, ChevronDown, ChevronUp, RefreshCw,
-  Activity, Eye, Bot, Layers,
+  Activity, Eye, Bot, Layers, MessagesSquare, User, Sparkles,
+  TrendingUp, Hash,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -262,6 +263,223 @@ function MetricCard({
   );
 }
 
+// ─── Conversation Row ────────────────────────────────────────────────────────
+function ConversationRow({ conv }: { conv: any }) {
+  const [expanded, setExpanded] = useState(false);
+  const messagesQuery = trpc.adminConsole.conversationMessages.useQuery(
+    { conversationId: conv.id },
+    { enabled: expanded }
+  );
+
+  const statusColor: Record<string, string> = {
+    active: "bg-green-500",
+    completed: "bg-blue-400",
+    abandoned: "bg-gray-300",
+  };
+
+  return (
+    <motion.div
+      layout
+      className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden"
+      style={{ boxShadow: "4px 4px 10px rgba(0,0,0,0.06), -2px -2px 6px rgba(255,255,255,0.8)" }}
+    >
+      <div
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/90 transition-colors"
+        onClick={() => setExpanded((e) => !e)}
+      >
+        {/* Status */}
+        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${statusColor[conv.status] ?? "bg-gray-300"}`} />
+
+        {/* Session ID */}
+        <span className="font-mono text-xs text-gray-400 w-20 truncate flex-shrink-0">
+          {conv.sessionId?.slice(0, 8)}…
+        </span>
+
+        {/* Intent / vertical */}
+        <div className="flex-1 min-w-0">
+          {conv.detectedIntent ? (
+            <span className="text-xs text-gray-700 truncate block">{conv.detectedIntent}</span>
+          ) : (
+            <span className="text-xs text-gray-400 italic">Sin intención detectada</span>
+          )}
+          {conv.verticalSlug && (
+            <span className="text-[10px] text-blue-500">{conv.verticalSlug}</span>
+          )}
+        </div>
+
+        {/* Lead score */}
+        {conv.leadScore > 0 && (
+          <div className="flex items-center gap-1 text-xs text-amber-600 flex-shrink-0">
+            <TrendingUp className="w-3 h-3" />
+            {conv.leadScore}
+          </div>
+        )}
+
+        {/* Message count badge */}
+        <Badge
+          variant="secondary"
+          className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border-blue-200 flex-shrink-0"
+        >
+          <Hash className="w-3 h-3" />
+          {conv._count ?? "?"} msg
+        </Badge>
+
+        {/* Time */}
+        <span className="text-xs text-gray-400 flex-shrink-0 hidden sm:inline">
+          {timeSince(conv.createdAt)}
+        </span>
+
+        {/* Expand */}
+        <div className="flex-shrink-0 text-gray-400">
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
+      </div>
+
+      {/* Expanded messages */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <Separator />
+            <div className="px-4 py-3 space-y-2 max-h-80 overflow-y-auto">
+              {messagesQuery.isLoading ? (
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <RefreshCw className="w-3 h-3 animate-spin" /> Cargando mensajes…
+                </div>
+              ) : messagesQuery.data && messagesQuery.data.length > 0 ? (
+                <div className="space-y-2">
+                  {messagesQuery.data.map((msg: any) => (
+                    <div
+                      key={msg.id}
+                      className={`flex gap-2 ${
+                        msg.role === "user" ? "flex-row" : "flex-row-reverse"
+                      }`}
+                    >
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          msg.role === "user"
+                            ? "bg-gray-100 border border-gray-200"
+                            : "bg-blue-50 border border-blue-200"
+                        }`}
+                      >
+                        {msg.role === "user" ? (
+                          <User className="w-3 h-3 text-gray-500" />
+                        ) : (
+                          <Sparkles className="w-3 h-3 text-blue-500" />
+                        )}
+                      </div>
+                      <div
+                        className={`rounded-xl px-3 py-2 text-xs max-w-[80%] ${
+                          msg.role === "user"
+                            ? "bg-gray-100 text-gray-700 rounded-tl-none"
+                            : "bg-blue-50 text-blue-800 rounded-tr-none"
+                        }`}
+                      >
+                        <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-[10px] text-gray-400 mt-1">{timeSince(msg.createdAt)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">Sin mensajes registrados</p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── Chat History Section ─────────────────────────────────────────────────────
+function ChatHistorySection() {
+  const [limit, setLimit] = useState(20);
+  const historyQuery = trpc.adminConsole.chatHistory.useQuery(
+    { limit },
+    { refetchInterval: 30_000 }
+  );
+
+  const conversations = historyQuery.data ?? [];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <MessagesSquare className="w-4 h-4 text-purple-400" />
+          Historial de conversaciones
+          <span className="text-xs font-normal text-gray-400">
+            ({conversations.length} registradas)
+          </span>
+        </h2>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Mostrar:</span>
+          {[20, 50, 100].map((n) => (
+            <button
+              key={n}
+              onClick={() => setLimit(n)}
+              className={`text-xs px-2.5 py-1 rounded-lg transition-all ${
+                limit === n
+                  ? "bg-purple-500 text-white shadow-sm"
+                  : "bg-white/70 text-gray-600 border border-white/60 hover:bg-white"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1 bg-white/70 border-white/60"
+            onClick={() => historyQuery.refetch()}
+          >
+            <RefreshCw className={`w-3 h-3 ${historyQuery.isFetching ? "animate-spin" : ""}`} />
+            Actualizar
+          </Button>
+        </div>
+      </div>
+
+      {historyQuery.isLoading ? (
+        <div className="flex items-center justify-center py-12 text-gray-400 gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Cargando historial…</span>
+        </div>
+      ) : conversations.length === 0 ? (
+        <div
+          className="rounded-2xl p-8 bg-white/70 backdrop-blur-sm border border-white/60 text-center"
+          style={{ boxShadow: "4px 4px 10px rgba(0,0,0,0.06), -2px -2px 6px rgba(255,255,255,0.8)" }}
+        >
+          <MessagesSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">No hay conversaciones registradas aún</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Las conversaciones del Agente Virtual aparecerán aquí
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <AnimatePresence>
+            {conversations.map((conv: any) => (
+              <motion.div
+                key={conv.id}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.18 }}
+              >
+                <ConversationRow conv={conv} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Admin Console Page ───────────────────────────────────────────────────────
 export default function AdminConsole() {
   const { user, loading } = useAuth();
@@ -453,6 +671,9 @@ export default function AdminConsole() {
             </div>
           </div>
         )}
+
+        {/* Chat History */}
+        <ChatHistorySection />
 
       </div>
     </div>

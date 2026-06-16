@@ -415,16 +415,20 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   }),
 
   // ─── Admin Console (protegido) ────────────────────────────────────────────────
-  adminConsole: router({
+    adminConsole: router({
     liveVisitors: adminProcedure
       .input(z.object({ windowMinutes: z.number().optional() }).optional())
       .query(({ input }) => getLiveVisitors((input?.windowMinutes ?? 2) * 60 * 1000)),
-
     visitorEvents: adminProcedure
       .input(z.object({ visitorId: z.string(), limit: z.number().optional() }))
       .query(({ input }) => getVisitorEvents(input.visitorId, input.limit)),
-
     stats: adminProcedure.query(() => getVisitorStats()),
+    chatHistory: adminProcedure
+      .input(z.object({ limit: z.number().optional(), offset: z.number().optional() }).optional())
+      .query(({ input }) => getConversations(input?.limit ?? 50)),
+    conversationMessages: adminProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(({ input }) => getMessagesByConversation(input.conversationId)),
   }),
 });
 
