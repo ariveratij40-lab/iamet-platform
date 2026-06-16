@@ -304,136 +304,178 @@ const SERVICES: Service[] = [
   { label: "Cableado Voz, Datos y Video",Icon: Cable,         color: "#22C55E", angle:   25 },
 ];
 
-// Abanico: los nodos se distribuyen en arco semicircular superior
-// El origen del abanico está en la parte inferior central
-const FAN_RADIUS = 230; // px desde el origen
-const FAN_ORIGIN_Y = 20; // px desde el borde inferior del contenedor
+// ─── Constantes del abanico SVG ──────────────────────────────────────────────
+// Usamos un SVG puro para control total de posicionamiento
+// ViewBox: 900 x 480. Origen del abanico: (450, 460) — parte inferior central
+const VB_W = 900;
+const VB_H = 480;
+const OX = 450; // origen X (centro)
+const OY = 460; // origen Y (parte inferior)
+const R_ICON = 310; // radio al centro del icono
+const R_LABEL = 390; // radio al centro del label (más afuera)
+const ICON_R = 36; // radio del círculo del icono (72px diámetro)
+const LINE_R_START = R_ICON + ICON_R + 6; // inicio de la línea (borde del icono)
+const LINE_R_END = R_LABEL - 28; // fin de la línea (antes del label)
 
 function ServiceFan() {
   const [hovered, setHovered] = useState<number | null>(null);
 
-  // Ángulos: 8 nodos simétricos centrados en -90° (cima), rango ±70°
-  // Centro = -90°, spread total = 140°, paso = 20°
-  // Resultado: -160, -140, -120, -100, -80, -60, -40, -20
+  // 8 nodos centrados en -90° (cima), spread ±70°
   const N = SERVICES.length;
-  const CENTER = -90;
-  const SPREAD = 140; // grados totales
+  const CENTER_DEG = -90;
+  const SPREAD_DEG = 140;
   const angles = Array.from({ length: N }, (_, i) =>
-    CENTER - SPREAD / 2 + (i / (N - 1)) * SPREAD
+    CENTER_DEG - SPREAD_DEG / 2 + (i / (N - 1)) * SPREAD_DEG
   );
 
-  // Altura del contenedor = radio + margen superior para los nodos + espacio para labels
-  const containerH = FAN_RADIUS + FAN_ORIGIN_Y + 100; // 100 = nodo (56) + label (44)
-
   return (
-    <motion.div
-      className="relative w-full max-w-2xl mx-auto select-none"
-      style={{ height: containerH }}
-      initial="hidden"
-      animate="visible"
-    >
-            {/* Badge central "Nuestros Servicios" — centrado exacto */}
-      <motion.div
-        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
-        style={{ bottom: 0, zIndex: 20 }}
-        initial={{ opacity: 0, scale: 0.7, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+    <div className="w-full select-none" style={{ maxWidth: 900 }}>
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        width="100%"
+        style={{ overflow: "visible", display: "block" }}
+        aria-label="Nuestros servicios"
       >
-        <span
-          className="text-[10px] font-light tracking-[0.18em] uppercase px-4 py-1.5 rounded-full border"
-          style={{
-            background: "rgba(0,113,227,0.08)",
-            color: "#0071E3",
-            borderColor: "rgba(0,113,227,0.25)",
-            backdropFilter: "blur(8px)",
-          }}
+        {/* Definiciones de filtros */}
+        <defs>
+          <filter id="shadow-node" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#00000018" />
+          </filter>
+          <filter id="shadow-hover" x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="6" stdDeviation="14" floodColor="#00000028" />
+          </filter>
+        </defs>
+
+        {/* Badge "NUESTROS SERVICIOS" centrado en OX */}
+        <motion.g
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+          style={{ transformOrigin: `${OX}px ${OY}px` }}
         >
-          Nuestros Servicios
-        </span>
-      </motion.div>
-
-      {/* Nodos de servicios */}
-      {SERVICES.map((svc, i) => {
-        const rad = (angles[i] * Math.PI) / 180;
-        const cx = 50; // % — usamos posición absoluta calculada
-        const originX = 50; // % del contenedor
-        const originY = containerH - FAN_ORIGIN_Y;
-        // Posición en px desde el centro del contenedor (viewBox 760px)
-        const nx = 380 + FAN_RADIUS * Math.cos(rad);
-        const ny = originY + FAN_RADIUS * Math.sin(rad);
-        // Convertir a % del contenedor
-        const leftPct = (nx / 760) * 100;
-        const topPx = ny;
-
-        return (
-          <motion.div
-            key={i}
-            className="absolute flex flex-col items-center gap-1.5 cursor-pointer"
-            style={{
-              left: `${leftPct}%`,
-              top: topPx - 28, // centrar el nodo (radio 28px)
-              transform: "translateX(-50%)",
-              width: 88, // ancho fijo para que el label no desborde
-            }}
-            initial={{ opacity: 0, scale: 0.3 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              duration: 0.5,
-              delay: 0.2 + i * 0.08,
-              ease: [0.23, 1, 0.32, 1],
-            }}
-            onHoverStart={() => setHovered(i)}
-            onHoverEnd={() => setHovered(null)}
-            whileHover={{ scale: 1.18, y: -4 }}
-            whileTap={{ scale: 0.95 }}
+          <rect
+            x={OX - 90} y={OY - 18}
+            width={180} height={36}
+            rx={18}
+            fill="rgba(0,113,227,0.08)"
+            stroke="rgba(0,113,227,0.28)"
+            strokeWidth={1.2}
+          />
+          <text
+            x={OX} y={OY + 5.5}
+            textAnchor="middle"
+            fontSize={10}
+            fontWeight={300}
+            letterSpacing={2.5}
+            fill="#0071E3"
+            style={{ fontFamily: "inherit", textTransform: "uppercase" }}
           >
-            {/* Círculo del nodo — estilo glassmorphism hero */}
-            <motion.div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center"
-              style={{
-                background: hovered === i
-                  ? `linear-gradient(135deg, ${svc.color}22, ${svc.color}11)`
-                  : "rgba(255,255,255,0.72)",
-                border: `1.5px solid ${hovered === i ? svc.color + "66" : "rgba(0,0,0,0.07)"}`,
-                boxShadow: hovered === i
-                  ? `0 0 0 3px ${svc.color}22, 0 8px 32px ${svc.color}33`
-                  : "0 2px 12px rgba(0,0,0,0.08)",
-                backdropFilter: "blur(12px)",
-                transition: "all 200ms cubic-bezier(0.23,1,0.32,1)",
-              }}
-            >
-              <svc.Icon
-                size={22}
-                color={hovered === i ? svc.color : "#374151"}
-                strokeWidth={1.5}
-                aria-label={svc.label}
-              />
-            </motion.div>
+            NUESTROS SERVICIOS
+          </text>
+        </motion.g>
 
-            {/* Label permanente debajo del nodo */}
-            <motion.p
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.35 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
-              className="text-center leading-tight"
-              style={{
-                fontSize: 9.5,
-                fontWeight: 300,
-                letterSpacing: "0.02em",
-                color: hovered === i ? svc.color : "#6B7280",
-                transition: "color 180ms ease",
-                lineHeight: 1.3,
-                wordBreak: "break-word",
-                hyphens: "auto",
-              }}
+        {/* Nodos */}
+        {SERVICES.map((svc, i) => {
+          const rad = (angles[i] * Math.PI) / 180;
+          const ix = OX + R_ICON * Math.cos(rad);
+          const iy = OY + R_ICON * Math.sin(rad);
+          const lx = OX + R_LABEL * Math.cos(rad);
+          const ly = OY + R_LABEL * Math.sin(rad);
+          const ls1x = OX + LINE_R_START * Math.cos(rad);
+          const ls1y = OY + LINE_R_START * Math.sin(rad);
+          const ls2x = OX + LINE_R_END * Math.cos(rad);
+          const ls2y = OY + LINE_R_END * Math.sin(rad);
+          const isHov = hovered === i;
+
+          // Alineación del texto según posición horizontal
+          const textAnchor = ix < OX - 20 ? "end" : ix > OX + 20 ? "start" : "middle";
+
+          return (
+            <motion.g
+              key={i}
+              style={{ cursor: "pointer" }}
+              initial={{ opacity: 0, scale: 0.3 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.08, ease: [0.23, 1, 0.32, 1] }}
+              onHoverStart={() => setHovered(i)}
+              onHoverEnd={() => setHovered(null)}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.96 }}
             >
-              {svc.label}
-            </motion.p>
-          </motion.div>
-        );
-      })}
-    </motion.div>
+              {/* Línea conectora icono → label */}
+              <line
+                x1={ls1x} y1={ls1y}
+                x2={ls2x} y2={ls2y}
+                stroke={isHov ? svc.color : "#CBD5E1"}
+                strokeWidth={isHov ? 1.5 : 1}
+                strokeDasharray={isHov ? "none" : "4 3"}
+                opacity={0.7}
+                style={{ transition: "stroke 200ms, stroke-width 200ms" }}
+              />
+
+              {/* Círculo del icono */}
+              <circle
+                cx={ix} cy={iy} r={ICON_R}
+                fill={isHov ? `${svc.color}18` : "rgba(255,255,255,0.85)"}
+                stroke={isHov ? svc.color : "rgba(0,0,0,0.07)"}
+                strokeWidth={isHov ? 1.8 : 1.2}
+                filter={isHov ? "url(#shadow-hover)" : "url(#shadow-node)"}
+                style={{ transition: "fill 200ms, stroke 200ms" }}
+              />
+
+              {/* Icono SVG Lucide renderizado como foreignObject */}
+              <foreignObject
+                x={ix - 18} y={iy - 18}
+                width={36} height={36}
+                style={{ overflow: "visible", pointerEvents: "none" }}
+              >
+                <div
+                  style={{
+                    width: 36, height: 36,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <svc.Icon
+                    size={22}
+                    color={isHov ? svc.color : "#374151"}
+                    strokeWidth={1.5}
+                  />
+                </div>
+              </foreignObject>
+
+              {/* Label externo — texto en 2 líneas si es largo */}
+              <text
+                x={lx} y={ly - 6}
+                textAnchor={textAnchor}
+                fontSize={11}
+                fontWeight={300}
+                letterSpacing={0.3}
+                fill={isHov ? svc.color : "#374151"}
+                style={{ fontFamily: "inherit", transition: "fill 200ms", lineHeight: 1.4 }}
+              >
+                {/* Dividir en 2 líneas si tiene espacio */}
+                {svc.label.split(" ").length <= 2 ? (
+                  <tspan>{svc.label}</tspan>
+                ) : (
+                  (() => {
+                    const words = svc.label.split(" ");
+                    const mid = Math.ceil(words.length / 2);
+                    const line1 = words.slice(0, mid).join(" ");
+                    const line2 = words.slice(mid).join(" ");
+                    return (
+                      <>
+                        <tspan x={lx} dy={0}>{line1}</tspan>
+                        <tspan x={lx} dy={15}>{line2}</tspan>
+                      </>
+                    );
+                  })()
+                )}
+              </text>
+            </motion.g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
