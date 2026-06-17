@@ -32,6 +32,14 @@ import {
   upsertStoreProduct,
   toggleStoreProductActive,
   seedStoreData,
+  adminGetStoreProducts,
+  adminUpsertProduct,
+  adminToggleProductActive,
+  adminDeleteProduct,
+  createOrUpdateStoreVisitor,
+  verifyStoreVisitorToken,
+  getStoreVisitorByEmail,
+  adminGetStoreVisitors,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -44,6 +52,107 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
+
+
+// ─── Admin Store Router (CRUD de productos) ───────────────────────────────────
+const adminStoreRouter = router({
+  getProducts: adminProcedure
+    .input(z.object({ page: z.number().optional(), limit: z.number().optional(), categoryId: z.number().optional() }))
+    .query(async ({ input }) => {
+      return adminGetStoreProducts(input);
+    }),
+  upsertProduct: adminProcedure
+    .input(z.object({
+      id: z.number().optional(),
+      categoryId: z.number(),
+      name: z.string().min(1),
+      shortDesc: z.string().optional(),
+      description: z.string().optional(),
+      sku: z.string().optional(),
+      priceRef: z.number().optional(),
+      unit: z.string().optional(),
+      imageUrl: z.string().optional(),
+      dataSheetUrl: z.string().optional(),
+      deliveryTime: z.string().optional(),
+      featured: z.boolean().optional(),
+      active: z.boolean().optional(),
+      specs: z.record(z.string(), z.string()).optional(),
+      tags: z.array(z.string()).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      return adminUpsertProduct(input as any);
+    }),
+  toggleActive: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const newActive = await adminToggleProductActive(input.id);
+      return { active: newActive };
+    }),
+  deleteProduct: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await adminDeleteProduct(input.id);
+      return { ok: true };
+    }),
+  getVisitors: adminProcedure.query(async () => {
+    return adminGetStoreVisitors(100);
+  }),
+  uploadFile: adminProcedure
+    .input(z.object({ base64: z.string(), mimeType: z.string(), fileName: z.string() }))
+    .mutation(async ({ input }) => {
+      const { storagePut } = await import("./storage");
+      const buffer = Buffer.from(input.base64, "base64");
+      const key = `store/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { url } = await storagePut(key, buffer, input.mimeType);
+      return { url };
+    }),
+});
+
+// ─── Store Auth Router (registro y verificación de visitantes) ─────────────────
+const storeAuthRouter = router({
+  register: publicProcedure
+    .input(z.object({ name: z.string().min(1), email: z.string().email(), phone: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      const { visitor, isNew } = await createOrUpdateStoreVisitor(input);
+      // Send verification email via notifyOwner (owner gets copy) + return token for dev
+      const verifyUrl = `${process.env.VITE_OAUTH_PORTAL_URL ?? "https://iamettech-ssx5e88n.manus.space"}/tienda/verificar?token=${visitor.verificationToken}`;
+      // In production, send email to visitor. For now notify owner and return link.
+      await notifyOwner({
+        title: `Nuevo registro en Tienda IAMET: ${input.name}`,
+        content: `Nombre: ${input.name}\nEmail: ${input.email}\nTeléfono: ${input.phone ?? "—"}\n\nLink de verificación: ${verifyUrl}`,
+      });
+      return { ok: true, email: input.email, isNew };
+    }),
+  verify: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      const visitor = await verifyStoreVisitorToken(input.token);
+      if (!visitor) throw new TRPCError({ code: "BAD_REQUEST", message: "Token inválido o expirado" });
+      // Return a simple session token (email + timestamp signed)
+      const sessionToken = Buffer.from(JSON.stringify({ email: visitor.email, name: visitor.name, ts: Date.now() })).toString("base64");
+      return { ok: true, visitor: { name: visitor.name, email: visitor.email }, sessionToken };
+    }),
+  checkEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      const visitor = await getStoreVisitorByEmail(input.email);
+      if (!visitor) return { exists: false, verified: false };
+      return { exists: true, verified: !!visitor.verifiedAt };
+    }),
+  resend: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const visitor = await getStoreVisitorByEmail(input.email);
+      if (!visitor) throw new TRPCError({ code: "NOT_FOUND", message: "Email no registrado" });
+      const { visitor: updated } = await createOrUpdateStoreVisitor({ name: visitor.name, email: visitor.email, phone: visitor.phone ?? undefined });
+      const verifyUrl = `${process.env.VITE_OAUTH_PORTAL_URL ?? "https://iamettech-ssx5e88n.manus.space"}/tienda/verificar?token=${updated.verificationToken}`;
+      await notifyOwner({
+        title: `Reenvío de verificación Tienda IAMET: ${visitor.name}`,
+        content: `Email: ${visitor.email}\n\nLink de verificación: ${verifyUrl}`,
+      });
+      return { ok: true };
+    }),
+});
 
 export const appRouter = router({
   system: systemRouter,
@@ -638,5 +747,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       return getStoreProducts({});
     }),
   }),
+  adminStoreV2: adminStoreRouter,
+  storeAuth: storeAuthRouter,
 });
 export type AppRouter = typeof appRouter;

@@ -14,6 +14,7 @@ import {
   liveChatMessages, LiveChatMessage, InsertLiveChatMessage,
   storeCategories, StoreCategory, InsertStoreCategory,
   storeProducts, StoreProduct, InsertStoreProduct,
+  storeVisitors, StoreVisitor, InsertStoreVisitor,
   quoteRequests, QuoteRequest, InsertQuoteRequest,
   quoteItems, QuoteItem, InsertQuoteItem,
 } from "../drizzle/schema";
@@ -591,18 +592,18 @@ export async function seedStoreData(): Promise<{ categoriesInserted: number; pro
 
   const products: InsertStoreProduct[] = [
     // Seguridad
-    { categoryId: catMap["seguridad"], name: "Cámara IP Domo 4MP H.265", slug: "camara-ip-domo-4mp", shortDesc: "Cámara domo para interiores, resolución 4MP, visión nocturna 30m, PoE", sku: "CAM-DOMO-4MP", priceRef: 2800, unit: "pieza", featured: true, tags: ["cámara", "IP", "domo", "PoE"], specs: { "Resolución": "4MP (2560×1440)", "Sensor": "1/3\" CMOS progresivo", "Compresión": "H.265+ / H.264+", "Visión nocturna": "30m IR inteligente", "Alimentación": "PoE IEEE 802.3af", "Protección": "IP67, IK10", "Ángulo de visión": "103° horizontal", "Almacenamiento": "Micro SD hasta 256GB", "Interfaz": "RJ-45 10/100M" } },
+    { categoryId: catMap["seguridad"], name: "Cámara IP Domo 4MP H.265", slug: "camara-ip-domo-4mp", shortDesc: "Cámara domo para interiores, resolución 4MP, visión nocturna 30m, PoE", sku: "CAM-DOMO-4MP", priceRef: 2800, unit: "pieza", featured: true, tags: ["cámara", "IP", "domo", "PoE"], specs: { "Resolución": "4MP (2560×1440)", "Sensor": "1/3 pulgada CMOS progresivo", "Compresión": "H.265+ / H.264+", "Visión nocturna": "30m IR inteligente", "Alimentación": "PoE IEEE 802.3af", "Protección": "IP67, IK10", "Ángulo de visión": "103° horizontal", "Almacenamiento": "Micro SD hasta 256GB", "Interfaz": "RJ-45 10/100M" } },
     { categoryId: catMap["seguridad"], name: "Cámara PTZ 4K con IA", slug: "camara-ptz-4k-ia", shortDesc: "Cámara PTZ exterior 4K con detección de personas y vehículos por IA", sku: "CAM-PTZ-4K", priceRef: 12500, unit: "pieza", featured: true, tags: ["cámara", "PTZ", "4K", "IA"], specs: { "Resolución": "4K (3840×2160)", "Zoom óptico": "25x", "Zoom digital": "16x", "Velocidad Pan": "0.1°–200°/s", "Velocidad Tilt": "0.1°–120°/s", "Visión nocturna": "100m IR", "Detección IA": "Personas, vehículos, rostros", "Protección": "IP66, IK10", "Alimentación": "24VAC / PoE+" } },
     { categoryId: catMap["seguridad"], name: "NVR 16 Canales 4K", slug: "nvr-16-canales-4k", shortDesc: "Grabador de red 16 canales, soporte 4K, 2 bahías HDD, HDMI 4K", sku: "NVR-16CH-4K", priceRef: 8900, unit: "pieza", tags: ["NVR", "grabador", "16 canales"], specs: { "Canales de video": "16 canales IP", "Resolución máx.": "4K (8MP)", "Compresión": "H.265+ / H.264+", "Bahías HDD": "2x SATA hasta 10TB c/u", "Salida de video": "HDMI 4K + VGA", "Puertos red": "2x RJ-45 Gigabit", "Ancho de banda": "160Mbps entrante", "Protocolos": "ONVIF 2.4, RTSP" } },
-    { categoryId: catMap["seguridad"], name: "Control de Acceso Biométrico", slug: "control-acceso-biometrico", shortDesc: "Lector de huella + tarjeta RFID, capacidad 3000 usuarios, TCP/IP", sku: "ACC-BIO-3K", priceRef: 4500, unit: "pieza", featured: true, tags: ["acceso", "biométrico", "RFID"], specs: { "Capacidad usuarios": "3,000", "Capacidad registros": "100,000 eventos", "Modos de acceso": "Huella + RFID + PIN", "Tiempo verificación": "< 1 segundo", "Comunicación": "TCP/IP, RS-485, Wiegand", "Pantalla": "TFT 2.8\" color", "Alimentación": "12VDC / PoE", "Temperatura": "-10°C a +60°C" } },
+    { categoryId: catMap["seguridad"], name: "Control de Acceso Biométrico", slug: "control-acceso-biometrico", shortDesc: "Lector de huella + tarjeta RFID, capacidad 3000 usuarios, TCP/IP", sku: "ACC-BIO-3K", priceRef: 4500, unit: "pieza", featured: true, tags: ["acceso", "biométrico", "RFID"], specs: { "Capacidad usuarios": "3,000", "Capacidad registros": "100,000 eventos", "Modos de acceso": "Huella + RFID + PIN", "Tiempo verificación": "< 1 segundo", "Comunicación": "TCP/IP, RS-485, Wiegand", "Pantalla": "TFT 2.8 pulgadas color", "Alimentación": "12VDC / PoE", "Temperatura": "-10°C a +60°C" } },
     { categoryId: catMap["seguridad"], name: "Kit Alarma Inalámbrica 8 Zonas", slug: "kit-alarma-inalambrica-8z", shortDesc: "Panel central + 8 sensores PIR + sirena + teclado, comunicación GSM/IP", sku: "ALM-KIT-8Z", priceRef: 6200, unit: "kit", tags: ["alarma", "inalámbrica", "GSM"] },
     // Redes
-    { categoryId: catMap["redes"], name: "Switch Administrable 24 Puertos PoE+", slug: "switch-24p-poe-plus", shortDesc: "Switch L2+ 24 puertos GbE PoE+ (370W) + 4 SFP uplink, VLAN, QoS", sku: "SW-24P-POE", priceRef: 11500, unit: "pieza", featured: true, tags: ["switch", "PoE", "administrable"], specs: { "Puertos PoE+": "24x GbE RJ-45 PoE+", "Puertos uplink": "4x SFP 1G", "Presupuesto PoE": "370W total", "Switching capacity": "56 Gbps", "Capa": "L2+ (L3 lite)", "VLANs": "4094 VLANs 802.1Q", "QoS": "8 colas por puerto, 802.1p", "Gestión": "Web GUI, CLI, SNMP v1/v2/v3", "Factor de forma": "1U rack 19\"" } },
+    { categoryId: catMap["redes"], name: "Switch Administrable 24 Puertos PoE+", slug: "switch-24p-poe-plus", shortDesc: "Switch L2+ 24 puertos GbE PoE+ (370W) + 4 SFP uplink, VLAN, QoS", sku: "SW-24P-POE", priceRef: 11500, unit: "pieza", featured: true, tags: ["switch", "PoE", "administrable"], specs: { "Puertos PoE+": "24x GbE RJ-45 PoE+", "Puertos uplink": "4x SFP 1G", "Presupuesto PoE": "370W total", "Switching capacity": "56 Gbps", "Capa": "L2+ (L3 lite)", "VLANs": "4094 VLANs 802.1Q", "QoS": "8 colas por puerto, 802.1p", "Gestión": "Web GUI, CLI, SNMP v1/v2/v3", "Factor de forma": "1U rack 19 pulgadas" } },
     { categoryId: catMap["redes"], name: "Router Empresarial con VPN", slug: "router-empresarial-vpn", shortDesc: "Router dual WAN, VPN IPSec/SSL, firewall integrado, hasta 100 usuarios", sku: "RTR-ENT-VPN", priceRef: 7800, unit: "pieza", tags: ["router", "VPN", "firewall"] },
     { categoryId: catMap["redes"], name: "Access Point WiFi 6 Techo", slug: "access-point-wifi6-techo", shortDesc: "AP WiFi 6 (802.11ax) para techo, 2.4/5GHz, hasta 300 dispositivos, PoE", sku: "AP-W6-CEIL", priceRef: 3900, unit: "pieza", featured: true, tags: ["WiFi 6", "access point", "PoE"], specs: { "Estándar": "IEEE 802.11ax (WiFi 6)", "Bandas": "2.4GHz + 5GHz dual band", "Velocidad máx.": "574 Mbps (2.4G) + 2402 Mbps (5G)", "Dispositivos simultáneos": "Hasta 300", "Antenas": "4×4 MU-MIMO OFDMA", "Alimentación": "PoE 802.3af/at", "Montaje": "Techo (ceiling mount)", "Gestión": "Controlador en la nube o standalone" } },
     { categoryId: catMap["redes"], name: "Firewall NGFW 1Gbps", slug: "firewall-ngfw-1gbps", shortDesc: "Next-Gen Firewall con IPS, antivirus, filtrado web, VPN, 1Gbps throughput", sku: "FW-NGFW-1G", priceRef: 22000, unit: "pieza", tags: ["firewall", "NGFW", "seguridad"] },
     // Cómputo
-    { categoryId: catMap["computo"], name: "Laptop Empresarial Core i7 16GB", slug: "laptop-empresarial-i7-16gb", shortDesc: "Laptop 14\" FHD, Intel Core i7 12a gen, 16GB RAM, 512GB SSD, Windows 11 Pro", sku: "LAP-I7-16-512", priceRef: 18500, unit: "pieza", featured: true, tags: ["laptop", "Core i7", "Windows 11"], specs: { "Procesador": "Intel Core i7-1265U (12a gen)", "RAM": "16GB DDR4 3200MHz", "Almacenamiento": "512GB NVMe PCIe 4.0", "Pantalla": "14\" FHD IPS 300 nits", "Gráficos": "Intel Iris Xe integrado", "Batería": "56Wh, hasta 10h", "Conectividad": "WiFi 6, Bluetooth 5.2", "Puertos": "2x USB-A, 2x USB-C, HDMI, SD", "SO": "Windows 11 Pro" } },
+    { categoryId: catMap["computo"], name: "Laptop Empresarial Core i7 16GB", slug: "laptop-empresarial-i7-16gb", shortDesc: "Laptop 14\" FHD, Intel Core i7 12a gen, 16GB RAM, 512GB SSD, Windows 11 Pro", sku: "LAP-I7-16-512", priceRef: 18500, unit: "pieza", featured: true, tags: ["laptop", "Core i7", "Windows 11"], specs: { "Procesador": "Intel Core i7-1265U (12a gen)", "RAM": "16GB DDR4 3200MHz", "Almacenamiento": "512GB NVMe PCIe 4.0", "Pantalla": "14 pulgadas FHD IPS 300 nits", "Gráficos": "Intel Iris Xe integrado", "Batería": "56Wh, hasta 10h", "Conectividad": "WiFi 6, Bluetooth 5.2", "Puertos": "2x USB-A, 2x USB-C, HDMI, SD", "SO": "Windows 11 Pro" } },
     { categoryId: catMap["computo"], name: "Servidor Torre Xeon 32GB", slug: "servidor-torre-xeon-32gb", shortDesc: "Servidor torre Intel Xeon E-2300, 32GB ECC, 2x1TB SATA, RAID, Windows Server", sku: "SRV-TWR-XE32", priceRef: 45000, unit: "pieza", tags: ["servidor", "Xeon", "torre"] },
     { categoryId: catMap["computo"], name: "Workstation CAD/Diseño", slug: "workstation-cad-diseno", shortDesc: "Workstation Intel Core i9, 64GB RAM, NVIDIA RTX 3060, 1TB NVMe, para CAD/BIM", sku: "WS-CAD-I9-64", priceRef: 52000, unit: "pieza", tags: ["workstation", "CAD", "RTX"] },
     // Cableado
@@ -626,4 +627,104 @@ export async function seedStoreData(): Promise<{ categoriesInserted: number; pro
 
   await db.insert(storeProducts).values(products);
   return { categoriesInserted: cats.length, productsInserted: products.length };
+}
+
+// ─── Admin Store Helpers ──────────────────────────────────────────────────────
+export async function adminGetStoreProducts(opts: { page?: number; limit?: number; search?: string; categoryId?: number } = {}): Promise<{ products: StoreProduct[]; total: number }> {
+  const db = await getDb();
+  if (!db) return { products: [], total: 0 };
+  const limit = opts.limit ?? 20;
+  const offset = ((opts.page ?? 1) - 1) * limit;
+  const conditions: any[] = [];
+  if (opts.categoryId) conditions.push(eq(storeProducts.categoryId, opts.categoryId));
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const [products, countRows] = await Promise.all([
+    db.select().from(storeProducts).where(whereClause).orderBy(desc(storeProducts.createdAt)).limit(limit).offset(offset),
+    db.select({ count: sql<number>`count(*)` }).from(storeProducts).where(whereClause),
+  ]);
+  return { products, total: Number(countRows[0]?.count ?? 0) };
+}
+
+export async function adminUpsertProduct(data: Partial<InsertStoreProduct> & { id?: number }): Promise<StoreProduct> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const { id, ...fields } = data;
+  if (id) {
+    await db.update(storeProducts).set({ ...fields, updatedAt: new Date() }).where(eq(storeProducts.id, id));
+    const [updated] = await db.select().from(storeProducts).where(eq(storeProducts.id, id)).limit(1);
+    return updated;
+  } else {
+    const slug = (fields.name ?? "producto")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .substring(0, 100) + "-" + Date.now().toString(36);
+    await db.insert(storeProducts).values({ ...fields as InsertStoreProduct, slug });
+    const [created] = await db.select().from(storeProducts).where(eq(storeProducts.slug, slug)).limit(1);
+    return created;
+  }
+}
+
+export async function adminToggleProductActive(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const [product] = await db.select().from(storeProducts).where(eq(storeProducts.id, id)).limit(1);
+  if (!product) throw new Error("Product not found");
+  const newActive = !product.active;
+  await db.update(storeProducts).set({ active: newActive }).where(eq(storeProducts.id, id));
+  return newActive;
+}
+
+export async function adminDeleteProduct(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(storeProducts).where(eq(storeProducts.id, id));
+}
+
+// ─── Store Visitor / Auth Helpers ─────────────────────────────────────────────
+import crypto from "crypto";
+
+export function generateVerificationToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+export async function createOrUpdateStoreVisitor(data: { name: string; email: string; phone?: string }): Promise<{ visitor: StoreVisitor; isNew: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const token = generateVerificationToken();
+  const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+  const existing = await db.select().from(storeVisitors).where(eq(storeVisitors.email, data.email)).limit(1);
+  if (existing[0]) {
+    await db.update(storeVisitors).set({ verificationToken: token, tokenExpiry: expiry, name: data.name, phone: data.phone ?? existing[0].phone }).where(eq(storeVisitors.email, data.email));
+    const [updated] = await db.select().from(storeVisitors).where(eq(storeVisitors.email, data.email)).limit(1);
+    return { visitor: updated, isNew: false };
+  }
+  await db.insert(storeVisitors).values({ name: data.name, email: data.email, phone: data.phone, verificationToken: token, tokenExpiry: expiry });
+  const [created] = await db.select().from(storeVisitors).where(eq(storeVisitors.email, data.email)).limit(1);
+  return { visitor: created, isNew: true };
+}
+
+export async function verifyStoreVisitorToken(token: string): Promise<StoreVisitor | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [visitor] = await db.select().from(storeVisitors).where(eq(storeVisitors.verificationToken, token)).limit(1);
+  if (!visitor) return null;
+  if (!visitor.tokenExpiry || visitor.tokenExpiry < new Date()) return null;
+  await db.update(storeVisitors).set({ verifiedAt: new Date(), verificationToken: null, tokenExpiry: null }).where(eq(storeVisitors.id, visitor.id));
+  const [verified] = await db.select().from(storeVisitors).where(eq(storeVisitors.id, visitor.id)).limit(1);
+  return verified;
+}
+
+export async function getStoreVisitorByEmail(email: string): Promise<StoreVisitor | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [visitor] = await db.select().from(storeVisitors).where(eq(storeVisitors.email, email)).limit(1);
+  return visitor ?? null;
+}
+
+export async function adminGetStoreVisitors(limit = 50): Promise<StoreVisitor[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(storeVisitors).orderBy(desc(storeVisitors.createdAt)).limit(limit);
 }

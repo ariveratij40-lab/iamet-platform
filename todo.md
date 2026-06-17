@@ -158,3 +158,35 @@
 - [x] Función `downloadQuotePdf(snapshot)` en el frontend con tipo `QuoteSnapshot`
 - [x] PDF incluye: header IAMET con color cian, número de referencia, fecha, datos de contacto, tabla de productos con SKU/cantidad/precio, total referencial, nota de validez y footer
 - [x] Botón "Descargar resumen en PDF" en la pantalla de confirmación de Tienda.tsx
+
+## Módulo Admin de Tienda — CRUD de Productos
+
+- [ ] Campo `deliveryTime` (string) en `store_products`: ej. "3-5 días hábiles"
+- [ ] Campo `dataSheetUrl` (string) en `store_products`: URL del PDF de ficha técnica en S3
+- [ ] Campo `imageUrl` (string) en `store_products`: URL de imagen subida por admin
+- [ ] Campo `description` (text) en `store_products`: descripción larga del producto
+- [ ] tRPC procedure `adminStore.upsertProduct`: crear/editar producto con todos los campos
+- [ ] tRPC procedure `adminStore.uploadProductImage`: recibe base64/buffer, sube a S3, retorna URL
+- [ ] tRPC procedure `adminStore.uploadDataSheet`: recibe PDF buffer, sube a S3, retorna URL
+- [ ] tRPC procedure `adminStore.toggleProductActive`: habilitar/deshabilitar producto
+- [ ] tRPC procedure `adminStore.deleteProduct`: eliminar producto
+- [ ] tRPC procedure `adminStore.getProducts`: lista paginada con filtros para el admin
+- [ ] Página `/admin/store` o sección en AdminConsole: tabla de productos con acciones
+- [ ] Formulario de producto: nombre, SKU, categoría, precio ref, tiempo entrega, descripción corta, descripción larga, specs (editor clave/valor), imagen (drag & drop), ficha técnica PDF (upload)
+- [ ] Vista previa de imagen al subir
+- [ ] Botón de toggle activo/inactivo por producto
+- [ ] Botón de eliminar con confirmación
+
+## Registro Obligatorio para Acceder a la Tienda
+
+- [ ] Tabla `store_visitors`: id, name, email, phone, verifiedAt, verificationToken, tokenExpiry, createdAt
+- [ ] tRPC procedure `storeAuth.register`: crea visitante, genera token, envía email de verificación
+- [ ] tRPC procedure `storeAuth.verify`: valida token, marca verifiedAt, retorna JWT de sesión de tienda
+- [ ] tRPC procedure `storeAuth.checkSession`: verifica si el visitante tiene sesión activa (cookie o localStorage)
+- [ ] Email de verificación con link único (válido 24h) usando el helper de notificaciones o nodemailer
+- [ ] Modal de registro en `/tienda`: nombre, correo, teléfono — aparece antes de ver el catálogo
+- [ ] Página `/tienda/verificar?token=xxx`: confirma el email y redirige a la tienda
+- [ ] Guard en `/tienda` y `/tienda/:slug`: si no hay sesión verificada, mostrar modal de registro
+- [ ] Mensaje de "revisa tu correo" con opción de reenviar verificación
+- [ ] Sesión de tienda persistida en localStorage (no requiere login de Manus)
+- [ ] En admin: ver lista de visitantes registrados con fecha de verificación y actividad

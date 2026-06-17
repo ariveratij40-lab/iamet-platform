@@ -1,5 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
+import { useStoreAuth } from "@/hooks/useStoreAuth";
+import { StoreAuthModal } from "@/components/StoreAuthModal";
 import { trpc } from "@/lib/trpc";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -388,6 +390,7 @@ function QuoteForm({ cart, onClose, onSuccess }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Tienda() {
+  const { visitor, isAuthenticated, login } = useStoreAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -459,6 +462,18 @@ export default function Tienda() {
 
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #0f1623 0%, #141d2e 50%, #0f1623 100%)" }}>
+      {/* Auth Guard */}
+      <StoreAuthModal open={!isAuthenticated} onAuthenticated={login} />
+
+      {/* Welcome Banner */}
+      {isAuthenticated && visitor && (
+        <div className="bg-cyan-500/10 border-b border-cyan-500/20 px-4 py-2 text-center">
+          <span className="text-sm text-cyan-300">
+            Bienvenido, <strong>{visitor.name}</strong> — Estás viendo precios y puedes solicitar cotizaciones
+          </span>
+        </div>
+      )}
+
       {/* Hero */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-blue-900/10" />

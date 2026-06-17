@@ -12,6 +12,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminConsole from "./pages/AdminConsole";
 import Tienda from "./pages/Tienda";
 import ProductoDetalle from "./pages/ProductoDetalle";
+import TiendaVerificar from "./pages/TiendaVerificar";
+import AdminTienda from "./pages/AdminTienda";
 import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
 
@@ -29,10 +31,12 @@ function Router() {
         <Route path="/contacto" component={Contact} />
         {/* Tienda */}
         <Route path="/tienda" component={Tienda} />
+        <Route path="/tienda/verificar" component={TiendaVerificar} />
         <Route path="/tienda/:slug" component={ProductoDetalle} />
         {/* Admin */}
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/monitor" component={AdminConsole} />
+        <Route path="/admin/tienda" component={AdminTienda} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

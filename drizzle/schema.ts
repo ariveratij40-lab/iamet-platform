@@ -228,6 +228,8 @@ export const storeProducts = mysqlTable("store_products", {
   imageUrl: text("imageUrl"),
   tags: json("tags"),
   specs: json("specs"),
+  deliveryTime: varchar("deliveryTime", { length: 128 }),
+  dataSheetUrl: text("dataSheetUrl"),
   featured: boolean("featured").default(false).notNull(),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -235,6 +237,19 @@ export const storeProducts = mysqlTable("store_products", {
 });
 export type StoreProduct = typeof storeProducts.$inferSelect;
 export type InsertStoreProduct = typeof storeProducts.$inferInsert;
+
+export const storeVisitors = mysqlTable("store_visitors", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 256 }).notNull().unique(),
+  phone: varchar("phone", { length: 32 }),
+  verifiedAt: timestamp("verifiedAt"),
+  verificationToken: varchar("verificationToken", { length: 128 }),
+  tokenExpiry: timestamp("tokenExpiry"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type StoreVisitor = typeof storeVisitors.$inferSelect;
+export type InsertStoreVisitor = typeof storeVisitors.$inferInsert;
 
 export const quoteRequests = mysqlTable("quote_requests", {
   id: int("id").autoincrement().primaryKey(),
