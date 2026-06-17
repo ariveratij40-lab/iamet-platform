@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -34,19 +34,20 @@ const navItems = [
 export default function Navbar() {
   const [expanded, setExpanded] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { user } = useAuth();
 
   const isActive = (href: string) => location === href || location.startsWith(href + "/");
 
-  const handleItemClick = (item: typeof navItems[0]) => {
+  const handleItemClick = useCallback((item: typeof navItems[0]) => {
     if (item.children) {
-      setActiveSubmenu(activeSubmenu === item.label ? null : item.label);
+      setActiveSubmenu(prev => prev === item.label ? null : item.label);
     } else {
       setExpanded(false);
       setActiveSubmenu(null);
+      if (item.href) navigate(item.href);
     }
-  };
+  }, [navigate]);
 
   const sidebarWidth = expanded ? 260 : 56;
 
