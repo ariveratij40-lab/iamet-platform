@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -199,15 +200,132 @@ function CartItemRow({ item, onQty, onRemove, onNotes }: {
   );
 }
 
-// ─── Quote Form ───────────────────────────────────────────────────────────────
+// ─── PDF Generator ─────────────────────────────────────────────────────────────────────────────────
+type QuoteSnapshot = {
+  refCode: string;
+  items: CartItem[];
+  contact: { visitorName: string; company: string; email: string; phone: string; notes: string };
+};
+
+function downloadQuotePdf(snapshot: QuoteSnapshot) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 18;
+  let y = 20;
+
+  // Header
+  doc.setFillColor(15, 22, 35);
+  doc.rect(0, 0, pageW, 38, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(6, 182, 212);
+  doc.text("IAMET", margin, y + 6);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(148, 163, 184);
+  doc.text("Evolución Tecnológica", margin, y + 12);
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 255);
+  doc.text("SOLICITUD DE COTIZACIÓN", pageW - margin, y + 6, { align: "right" });
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text("Ref: " + snapshot.refCode, pageW - margin, y + 12, { align: "right" });
+  doc.text("Fecha: " + new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" }), pageW - margin, y + 17, { align: "right" });
+  y = 48;
+
+  // Datos de contacto
+  doc.setFillColor(30, 37, 53);
+  doc.roundedRect(margin, y, pageW - margin * 2, 36, 3, 3, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(6, 182, 212);
+  doc.text("DATOS DE CONTACTO", margin + 4, y + 7);
+  const c = snapshot.contact;
+  const col1 = margin + 4;
+  const col2 = pageW / 2 + 4;
+  doc.setFontSize(8.5);
+  doc.setTextColor(220, 230, 245);
+  doc.setFont("helvetica", "bold"); doc.text("Nombre:", col1, y + 15);
+  doc.setFont("helvetica", "normal"); doc.text(c.visitorName || "—", col1 + 18, y + 15);
+  doc.setFont("helvetica", "bold"); doc.text("Empresa:", col2, y + 15);
+  doc.setFont("helvetica", "normal"); doc.text(c.company || "—", col2 + 19, y + 15);
+  doc.setFont("helvetica", "bold"); doc.text("Email:", col1, y + 23);
+  doc.setFont("helvetica", "normal"); doc.text(c.email || "—", col1 + 18, y + 23);
+  doc.setFont("helvetica", "bold"); doc.text("Teléfono:", col2, y + 23);
+  doc.setFont("helvetica", "normal"); doc.text(c.phone || "—", col2 + 19, y + 23);
+  if (c.notes) {
+    doc.setFont("helvetica", "bold"); doc.text("Notas:", col1, y + 31);
+    doc.setFont("helvetica", "normal");
+    doc.text(doc.splitTextToSize(c.notes, pageW - margin * 2 - 22), col1 + 18, y + 31);
+  }
+  y += 44;
+
+  // Tabla de productos
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(6, 182, 212);
+  doc.text("PRODUCTOS SOLICITADOS", margin, y);
+  y += 5;
+  doc.setFillColor(6, 182, 212);
+  doc.rect(margin, y, pageW - margin * 2, 7, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(15, 22, 35);
+  doc.text("#", margin + 2, y + 5);
+  doc.text("Producto", margin + 10, y + 5);
+  doc.text("SKU", pageW - margin - 60, y + 5);
+  doc.text("Cant.", pageW - margin - 32, y + 5);
+  doc.text("Precio Ref.", pageW - margin - 18, y + 5, { align: "right" });
+  y += 7;
+  snapshot.items.forEach((item, idx) => {
+    const rowH = 8;
+    if (idx % 2 === 0) { doc.setFillColor(22, 28, 42); doc.rect(margin, y, pageW - margin * 2, rowH, "F"); }
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(220, 230, 245);
+    doc.text(String(idx + 1), margin + 2, y + 5.5);
+    doc.text(doc.splitTextToSize(item.product.name, 80)[0], margin + 10, y + 5.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text(item.product.sku ?? "—", pageW - margin - 60, y + 5.5);
+    doc.setTextColor(220, 230, 245);
+    doc.text(String(item.quantity), pageW - margin - 32, y + 5.5);
+    const price = item.product.priceRef
+      ? "$" + (item.product.priceRef * item.quantity).toLocaleString("es-MX") + " MXN"
+      : "A consultar";
+    doc.text(price, pageW - margin - 18, y + 5.5, { align: "right" });
+    y += rowH;
+  });
+  const total = snapshot.items.reduce((s, i) => s + (i.product.priceRef ?? 0) * i.quantity, 0);
+  if (total > 0) {
+    y += 2;
+    doc.setDrawColor(6, 182, 212); doc.setLineWidth(0.3); doc.line(margin, y, pageW - margin, y); y += 5;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(6, 182, 212);
+    doc.text("Total referencial:", pageW - margin - 50, y);
+    doc.text("$" + total.toLocaleString("es-MX") + " MXN", pageW - margin - 18, y, { align: "right" });
+    y += 8;
+  }
+
+  // Nota de validez
+  y += 4;
+  doc.setFillColor(22, 28, 42);
+  doc.roundedRect(margin, y, pageW - margin * 2, 18, 3, 3, "F");
+  doc.setFont("helvetica", "italic"); doc.setFontSize(7.5); doc.setTextColor(148, 163, 184);
+  const nota = "Los precios indicados son de referencia y están sujetos a cambio. La cotización formal será enviada por nuestro equipo comercial en un plazo máximo de 24 horas hábiles. Este documento no constituye una factura ni un contrato de compra-venta.";
+  doc.text(doc.splitTextToSize(nota, pageW - margin * 2 - 8), margin + 4, y + 6);
+
+  // Footer
+  const footerY = doc.internal.pageSize.getHeight() - 12;
+  doc.setDrawColor(30, 37, 53); doc.setLineWidth(0.5); doc.line(margin, footerY - 3, pageW - margin, footerY - 3);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(100, 120, 150);
+  doc.text("IAMET Evolución Tecnológica • www.iamet.com.mx", margin, footerY);
+  doc.text("Ref: " + snapshot.refCode, pageW - margin, footerY, { align: "right" });
+
+  doc.save("IAMET-Cotizacion-" + snapshot.refCode + ".pdf");
+}
+
+// ─── Quote Form ─────────────────────────────────────────────────────────────────────────────────
 function QuoteForm({ cart, onClose, onSuccess }: {
   cart: CartItem[];
   onClose: () => void;
-  onSuccess: (refCode: string) => void;
+  onSuccess: (refCode: string, contact: QuoteSnapshot["contact"]) => void;
 }) {
   const [form, setForm] = useState({ visitorName: "", company: "", email: "", phone: "", notes: "" });
   const submitMutation = trpc.store.submitQuote.useMutation({
-    onSuccess: (data) => onSuccess(data.refCode),
+    onSuccess: (data) => onSuccess(data.refCode, form),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -277,6 +395,7 @@ export default function Tienda() {
   const [cartStep, setCartStep] = useState<"items" | "form">("items");
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [successRefCode, setSuccessRefCode] = useState<string | null>(null);
+  const [quoteSnapshot, setQuoteSnapshot] = useState<QuoteSnapshot | null>(null);
 
   // Resetear paso al cerrar el drawer
   const handleCartOpenChange = (open: boolean) => {
@@ -599,10 +718,12 @@ export default function Tienda() {
                 <QuoteForm
                   cart={cart}
                   onClose={() => handleCartOpenChange(false)}
-                  onSuccess={(refCode) => {
+                  onSuccess={(refCode, contact) => {
+                    const snap: QuoteSnapshot = { refCode, items: [...cart], contact };
                     handleCartOpenChange(false);
                     setCart([]);
                     setSuccessRefCode(refCode);
+                    setQuoteSnapshot(snap);
                   }}
                 />
               </div>
@@ -612,7 +733,7 @@ export default function Tienda() {
       </Sheet>
 
       {/* Success Dialog */}
-      <Dialog open={!!successRefCode} onOpenChange={() => setSuccessRefCode(null)}>
+      <Dialog open={!!successRefCode} onOpenChange={() => { setSuccessRefCode(null); setQuoteSnapshot(null); }}>
         <DialogContent
           className="max-w-md text-center border-white/10"
           style={{ background: "linear-gradient(145deg, #1e2535, #141d2e)" }}
@@ -635,9 +756,25 @@ export default function Tienda() {
             <p className="text-xs text-slate-500">
               Nuestro equipo revisará tu solicitud y te contactará en menos de 24 horas hábiles.
             </p>
-            <Button onClick={() => setSuccessRefCode(null)} className="bg-cyan-600 hover:bg-cyan-500 text-white">
-              Continuar explorando
-            </Button>
+            <div className="flex flex-col gap-2 w-full">
+              {quoteSnapshot && (
+                <Button
+                  onClick={() => downloadQuotePdf(quoteSnapshot)}
+                  variant="outline"
+                  className="w-full gap-2 border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/10"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Descargar resumen en PDF
+                </Button>
+              )}
+              <Button onClick={() => { setSuccessRefCode(null); setQuoteSnapshot(null); }} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white">
+                Continuar explorando
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

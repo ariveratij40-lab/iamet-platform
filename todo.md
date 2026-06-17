@@ -151,3 +151,10 @@
 - [ ] Breadcrumb: Inicio > Tienda > Categoría > Producto
 - [ ] Ruta /tienda/:slug registrada en App.tsx
 - [ ] Tarjetas de Tienda.tsx navegan al detalle al hacer clic en imagen/nombre
+
+## PDF de Solicitud de Cotización
+
+- [x] Instalar jsPDF en el cliente para generación de PDF en el navegador
+- [x] Función `downloadQuotePdf(snapshot)` en el frontend con tipo `QuoteSnapshot`
+- [x] PDF incluye: header IAMET con color cian, número de referencia, fecha, datos de contacto, tabla de productos con SKU/cantidad/precio, total referencial, nota de validez y footer
+- [x] Botón "Descargar resumen en PDF" en la pantalla de confirmación de Tienda.tsx
