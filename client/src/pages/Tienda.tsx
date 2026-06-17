@@ -274,8 +274,15 @@ export default function Tienda() {
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [cartStep, setCartStep] = useState<"items" | "form">("items");
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [successRefCode, setSuccessRefCode] = useState<string | null>(null);
+
+  // Resetear paso al cerrar el drawer
+  const handleCartOpenChange = (open: boolean) => {
+    setCartOpen(open);
+    if (!open) setCartStep("items");
+  };
 
   const { data: categories, isLoading: catsLoading } = trpc.store.getCategories.useQuery();
   const { data: products, isLoading: prodsLoading } = trpc.store.getProducts.useQuery({});
@@ -481,98 +488,128 @@ export default function Tienda() {
         )}
       </div>
 
-      {/* Cart Drawer */}
-      <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+      {/* Cart Drawer — 2 pasos: productos + formulario de contacto */}
+      <Sheet open={cartOpen} onOpenChange={handleCartOpenChange}>
         <SheetContent
           side="right"
-          className="w-full sm:max-w-md flex flex-col border-white/10"
+          className="w-full sm:max-w-md flex flex-col border-white/10 p-0"
           style={{ background: "linear-gradient(180deg, #141d2e, #0f1623)" }}
         >
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-white">
-              <ShoppingCart className="w-5 h-5 text-cyan-400" />
-              Solicitud de Cotización
-              {cart.length > 0 && (
-                <Badge className="bg-cyan-600 text-white ml-auto">{cart.length} ítem{cart.length !== 1 ? "s" : ""}</Badge>
-              )}
-            </SheetTitle>
-          </SheetHeader>
-
-          {cart.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-              <ShoppingCart className="w-12 h-12 text-slate-700" />
-              <p className="text-slate-500">Tu carrito está vacío</p>
-              <p className="text-xs text-slate-600">Agrega productos del catálogo para solicitar una cotización</p>
-              <Button variant="outline" onClick={() => setCartOpen(false)} className="mt-2 border-white/10 text-slate-300">
-                Ver catálogo
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                {cart.map((item) => (
-                  <CartItemRow
-                    key={item.product.id}
-                    item={item}
-                    onQty={(d) => updateQty(item.product.id, d)}
-                    onRemove={() => removeFromCart(item.product.id)}
-                    onNotes={(v) => updateNotes(item.product.id, v)}
-                  />
-                ))}
-              </div>
-              <SheetFooter className="flex-col gap-3 pt-4 border-t border-white/10">
-                {totalRef > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Total referencial:</span>
-                    <span className="text-cyan-400 font-bold">${totalRef.toLocaleString("es-MX")} MXN</span>
-                  </div>
+          {/* Header con indicador de pasos */}
+          <div className="px-6 pt-6 pb-4 border-b border-white/10 flex-shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {cartStep === "form" && (
+                  <button
+                    onClick={() => setCartStep("items")}
+                    className="text-slate-400 hover:text-white transition-colors mr-1"
+                  >
+                    <ChevronRight className="w-4 h-4 rotate-180" />
+                  </button>
                 )}
-                <p className="text-xs text-slate-500 text-center">
-                  Los precios son de referencia. El precio final se confirma en la cotización.
-                </p>
-                <Button
-                  onClick={() => { setCartOpen(false); setQuoteOpen(true); }}
-                  className="w-full bg-cyan-600 hover:bg-cyan-500 text-white gap-2"
-                  style={{ boxShadow: "0 0 16px rgba(6,182,212,0.3)" }}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                  Solicitar cotización
+                <ShoppingCart className="w-5 h-5 text-cyan-400" />
+                <span className="text-white font-semibold">
+                  {cartStep === "items" ? "Solicitud de Cotización" : "Datos de Contacto"}
+                </span>
+              </div>
+              {cart.length > 0 && cartStep === "items" && (
+                <Badge className="bg-cyan-600 text-white">{cart.length} ítem{cart.length !== 1 ? "s" : ""}</Badge>
+              )}
+            </div>
+            {/* Indicador de pasos */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-cyan-600 text-white">1</div>
+                <span className={`text-xs ${cartStep === "items" ? "text-cyan-400" : "text-slate-500"}`}>Productos</span>
+              </div>
+              <div className="flex-1 h-px bg-white/10" />
+              <div className="flex items-center gap-1.5">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  cartStep === "form" ? "bg-cyan-600 text-white" : "bg-white/10 text-slate-500"
+                }`}>2</div>
+                <span className={`text-xs ${cartStep === "form" ? "text-cyan-400" : "text-slate-500"}`}>Contacto</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Paso 1: Lista de productos */}
+          {cartStep === "items" && (
+            cart.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
+                <ShoppingCart className="w-12 h-12 text-slate-700" />
+                <p className="text-slate-500">Tu carrito está vacío</p>
+                <p className="text-xs text-slate-600">Agrega productos del catálogo para solicitar una cotización</p>
+                <Button variant="outline" onClick={() => handleCartOpenChange(false)} className="mt-2 border-white/10 text-slate-300">
+                  Ver catálogo
                 </Button>
-              </SheetFooter>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto space-y-3 px-6 py-4">
+                  {cart.map((item) => (
+                    <CartItemRow
+                      key={item.product.id}
+                      item={item}
+                      onQty={(d) => updateQty(item.product.id, d)}
+                      onRemove={() => removeFromCart(item.product.id)}
+                      onNotes={(v) => updateNotes(item.product.id, v)}
+                    />
+                  ))}
+                </div>
+                <div className="px-6 pb-6 pt-4 border-t border-white/10 flex-shrink-0 space-y-3">
+                  {totalRef > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Total referencial:</span>
+                      <span className="text-cyan-400 font-bold">${totalRef.toLocaleString("es-MX")} MXN</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-500 text-center">
+                    Los precios son de referencia. El precio final se confirma en la cotización.
+                  </p>
+                  <Button
+                    onClick={() => setCartStep("form")}
+                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white gap-2"
+                    style={{ boxShadow: "0 0 16px rgba(6,182,212,0.3)" }}
+                  >
+                    Continuar con mis datos
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </>
+            )
+          )}
+
+          {/* Paso 2: Formulario de contacto */}
+          {cartStep === "form" && (
+            <>
+              {/* Resumen de productos */}
+              <div className="px-6 py-3 border-b border-white/5 flex-shrink-0">
+                <p className="text-xs text-slate-500 mb-2">{cart.length} producto{cart.length !== 1 ? "s" : ""} en tu solicitud:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {cart.map((item) => (
+                    <span key={item.product.id} className="text-xs px-2 py-0.5 rounded-full text-cyan-400"
+                      style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)" }}
+                    >
+                      {item.quantity}× {item.product.name.length > 22 ? item.product.name.slice(0, 22) + "…" : item.product.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                <QuoteForm
+                  cart={cart}
+                  onClose={() => handleCartOpenChange(false)}
+                  onSuccess={(refCode) => {
+                    handleCartOpenChange(false);
+                    setCart([]);
+                    setSuccessRefCode(refCode);
+                  }}
+                />
+              </div>
             </>
           )}
         </SheetContent>
       </Sheet>
-
-      {/* Quote Form Dialog */}
-      <Dialog open={quoteOpen} onOpenChange={setQuoteOpen}>
-        <DialogContent
-          className="max-w-lg border-white/10"
-          style={{ background: "linear-gradient(145deg, #1e2535, #141d2e)" }}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
-              <Tag className="w-5 h-5 text-cyan-400" />
-              Datos de contacto
-            </DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Completa tus datos y te enviaremos la cotización a tu correo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="text-xs text-slate-500 mb-2">
-            {cart.length} producto{cart.length !== 1 ? "s" : ""} en la solicitud
-          </div>
-          <QuoteForm
-            cart={cart}
-            onClose={() => setQuoteOpen(false)}
-            onSuccess={(refCode) => {
-              setQuoteOpen(false);
-              setCart([]);
-              setSuccessRefCode(refCode);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
 
       {/* Success Dialog */}
       <Dialog open={!!successRefCode} onOpenChange={() => setSuccessRefCode(null)}>
