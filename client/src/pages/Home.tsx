@@ -457,6 +457,49 @@ function ServiceFan({ onServiceClick }: { onServiceClick: (query: string) => voi
           );
         })()}
 
+        {/* Nodo central de Tienda — debajo del badge */}
+        {(() => {
+          const N2 = SERVICES.length;
+          const CENTER_DEG2 = -90;
+          const SPREAD_DEG2 = 140;
+          const ys = Array.from({ length: N2 }, (_, i) => {
+            const deg = CENTER_DEG2 - SPREAD_DEG2 / 2 + (i / (N2 - 1)) * SPREAD_DEG2;
+            return OY + R_ICON * Math.sin((deg * Math.PI) / 180);
+          });
+          const minY = Math.min(...ys);
+          const maxY = Math.max(...ys);
+          const badgeY = (minY + maxY) / 2;
+          const shopY = badgeY + 62; // debajo del badge
+          return (
+            <motion.g
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.25, ease: [0.23, 1, 0.32, 1] }}
+              style={{ transformOrigin: `${OX}px ${shopY}px`, cursor: "pointer" }}
+              onClick={() => { window.location.href = "/tienda"; }}
+            >
+              {/* Círculo fondo */}
+              <circle cx={OX} cy={shopY} r={28} fill="rgba(8,145,178,0.12)" stroke="rgba(8,145,178,0.45)" strokeWidth={1.5} />
+              {/* Ícono carrito SVG inline */}
+              <g transform={`translate(${OX - 12}, ${shopY - 12})`}>
+                <path d="M1 1h3l2 9h10l2-7H6" stroke="#0891b2" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <circle cx="9" cy="21" r="1.2" fill="#0891b2" />
+                <circle cx="18" cy="21" r="1.2" fill="#0891b2" />
+              </g>
+              {/* Etiqueta */}
+              <text
+                x={OX} y={shopY + 44}
+                textAnchor="middle"
+                fontSize={9}
+                fontWeight={500}
+                fill="#0891b2"
+                style={{ fontFamily: "inherit" }}
+              >
+                Tienda
+              </text>
+            </motion.g>
+          );
+        })()}
         {/* Nodos */}
         {SERVICES.map((svc, i) => {
           const rad = (angles[i] * Math.PI) / 180;
