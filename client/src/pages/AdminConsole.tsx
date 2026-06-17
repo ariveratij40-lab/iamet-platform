@@ -6,7 +6,7 @@ import {
   Users, MessageSquare, Globe, Clock, Monitor,
   MapPin, Wifi, ChevronDown, ChevronUp, RefreshCw,
   Activity, Eye, Bot, Layers, MessagesSquare, User, Sparkles,
-  TrendingUp, Hash,
+  TrendingUp, Hash, ShoppingCart, Tag, CheckCircle2, XCircle, Package,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -489,6 +489,182 @@ function ChatHistorySection() {
   );
 }
 
+// ─── Quote Requests Section ──────────────────────────────────────────────────
+const QUOTE_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending:  { label: "Pendiente",  color: "#f59e0b" },
+  reviewed: { label: "Revisada",   color: "#3b82f6" },
+  quoted:   { label: "Cotizada",   color: "#8b5cf6" },
+  closed:   { label: "Cerrada",    color: "#22c55e" },
+};
+
+function QuoteRow({ quote }: { quote: any }) {
+  const [expanded, setExpanded] = useState(false);
+  const utils = trpc.useUtils();
+  const updateStatus = trpc.adminStore.updateQuoteStatus.useMutation({
+    onSuccess: () => utils.adminStore.getQuotes.invalidate(),
+  });
+
+  const statusInfo = QUOTE_STATUS_LABELS[quote.status] ?? { label: quote.status, color: "#6b7280" };
+
+  return (
+    <motion.div
+      layout
+      className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden"
+      style={{ boxShadow: "4px 4px 10px rgba(0,0,0,0.06), -2px -2px 6px rgba(255,255,255,0.8)" }}
+    >
+      <div
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/90 transition-colors"
+        onClick={() => setExpanded((e) => !e)}
+      >
+        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: statusInfo.color }} />
+        <span className="font-mono text-xs text-gray-400 w-24 truncate flex-shrink-0">{quote.refCode}</span>
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-medium text-gray-700 truncate block">{quote.visitorName}</span>
+          {quote.company && <span className="text-[10px] text-gray-400">{quote.company}</span>}
+        </div>
+        <Badge
+          variant="outline"
+          className="text-xs flex-shrink-0"
+          style={{ borderColor: statusInfo.color + "60", color: statusInfo.color, background: statusInfo.color + "10" }}
+        >
+          {statusInfo.label}
+        </Badge>
+        <span className="text-xs text-gray-400 flex-shrink-0 hidden sm:inline">{timeSince(quote.createdAt)}</span>
+        <div className="flex-shrink-0 text-gray-400">
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <Separator />
+            <div className="px-4 py-3 space-y-3">
+              {/* Contact info */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div><p className="text-gray-400 mb-0.5">Email</p><p className="text-gray-700">{quote.email}</p></div>
+                <div><p className="text-gray-400 mb-0.5">Teléfono</p><p className="text-gray-700">{quote.phone ?? "—"}</p></div>
+                <div><p className="text-gray-400 mb-0.5">Empresa</p><p className="text-gray-700">{quote.company ?? "—"}</p></div>
+              </div>
+              {/* Notes */}
+              {quote.notes && (
+                <div className="text-xs">
+                  <p className="text-gray-400 mb-0.5">Notas</p>
+                  <p className="text-gray-700 bg-gray-50 rounded-lg px-3 py-2">{quote.notes}</p>
+                </div>
+              )}
+              {/* Items */}
+              {quote.items && quote.items.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-2">Productos solicitados ({quote.items.length})</p>
+                  <div className="space-y-1">
+                    {quote.items.map((item: any) => (
+                      <div key={item.id} className="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-3 py-2">
+                        <Package className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        <span className="flex-1 text-gray-700">{item.productName}</span>
+                        {item.productSku && <span className="font-mono text-gray-400">{item.productSku}</span>}
+                        <span className="font-semibold text-gray-700">x{item.quantity}</span>
+                        {item.notes && <span className="text-gray-400 italic">{item.notes}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Status actions */}
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-xs text-gray-500">Cambiar estado:</span>
+                {Object.entries(QUOTE_STATUS_LABELS).map(([key, info]) => (
+                  <button
+                    key={key}
+                    disabled={quote.status === key || updateStatus.isPending}
+                    onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: quote.id, status: key as any }); }}
+                    className="text-xs px-2.5 py-1 rounded-lg transition-all disabled:opacity-40"
+                    style={{
+                      background: quote.status === key ? info.color + "20" : "rgba(0,0,0,0.04)",
+                      border: `1px solid ${info.color}40`,
+                      color: info.color,
+                    }}
+                  >
+                    {info.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function QuoteRequestsSection() {
+  const quotesQuery = trpc.adminStore.getQuotes.useQuery({ limit: 50 }, { refetchInterval: 30_000 });
+  const quotes = quotesQuery.data ?? [];
+  const pending = quotes.filter((q: any) => q.status === "pending").length;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <ShoppingCart className="w-4 h-4 text-emerald-500" />
+          Solicitudes de cotización
+          {pending > 0 && (
+            <span className="text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5 font-semibold">
+              {pending} pendiente{pending !== 1 ? "s" : ""}
+            </span>
+          )}
+        </h2>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs gap-1 bg-white/70 border-white/60"
+          onClick={() => quotesQuery.refetch()}
+        >
+          <RefreshCw className={`w-3 h-3 ${quotesQuery.isFetching ? "animate-spin" : ""}`} />
+          Actualizar
+        </Button>
+      </div>
+
+      {quotesQuery.isLoading ? (
+        <div className="flex items-center justify-center py-12 text-gray-400 gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Cargando cotizaciones…</span>
+        </div>
+      ) : quotes.length === 0 ? (
+        <div
+          className="rounded-2xl p-8 bg-white/70 backdrop-blur-sm border border-white/60 text-center"
+          style={{ boxShadow: "4px 4px 10px rgba(0,0,0,0.06), -2px -2px 6px rgba(255,255,255,0.8)" }}
+        >
+          <ShoppingCart className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">No hay solicitudes de cotización aún</p>
+          <p className="text-xs text-gray-400 mt-1">Las solicitudes de la tienda aparecerán aquí</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <AnimatePresence>
+            {quotes.map((quote: any) => (
+              <motion.div
+                key={quote.id}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.18 }}
+              >
+                <QuoteRow quote={quote} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Admin Console Page ───────────────────────────────────────────────────────
 export default function AdminConsole() {
   const { user, loading } = useAuth();
@@ -683,6 +859,9 @@ export default function AdminConsole() {
 
         {/* Chat History */}
         <ChatHistorySection />
+
+        {/* Quote Requests */}
+        <QuoteRequestsSection />
 
         {/* Live Chat — Intervención Humana */}
         <LiveChatPanel agentName={user?.name ?? "Soporte IAMET"} />

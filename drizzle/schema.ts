@@ -201,3 +201,63 @@ export const liveChatMessages = mysqlTable("live_chat_messages", {
 
 export type LiveChatMessage = typeof liveChatMessages.$inferSelect;
 export type InsertLiveChatMessage = typeof liveChatMessages.$inferInsert;
+
+// ─── E-Commerce: Tienda IAMET ─────────────────────────────────────────────────
+export const storeCategories = mysqlTable("store_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  icon: varchar("icon", { length: 64 }),
+  description: text("description"),
+  order: int("order").default(0),
+  active: boolean("active").default(true).notNull(),
+});
+export type StoreCategory = typeof storeCategories.$inferSelect;
+export type InsertStoreCategory = typeof storeCategories.$inferInsert;
+
+export const storeProducts = mysqlTable("store_products", {
+  id: int("id").autoincrement().primaryKey(),
+  categoryId: int("categoryId").notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  description: text("description"),
+  shortDesc: varchar("shortDesc", { length: 512 }),
+  sku: varchar("sku", { length: 64 }),
+  priceRef: float("priceRef"),
+  unit: varchar("unit", { length: 32 }).default("pieza"),
+  imageUrl: text("imageUrl"),
+  tags: json("tags"),
+  featured: boolean("featured").default(false).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type StoreProduct = typeof storeProducts.$inferSelect;
+export type InsertStoreProduct = typeof storeProducts.$inferInsert;
+
+export const quoteRequests = mysqlTable("quote_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  refCode: varchar("refCode", { length: 32 }).notNull().unique(),
+  visitorName: varchar("visitorName", { length: 128 }).notNull(),
+  company: varchar("company", { length: 256 }),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 32 }),
+  notes: text("notes"),
+  status: mysqlEnum("status", ["pending", "reviewed", "quoted", "closed"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type QuoteRequest = typeof quoteRequests.$inferSelect;
+export type InsertQuoteRequest = typeof quoteRequests.$inferInsert;
+
+export const quoteItems = mysqlTable("quote_items", {
+  id: int("id").autoincrement().primaryKey(),
+  quoteRequestId: int("quoteRequestId").notNull(),
+  productId: int("productId"),
+  productName: varchar("productName", { length: 256 }).notNull(),
+  productSku: varchar("productSku", { length: 64 }),
+  quantity: int("quantity").default(1).notNull(),
+  notes: text("notes"),
+});
+export type QuoteItem = typeof quoteItems.$inferSelect;
+export type InsertQuoteItem = typeof quoteItems.$inferInsert;

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid, Shield, Cpu, Zap, BookOpen, Phone, LogIn,
   LayoutDashboard, ChevronRight, ChevronLeft, X, Home,
-  Server, Brain, Headphones, FileCheck, Globe, Activity,
+  Server, Brain, Headphones, FileCheck, Globe, Activity, ShoppingCart,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -27,6 +27,7 @@ const navItems = [
   { label: "Industrias", icon: Globe, href: "/industrias" },
   { label: "Tech Advisor", icon: Zap, href: "/tech-advisor" },
   { label: "Academy", icon: BookOpen, href: "/academy" },
+  { label: "Tienda", icon: ShoppingCart, href: "/tienda" },
   { label: "Contacto", icon: Phone, href: "/contacto" },
 ];
 

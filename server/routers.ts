@@ -23,6 +23,15 @@ import {
   getLiveChatMessages,
   markLiveChatRead,
   getActiveLiveSessions,
+  getStoreCategories,
+  getStoreProducts,
+  getStoreProductBySlug,
+  createQuoteRequest,
+  getQuoteRequests,
+  updateQuoteStatus,
+  upsertStoreProduct,
+  toggleStoreProductActive,
+  seedStoreData,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -518,6 +527,116 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         });
         return { ok: true };
       }),
+  }),
+
+  // ─── Tienda IAMET (E-Commerce) ───────────────────────────────────────────────
+  store: router({
+    seedData: publicProcedure.mutation(async () => {
+      return seedStoreData();
+    }),
+    getCategories: publicProcedure.query(async () => {
+      return getStoreCategories();
+    }),
+    getProducts: publicProcedure
+      .input(z.object({
+        categorySlug: z.string().optional(),
+        search: z.string().optional(),
+        featuredOnly: z.boolean().optional(),
+      }))
+      .query(async ({ input }) => {
+        return getStoreProducts(input);
+      }),
+    getProduct: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        return getStoreProductBySlug(input.slug);
+      }),
+    submitQuote: publicProcedure
+      .input(z.object({
+        visitorName: z.string().min(2),
+        company: z.string().optional(),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        notes: z.string().optional(),
+        items: z.array(z.object({
+          productId: z.number().optional(),
+          productName: z.string(),
+          productSku: z.string().optional(),
+          quantity: z.number().min(1).default(1),
+          notes: z.string().optional(),
+        })).min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const refCode = `IAMET-${Date.now().toString(36).toUpperCase()}`;
+        const quote = await createQuoteRequest(
+          {
+            refCode,
+            visitorName: input.visitorName,
+            company: input.company,
+            email: input.email,
+            phone: input.phone,
+            notes: input.notes,
+            status: "pending",
+          },
+          input.items.map((i) => ({
+            quoteRequestId: 0,
+            productId: i.productId,
+            productName: i.productName,
+            productSku: i.productSku,
+            quantity: i.quantity,
+            notes: i.notes,
+          }))
+        );
+        const itemList = input.items.map((i) => `- ${i.productName} x${i.quantity}`).join("\n");
+        await notifyOwner({
+          title: `Nueva solicitud de cotización: ${refCode}`,
+          content: `**${input.visitorName}** (${input.company ?? "sin empresa"}) solicitó cotización.\n\nEmail: ${input.email}\nTeléfono: ${input.phone ?? "N/A"}\n\n**Productos:**\n${itemList}\n\nNotas: ${input.notes ?? "ninguna"}`,
+        });
+        return { refCode, id: quote.id };
+      }),
+  }),
+
+  // ─── Admin: Tienda y Cotizaciones ────────────────────────────────────────────
+  adminStore: router({
+    getQuotes: adminProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return getQuoteRequests(input.limit ?? 50);
+      }),
+    updateQuoteStatus: adminProcedure
+      .input(z.object({ id: z.number(), status: z.enum(["pending", "reviewed", "quoted", "closed"]) }))
+      .mutation(async ({ input }) => {
+        await updateQuoteStatus(input.id, input.status);
+        return { ok: true };
+      }),
+    upsertProduct: adminProcedure
+      .input(z.object({
+        id: z.number().optional(),
+        categoryId: z.number(),
+        name: z.string(),
+        slug: z.string(),
+        description: z.string().optional(),
+        shortDesc: z.string().optional(),
+        sku: z.string().optional(),
+        priceRef: z.number().optional(),
+        unit: z.string().optional(),
+        imageUrl: z.string().optional(),
+        featured: z.boolean().optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await upsertStoreProduct(input as any);
+        return { ok: true };
+      }),
+    toggleProductActive: adminProcedure
+      .input(z.object({ id: z.number(), active: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await toggleStoreProductActive(input.id, input.active);
+        return { ok: true };
+      }),
+    getProducts: adminProcedure.query(async () => {
+      return getStoreProducts({});
+    }),
   }),
 });
 export type AppRouter = typeof appRouter;

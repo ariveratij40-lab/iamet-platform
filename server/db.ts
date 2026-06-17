@@ -12,6 +12,10 @@ import {
   visitorSessions, InsertVisitorSession, VisitorSession,
   pageEvents, InsertPageEvent,
   liveChatMessages, LiveChatMessage, InsertLiveChatMessage,
+  storeCategories, StoreCategory, InsertStoreCategory,
+  storeProducts, StoreProduct, InsertStoreProduct,
+  quoteRequests, QuoteRequest, InsertQuoteRequest,
+  quoteItems, QuoteItem, InsertQuoteItem,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -444,4 +448,167 @@ export async function getActiveLiveSessions(): Promise<Array<{
     })
   );
   return results;
+}
+
+// ─── E-Commerce: Tienda IAMET ─────────────────────────────────────────────────
+
+export async function getStoreCategories(): Promise<StoreCategory[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(storeCategories).where(eq(storeCategories.active, true)).orderBy(storeCategories.order);
+}
+
+export async function getStoreProducts(opts: {
+  categorySlug?: string;
+  search?: string;
+  featuredOnly?: boolean;
+  limit?: number;
+} = {}): Promise<(StoreProduct & { categoryName: string; categorySlug: string })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      product: storeProducts,
+      categoryName: storeCategories.name,
+      categorySlug: storeCategories.slug,
+    })
+    .from(storeProducts)
+    .innerJoin(storeCategories, eq(storeProducts.categoryId, storeCategories.id))
+    .where(eq(storeProducts.active, true))
+    .orderBy(desc(storeProducts.featured), storeProducts.name)
+    .limit(opts.limit ?? 200);
+
+  let results = rows.map((r) => ({ ...r.product, categoryName: r.categoryName, categorySlug: r.categorySlug }));
+  if (opts.categorySlug) results = results.filter((p) => p.categorySlug === opts.categorySlug);
+  if (opts.featuredOnly) results = results.filter((p) => p.featured);
+  if (opts.search) {
+    const q = opts.search.toLowerCase();
+    results = results.filter((p) =>
+      p.name.toLowerCase().includes(q) ||
+      (p.shortDesc ?? "").toLowerCase().includes(q) ||
+      (p.sku ?? "").toLowerCase().includes(q)
+    );
+  }
+  return results;
+}
+
+export async function getStoreProductBySlug(slug: string): Promise<(StoreProduct & { categoryName: string; categorySlug: string }) | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db
+    .select({ product: storeProducts, categoryName: storeCategories.name, categorySlug: storeCategories.slug })
+    .from(storeProducts)
+    .innerJoin(storeCategories, eq(storeProducts.categoryId, storeCategories.id))
+    .where(eq(storeProducts.slug, slug))
+    .limit(1);
+  if (!rows[0]) return undefined;
+  return { ...rows[0].product, categoryName: rows[0].categoryName, categorySlug: rows[0].categorySlug };
+}
+
+export async function createQuoteRequest(data: InsertQuoteRequest, items: InsertQuoteItem[]): Promise<QuoteRequest> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(quoteRequests).values(data);
+  const [created] = await db.select().from(quoteRequests).where(eq(quoteRequests.refCode, data.refCode)).limit(1);
+  if (items.length > 0) {
+    await db.insert(quoteItems).values(items.map((i) => ({ ...i, quoteRequestId: created.id })));
+  }
+  return created;
+}
+
+export async function getQuoteRequests(limit = 50): Promise<Array<QuoteRequest & { items: QuoteItem[] }>> {
+  const db = await getDb();
+  if (!db) return [];
+  const quotes = await db.select().from(quoteRequests).orderBy(desc(quoteRequests.createdAt)).limit(limit);
+  const results = await Promise.all(
+    quotes.map(async (q) => {
+      const items = await db!.select().from(quoteItems).where(eq(quoteItems.quoteRequestId, q.id));
+      return { ...q, items };
+    })
+  );
+  return results;
+}
+
+export async function updateQuoteStatus(id: number, status: QuoteRequest["status"]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(quoteRequests).set({ status }).where(eq(quoteRequests.id, id));
+}
+
+export async function upsertStoreProduct(data: InsertStoreProduct & { id?: number }): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  if (data.id) {
+    const { id, ...rest } = data;
+    await db.update(storeProducts).set(rest as any).where(eq(storeProducts.id, id));
+  } else {
+    await db.insert(storeProducts).values(data);
+  }
+}
+
+export async function toggleStoreProductActive(id: number, active: boolean): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(storeProducts).set({ active }).where(eq(storeProducts.id, id));
+}
+
+export async function seedStoreData(): Promise<{ categoriesInserted: number; productsInserted: number }> {
+  const db = await getDb();
+  if (!db) return { categoriesInserted: 0, productsInserted: 0 };
+
+  // Check if already seeded
+  const existing = await db.select().from(storeCategories).limit(1);
+  if (existing.length > 0) return { categoriesInserted: 0, productsInserted: 0 };
+
+  const cats: InsertStoreCategory[] = [
+    { name: "Seguridad Electrónica", slug: "seguridad", icon: "Shield", description: "Cámaras IP, DVR/NVR, control de acceso, alarmas", order: 1 },
+    { name: "Redes y Conectividad", slug: "redes", icon: "Network", description: "Switches, routers, access points, firewalls", order: 2 },
+    { name: "Cómputo y Servidores", slug: "computo", icon: "Monitor", description: "Laptops, desktops, servidores, workstations", order: 3 },
+    { name: "Cableado Estructurado", slug: "cableado", icon: "Cable", description: "Cable Cat6A, fibra óptica, patch panels, racks", order: 4 },
+    { name: "Software y Licencias", slug: "software", icon: "Code2", description: "Licencias Microsoft, antivirus, ERP, productividad", order: 5 },
+    { name: "Energía y UPS", slug: "energia", icon: "Zap", description: "UPS, reguladores, plantas de emergencia, PDU", order: 6 },
+    { name: "Servicios Profesionales", slug: "servicios", icon: "Wrench", description: "Instalación, mantenimiento, consultoría, soporte", order: 7 },
+  ];
+
+  await db.insert(storeCategories).values(cats);
+  const insertedCats = await db.select().from(storeCategories).orderBy(storeCategories.order);
+  const catMap = Object.fromEntries(insertedCats.map((c) => [c.slug, c.id]));
+
+  const products: InsertStoreProduct[] = [
+    // Seguridad
+    { categoryId: catMap["seguridad"], name: "Cámara IP Domo 4MP H.265", slug: "camara-ip-domo-4mp", shortDesc: "Cámara domo para interiores, resolución 4MP, visión nocturna 30m, PoE", sku: "CAM-DOMO-4MP", priceRef: 2800, unit: "pieza", featured: true, tags: ["cámara", "IP", "domo", "PoE"] },
+    { categoryId: catMap["seguridad"], name: "Cámara PTZ 4K con IA", slug: "camara-ptz-4k-ia", shortDesc: "Cámara PTZ exterior 4K con detección de personas y vehículos por IA", sku: "CAM-PTZ-4K", priceRef: 12500, unit: "pieza", featured: true, tags: ["cámara", "PTZ", "4K", "IA"] },
+    { categoryId: catMap["seguridad"], name: "NVR 16 Canales 4K", slug: "nvr-16-canales-4k", shortDesc: "Grabador de red 16 canales, soporte 4K, 2 bahías HDD, HDMI 4K", sku: "NVR-16CH-4K", priceRef: 8900, unit: "pieza", tags: ["NVR", "grabador", "16 canales"] },
+    { categoryId: catMap["seguridad"], name: "Control de Acceso Biométrico", slug: "control-acceso-biometrico", shortDesc: "Lector de huella + tarjeta RFID, capacidad 3000 usuarios, TCP/IP", sku: "ACC-BIO-3K", priceRef: 4500, unit: "pieza", featured: true, tags: ["acceso", "biométrico", "RFID"] },
+    { categoryId: catMap["seguridad"], name: "Kit Alarma Inalámbrica 8 Zonas", slug: "kit-alarma-inalambrica-8z", shortDesc: "Panel central + 8 sensores PIR + sirena + teclado, comunicación GSM/IP", sku: "ALM-KIT-8Z", priceRef: 6200, unit: "kit", tags: ["alarma", "inalámbrica", "GSM"] },
+    // Redes
+    { categoryId: catMap["redes"], name: "Switch Administrable 24 Puertos PoE+", slug: "switch-24p-poe-plus", shortDesc: "Switch L2+ 24 puertos GbE PoE+ (370W) + 4 SFP uplink, VLAN, QoS", sku: "SW-24P-POE", priceRef: 11500, unit: "pieza", featured: true, tags: ["switch", "PoE", "administrable"] },
+    { categoryId: catMap["redes"], name: "Router Empresarial con VPN", slug: "router-empresarial-vpn", shortDesc: "Router dual WAN, VPN IPSec/SSL, firewall integrado, hasta 100 usuarios", sku: "RTR-ENT-VPN", priceRef: 7800, unit: "pieza", tags: ["router", "VPN", "firewall"] },
+    { categoryId: catMap["redes"], name: "Access Point WiFi 6 Techo", slug: "access-point-wifi6-techo", shortDesc: "AP WiFi 6 (802.11ax) para techo, 2.4/5GHz, hasta 300 dispositivos, PoE", sku: "AP-W6-CEIL", priceRef: 3900, unit: "pieza", featured: true, tags: ["WiFi 6", "access point", "PoE"] },
+    { categoryId: catMap["redes"], name: "Firewall NGFW 1Gbps", slug: "firewall-ngfw-1gbps", shortDesc: "Next-Gen Firewall con IPS, antivirus, filtrado web, VPN, 1Gbps throughput", sku: "FW-NGFW-1G", priceRef: 22000, unit: "pieza", tags: ["firewall", "NGFW", "seguridad"] },
+    // Cómputo
+    { categoryId: catMap["computo"], name: "Laptop Empresarial Core i7 16GB", slug: "laptop-empresarial-i7-16gb", shortDesc: "Laptop 14\" FHD, Intel Core i7 12a gen, 16GB RAM, 512GB SSD, Windows 11 Pro", sku: "LAP-I7-16-512", priceRef: 18500, unit: "pieza", featured: true, tags: ["laptop", "Core i7", "Windows 11"] },
+    { categoryId: catMap["computo"], name: "Servidor Torre Xeon 32GB", slug: "servidor-torre-xeon-32gb", shortDesc: "Servidor torre Intel Xeon E-2300, 32GB ECC, 2x1TB SATA, RAID, Windows Server", sku: "SRV-TWR-XE32", priceRef: 45000, unit: "pieza", tags: ["servidor", "Xeon", "torre"] },
+    { categoryId: catMap["computo"], name: "Workstation CAD/Diseño", slug: "workstation-cad-diseno", shortDesc: "Workstation Intel Core i9, 64GB RAM, NVIDIA RTX 3060, 1TB NVMe, para CAD/BIM", sku: "WS-CAD-I9-64", priceRef: 52000, unit: "pieza", tags: ["workstation", "CAD", "RTX"] },
+    // Cableado
+    { categoryId: catMap["cableado"], name: "Cable UTP Cat6A 305m (caja)", slug: "cable-utp-cat6a-305m", shortDesc: "Cable UTP Cat6A 23AWG, caja 305m, certificado TIA-568-C.2, CMR", sku: "CAB-C6A-305", priceRef: 2200, unit: "caja", featured: true, tags: ["Cat6A", "UTP", "cableado"] },
+    { categoryId: catMap["cableado"], name: "Patch Panel 24 Puertos Cat6A", slug: "patch-panel-24p-cat6a", shortDesc: "Patch panel 24 puertos Cat6A, 1U rack, con etiquetas, certificado", sku: "PP-24P-C6A", priceRef: 1800, unit: "pieza", tags: ["patch panel", "Cat6A", "rack"] },
+    { categoryId: catMap["cableado"], name: "Rack Abierto 42U 600x1000", slug: "rack-abierto-42u", shortDesc: "Rack abierto 42U, 600x1000mm, con ruedas y niveladores, capacidad 800kg", sku: "RACK-42U-60100", priceRef: 9500, unit: "pieza", tags: ["rack", "42U", "abierto"] },
+    { categoryId: catMap["cableado"], name: "Fibra Óptica Monomodo 12H 1km", slug: "fibra-optica-monomodo-12h", shortDesc: "Cable fibra óptica monomodo OS2 12 hilos, exterior, 1km, LSZH", sku: "FO-SM-12H-1K", priceRef: 4800, unit: "rollo", tags: ["fibra óptica", "monomodo", "OS2"] },
+    // Software
+    { categoryId: catMap["software"], name: "Microsoft 365 Business Standard (anual)", slug: "microsoft-365-business-standard", shortDesc: "Licencia Microsoft 365 Business Standard por usuario/año: Teams, Office, 1TB OneDrive", sku: "MS365-BS-1Y", priceRef: 2400, unit: "licencia/año", featured: true, tags: ["Microsoft 365", "Office", "Teams"] },
+    { categoryId: catMap["software"], name: "Antivirus Empresarial 25 equipos", slug: "antivirus-empresarial-25", shortDesc: "Solución antivirus/EDR para 25 equipos, consola centralizada, 1 año", sku: "AV-ENT-25-1Y", priceRef: 8500, unit: "licencia/año", tags: ["antivirus", "EDR", "seguridad"] },
+    { categoryId: catMap["software"], name: "Backup en la Nube 1TB (anual)", slug: "backup-nube-1tb", shortDesc: "Servicio de backup en la nube 1TB, cifrado AES-256, recuperación ante desastres", sku: "BCK-CLD-1T-1Y", priceRef: 3600, unit: "servicio/año", tags: ["backup", "nube", "recuperación"] },
+    // Energía
+    { categoryId: catMap["energia"], name: "UPS Online 3kVA Torre", slug: "ups-online-3kva-torre", shortDesc: "UPS online doble conversión 3kVA/2.7kW, autonomía 8min a plena carga, SNMP", sku: "UPS-3KVA-TWR", priceRef: 14500, unit: "pieza", featured: true, tags: ["UPS", "online", "3kVA"] },
+    { categoryId: catMap["energia"], name: "Regulador de Voltaje 2000VA", slug: "regulador-voltaje-2000va", shortDesc: "Regulador ferroresonante 2000VA, protección contra picos, 8 contactos", sku: "REG-2000VA", priceRef: 2800, unit: "pieza", tags: ["regulador", "voltaje", "protección"] },
+    // Servicios
+    { categoryId: catMap["servicios"], name: "Instalación y Configuración de Red", slug: "instalacion-configuracion-red", shortDesc: "Servicio de instalación de red LAN/WLAN: tendido de cable, configuración de equipos activos", sku: "SVC-NET-INST", priceRef: 8000, unit: "proyecto", featured: true, tags: ["instalación", "red", "servicio"] },
+    { categoryId: catMap["servicios"], name: "Póliza de Mantenimiento Preventivo", slug: "poliza-mantenimiento-preventivo", shortDesc: "Póliza anual de mantenimiento preventivo: 4 visitas/año, reporte de estado, prioridad en soporte", sku: "SVC-MANT-PREV", priceRef: 12000, unit: "póliza/año", tags: ["mantenimiento", "póliza", "preventivo"] },
+    { categoryId: catMap["servicios"], name: "Consultoría en Ciberseguridad", slug: "consultoria-ciberseguridad", shortDesc: "Diagnóstico de vulnerabilidades, análisis de riesgos, plan de remediación, reporte ejecutivo", sku: "SVC-CSEC-DIAG", priceRef: 18000, unit: "proyecto", tags: ["ciberseguridad", "consultoría", "diagnóstico"] },
+    { categoryId: catMap["servicios"], name: "Soporte Técnico Remoto (mensual)", slug: "soporte-tecnico-remoto", shortDesc: "Soporte técnico remoto ilimitado, tiempo de respuesta 2h, acceso a portal de tickets", sku: "SVC-SUPP-REM", priceRef: 3500, unit: "mes", tags: ["soporte", "remoto", "tickets"] },
+  ];
+
+  await db.insert(storeProducts).values(products);
+  return { categoriesInserted: cats.length, productsInserted: products.length };
 }

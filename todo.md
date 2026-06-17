@@ -113,3 +113,28 @@
 - [x] Botón "Tomar control" en cada conversación del historial (ConversationRow)
 - [x] Indicador visual en admin cuando una sesión está siendo atendida por humano (badge verde "Intervenida")
 - [x] Contador de mensajes no leídos del visitante en la lista de sesiones activas
+
+## E-Commerce — Catálogo y Solicitud de Cotización
+
+- [x] Tabla `store_categories`: id, name, slug, icon, description, order
+- [x] Tabla `store_products`: id, categoryId, name, slug, description, shortDesc, sku, priceRef, unit, imageUrl, tags, featured, active, createdAt
+- [x] Tabla `quote_requests`: id, visitorName, company, email, phone, notes, status, createdAt
+- [x] Tabla `quote_items`: id, quoteRequestId, productId, productName, quantity, notes
+- [x] Seed de categorías: Seguridad, Redes, Cómputo, Cableado, Software, Energía, Servicios
+- [x] Seed de ~25 productos de ejemplo con precios de referencia
+- [x] tRPC procedure `store.getCategories`
+- [x] tRPC procedure `store.getProducts` (filtro por categoría, búsqueda, featured)
+- [x] tRPC procedure `store.getProduct` (detalle por slug)
+- [x] tRPC procedure `store.submitQuote` (crea solicitud + ítems + notifica owner)
+- [x] tRPC procedure `adminStore.getQuotes` (con ítems y producto)
+- [x] tRPC procedure `adminStore.updateQuoteStatus`
+- [x] tRPC procedure `adminStore.upsertProduct` (crear/editar producto)
+- [x] tRPC procedure `adminStore.toggleProductActive`
+- [x] Página /tienda: hero, filtros por categoría, grid de productos, búsqueda
+- [x] Tarjeta de producto: imagen, nombre, categoría, precio ref, botón "Agregar a cotización"
+- [x] Carrito lateral (drawer): lista de ítems, cantidades editables, botón "Solicitar cotización"
+- [x] Modal de solicitud de cotización: nombre, empresa, email, teléfono, notas
+- [x] Confirmación de solicitud enviada con número de referencia
+- [x] Enlace a /tienda en el navbar principal
+- [x] Sección "Cotizaciones" en panel admin: tabla con estado y detalle expandible
+- [x] Imágenes de productos subidas al storage (cámara, switch, laptop, UPS, rack, access point)

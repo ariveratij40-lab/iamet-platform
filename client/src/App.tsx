@@ -10,10 +10,9 @@ import TechAdvisor from "./pages/TechAdvisor";
 import Academy from "./pages/Academy";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminConsole from "./pages/AdminConsole";
-import Navbar from "./components/Navbar";
+import Tienda from "./pages/Tienda";
 import Contact from "./pages/Contact";
-
-
+import Navbar from "./components/Navbar";
 
 function Router() {
   return (
@@ -27,6 +26,8 @@ function Router() {
         <Route path="/tech-advisor" component={TechAdvisor} />
         <Route path="/academy" component={Academy} />
         <Route path="/contacto" component={Contact} />
+        {/* Tienda */}
+        <Route path="/tienda" component={Tienda} />
         {/* Admin */}
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/monitor" component={AdminConsole} />
