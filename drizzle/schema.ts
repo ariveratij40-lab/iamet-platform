@@ -227,6 +227,7 @@ export const storeProducts = mysqlTable("store_products", {
   unit: varchar("unit", { length: 32 }).default("pieza"),
   imageUrl: text("imageUrl"),
   tags: json("tags"),
+  specs: json("specs"),
   featured: boolean("featured").default(false).notNull(),
   active: boolean("active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

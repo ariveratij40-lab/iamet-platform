@@ -138,3 +138,16 @@
 - [x] Enlace a /tienda en el navbar principal
 - [x] Sección "Cotizaciones" en panel admin: tabla con estado y detalle expandible
 - [x] Imágenes de productos subidas al storage (cámara, switch, laptop, UPS, rack, access point)
+
+## Página de Detalle de Producto (/tienda/:slug)
+
+- [ ] Campo `specs` (JSON) en tabla `store_products` para especificaciones técnicas
+- [ ] Migración Drizzle y actualización del seed con specs por producto
+- [ ] tRPC procedure `store.getProductBySlug`: retorna producto con specs + relacionados
+- [ ] Página `/tienda/:slug`: hero con imagen grande, nombre, categoría, precio de referencia
+- [ ] Sección de especificaciones técnicas en tabla (clave/valor desde JSON)
+- [ ] Sección de productos relacionados (misma categoría, máx 4)
+- [ ] Botón "Agregar a cotización" directo (abre drawer del carrito)
+- [ ] Breadcrumb: Inicio > Tienda > Categoría > Producto
+- [ ] Ruta /tienda/:slug registrada en App.tsx
+- [ ] Tarjetas de Tienda.tsx navegan al detalle al hacer clic en imagen/nombre

@@ -492,7 +492,9 @@ export async function getStoreProducts(opts: {
   return results;
 }
 
-export async function getStoreProductBySlug(slug: string): Promise<(StoreProduct & { categoryName: string; categorySlug: string }) | undefined> {
+export async function getStoreProductBySlug(slug: string): Promise<
+  (StoreProduct & { categoryName: string; categorySlug: string; related: (StoreProduct & { categoryName: string; categorySlug: string })[] }) | undefined
+> {
   const db = await getDb();
   if (!db) return undefined;
   const rows = await db
@@ -502,7 +504,20 @@ export async function getStoreProductBySlug(slug: string): Promise<(StoreProduct
     .where(eq(storeProducts.slug, slug))
     .limit(1);
   if (!rows[0]) return undefined;
-  return { ...rows[0].product, categoryName: rows[0].categoryName, categorySlug: rows[0].categorySlug };
+  const product = { ...rows[0].product, categoryName: rows[0].categoryName, categorySlug: rows[0].categorySlug };
+  // Fetch related products (same category, excluding self, max 4)
+  const relatedRows = await db
+    .select({ product: storeProducts, categoryName: storeCategories.name, categorySlug: storeCategories.slug })
+    .from(storeProducts)
+    .innerJoin(storeCategories, eq(storeProducts.categoryId, storeCategories.id))
+    .where(and(eq(storeProducts.categoryId, rows[0].product.categoryId), eq(storeProducts.active, true)))
+    .orderBy(desc(storeProducts.featured), storeProducts.name)
+    .limit(5);
+  const related = relatedRows
+    .map((r) => ({ ...r.product, categoryName: r.categoryName, categorySlug: r.categorySlug }))
+    .filter((p) => p.slug !== slug)
+    .slice(0, 4);
+  return { ...product, related };
 }
 
 export async function createQuoteRequest(data: InsertQuoteRequest, items: InsertQuoteItem[]): Promise<QuoteRequest> {

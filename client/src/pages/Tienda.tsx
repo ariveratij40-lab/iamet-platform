@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +77,7 @@ function getProductImage(slug: string, categorySlug: string): string {
 
 // ─── Product Card ─────────────────────────────────────────────────────────────
 function ProductCard({ product, onAdd, inCart }: { product: Product; onAdd: (p: Product) => void; inCart: boolean }) {
+  const [, navigate] = useLocation();
   const imgSrc = getProductImage(product.slug, product.categorySlug);
 
   return (
@@ -93,8 +95,11 @@ function ProductCard({ product, onAdd, inCart }: { product: Product; onAdd: (p: 
           </Badge>
         </div>
       )}
-      {/* Image */}
-      <div className="relative h-44 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
+      {/* Image — click navega al detalle */}
+      <div
+        className="relative h-44 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden cursor-pointer"
+        onClick={() => navigate(`/tienda/${product.slug}`)}
+      >
         <img
           src={imgSrc}
           alt={product.name}
@@ -112,7 +117,10 @@ function ProductCard({ product, onAdd, inCart }: { product: Product; onAdd: (p: 
             <span className="text-xs text-slate-500 font-mono">{product.sku}</span>
           )}
         </div>
-        <h3 className="text-sm font-semibold text-white leading-snug line-clamp-2">{product.name}</h3>
+        <h3
+          className="text-sm font-semibold text-white leading-snug line-clamp-2 cursor-pointer hover:text-cyan-400 transition-colors"
+          onClick={() => navigate(`/tienda/${product.slug}`)}
+        >{product.name}</h3>
         <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 flex-1">{product.shortDesc}</p>
         <div className="flex items-end justify-between mt-2 pt-2 border-t border-white/5">
           <div>
