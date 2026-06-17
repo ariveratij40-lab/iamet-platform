@@ -336,7 +336,7 @@ export default function Tienda() {
       {/* Hero */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-blue-900/10" />
-        <div className="relative max-w-7xl mx-auto px-4 py-16 sm:py-20">
+        <div className="relative max-w-7xl mx-auto px-4 pr-16 py-16 sm:py-20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -370,7 +370,7 @@ export default function Tienda() {
 
       {/* Toolbar */}
       <div className="sticky top-0 z-30 border-b border-white/5" style={{ background: "rgba(15,22,35,0.95)", backdropFilter: "blur(12px)" }}>
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 pr-16 py-3 flex items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <Input
@@ -430,7 +430,7 @@ export default function Tienda() {
       </div>
 
       {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 pr-16 py-8">
         {/* Seed prompt */}
         {!prodsLoading && (!products || products.length === 0) && (
           <div className="text-center py-20">
