@@ -141,16 +141,16 @@
 
 ## Página de Detalle de Producto (/tienda/:slug)
 
-- [ ] Campo `specs` (JSON) en tabla `store_products` para especificaciones técnicas
-- [ ] Migración Drizzle y actualización del seed con specs por producto
-- [ ] tRPC procedure `store.getProductBySlug`: retorna producto con specs + relacionados
-- [ ] Página `/tienda/:slug`: hero con imagen grande, nombre, categoría, precio de referencia
-- [ ] Sección de especificaciones técnicas en tabla (clave/valor desde JSON)
-- [ ] Sección de productos relacionados (misma categoría, máx 4)
-- [ ] Botón "Agregar a cotización" directo (abre drawer del carrito)
-- [ ] Breadcrumb: Inicio > Tienda > Categoría > Producto
-- [ ] Ruta /tienda/:slug registrada en App.tsx
-- [ ] Tarjetas de Tienda.tsx navegan al detalle al hacer clic en imagen/nombre
+- [x] Campo `specs` (JSON) en tabla `store_products` para especificaciones técnicas
+- [x] Migración Drizzle y actualización del seed con specs por producto
+- [x] tRPC procedure `store.getProductBySlug` (getStoreProductBySlug): retorna producto con specs + relacionados
+- [x] Página `/tienda/:slug`: hero con imagen grande, nombre, categoría, precio de referencia
+- [x] Sección de especificaciones técnicas en tabla (clave/valor desde JSON)
+- [x] Sección de productos relacionados (misma categoría, máx 4)
+- [x] Botón "Agregar a cotización" directo (abre drawer del carrito)
+- [x] Breadcrumb: Inicio > Tienda > Categoría > Producto
+- [x] Ruta /tienda/:slug registrada en App.tsx
+- [x] Tarjetas de Tienda.tsx navegan al detalle al hacer clic en imagen/nombre
 
 ## PDF de Solicitud de Cotización
 
