@@ -506,7 +506,7 @@ export default function ProductoDetalle() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setCartOpen(true)}
-            className="fixed bottom-6 left-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl text-white font-semibold text-sm"
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl text-white font-semibold text-sm"
             style={{
               background: "linear-gradient(135deg, #0891b2, #0e7490)",
               boxShadow: "0 0 24px rgba(6,182,212,0.4), 4px 4px 12px rgba(0,0,0,0.4)",
