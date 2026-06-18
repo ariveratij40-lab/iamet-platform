@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { ShoppingBag, Mail, User, Phone, Loader2, CheckCircle, ArrowRight, RefreshCw } from "lucide-react";
+import { ShoppingBag, Mail, User, Phone, Loader2, CheckCircle, ArrowRight, RefreshCw, X } from "lucide-react";
 import type { StoreVisitor } from "@/hooks/useStoreAuth";
 
 type Step = "register" | "check_email" | "sent" | "verify";
@@ -13,9 +13,10 @@ type Step = "register" | "check_email" | "sent" | "verify";
 interface Props {
   open: boolean;
   onAuthenticated: (visitor: StoreVisitor) => void;
+  onExit?: () => void;
 }
 
-export function StoreAuthModal({ open, onAuthenticated }: Props) {
+export function StoreAuthModal({ open, onAuthenticated, onExit }: Props) {
   const [step, setStep] = useState<Step>("register");
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [token, setToken] = useState("");
@@ -77,6 +78,16 @@ export function StoreAuthModal({ open, onAuthenticated }: Props) {
         onInteractOutside={e => e.preventDefault()}
         onEscapeKeyDown={e => e.preventDefault()}
       >
+        {/* Botón de salida */}
+        {onExit && (
+          <button
+            onClick={onExit}
+            className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            title="Volver al inicio"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-white/10 p-6 text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 mb-3">
@@ -155,6 +166,14 @@ export function StoreAuthModal({ open, onAuthenticated }: Props) {
               <p className="text-xs text-slate-500 text-center">
                 Al registrarte aceptas que IAMET te contacte con información sobre tus solicitudes.
               </p>
+              {onExit && (
+                <button
+                  onClick={onExit}
+                  className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors py-1 underline underline-offset-2"
+                >
+                  No por ahora, volver al inicio
+                </button>
+              )}
             </>
           )}
 

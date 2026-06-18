@@ -390,6 +390,7 @@ function QuoteForm({ cart, onClose, onSuccess }: {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Tienda() {
+  const [, navigate] = useLocation();
   const { visitor, isAuthenticated, login } = useStoreAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -463,7 +464,11 @@ export default function Tienda() {
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #0f1623 0%, #141d2e 50%, #0f1623 100%)" }}>
       {/* Auth Guard */}
-      <StoreAuthModal open={!isAuthenticated} onAuthenticated={login} />
+      <StoreAuthModal
+        open={!isAuthenticated}
+        onAuthenticated={login}
+        onExit={() => navigate("/")}
+      />
 
       {/* Welcome Banner */}
       {isAuthenticated && visitor && (
