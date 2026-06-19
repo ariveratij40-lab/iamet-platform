@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useVisitorTracking } from "@/hooks/useVisitorTracking";
+import HexGrid from "@/components/HexGrid";
 import LiveChatWidget from "@/components/LiveChatWidget";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -742,8 +743,8 @@ export default function Home() {
         />
 
         <div className="relative z-10 w-full flex flex-col items-center gap-8">
-          {/* Abanico de Servicios */}
-          <ServiceFan onServiceClick={handleServiceClick} />
+          {/* Panal Hexagonal de Servicios */}
+          <HexGrid onServiceClick={handleServiceClick} />
 
           {/* Headline */}
           <motion.div
