@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useVisitorTracking } from "@/hooks/useVisitorTracking";
 import HexGrid from "@/components/HexGrid";
+import ServicesBanner from "@/components/ServicesBanner";
 import LiveChatWidget from "@/components/LiveChatWidget";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -773,6 +774,9 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* Banner de Servicios con rectángulos diagonales */}
+      <ServicesBanner onServiceClick={handleServiceClick} />
 
     </div>
   );
