@@ -199,3 +199,13 @@
 - [x] Rediseñar Home.tsx: layout tipo Copilot con prompt central, saludo IAMET, chips de servicios debajo
 - [x] Toggle de idioma ES/EN en la barra lateral
 - [x] Toggle de modo oscuro/claro en la barra lateral
+
+## Correo de Verificación — Resend
+
+- [x] Instalar paquete resend en el proyecto
+- [x] Crear server/email.ts con helper sendVerificationEmail y plantilla HTML
+- [x] Actualizar storeAuth.register para enviar correo real al visitante
+- [x] Actualizar storeAuth.resend para reenviar correo real al visitante
+- [x] Configurar RESEND_API_KEY como variable de entorno
+- [x] Verificar dominio iamet.mx en Resend (DKIM, SPF, MX)
+- [x] Test de envío exitoso desde noreply@iamet.mx

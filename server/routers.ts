@@ -43,6 +43,7 @@ import {
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
+import { sendVerificationEmail } from "./email";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -114,14 +115,23 @@ const storeAuthRouter = router({
     .input(z.object({ name: z.string().min(1), email: z.string().email(), phone: z.string().optional() }))
     .mutation(async ({ input }) => {
       const { visitor, isNew } = await createOrUpdateStoreVisitor(input);
-      // Send verification email via notifyOwner (owner gets copy) + return token for dev
-      const verifyUrl = `${process.env.VITE_OAUTH_PORTAL_URL ?? "https://iamettech-ssx5e88n.manus.space"}/tienda/verificar?token=${visitor.verificationToken}`;
-      // In production, send email to visitor. For now notify owner and return link.
+      const baseUrl = process.env.VITE_OAUTH_PORTAL_URL?.replace(/\/+$/, "") ?? "https://iamettech-ssx5e88n.manus.space";
+      const verifyUrl = `${baseUrl}/tienda/verificar?token=${visitor.verificationToken}`;
+
+      // Enviar correo de verificación al visitante
+      const emailResult = await sendVerificationEmail({
+        to: input.email,
+        name: input.name,
+        verifyUrl,
+      });
+
+      // Notificar al owner con copia del registro
       await notifyOwner({
         title: `Nuevo registro en Tienda IAMET: ${input.name}`,
-        content: `Nombre: ${input.name}\nEmail: ${input.email}\nTeléfono: ${input.phone ?? "—"}\n\nLink de verificación: ${verifyUrl}`,
-      });
-      return { ok: true, email: input.email, isNew };
+        content: `Nombre: ${input.name}\nEmail: ${input.email}\nTeléfono: ${input.phone ?? "—"}\n\nCorreo enviado: ${emailResult.ok ? "✅ Sí" : "❌ No — " + (emailResult.error ?? "")}\n\nLink de verificación: ${verifyUrl}`,
+      }).catch(() => {});
+
+      return { ok: true, email: input.email, isNew, emailSent: emailResult.ok };
     }),
   verify: publicProcedure
     .input(z.object({ token: z.string() }))
@@ -145,12 +155,22 @@ const storeAuthRouter = router({
       const visitor = await getStoreVisitorByEmail(input.email);
       if (!visitor) throw new TRPCError({ code: "NOT_FOUND", message: "Email no registrado" });
       const { visitor: updated } = await createOrUpdateStoreVisitor({ name: visitor.name, email: visitor.email, phone: visitor.phone ?? undefined });
-      const verifyUrl = `${process.env.VITE_OAUTH_PORTAL_URL ?? "https://iamettech-ssx5e88n.manus.space"}/tienda/verificar?token=${updated.verificationToken}`;
+      const baseUrl = process.env.VITE_OAUTH_PORTAL_URL?.replace(/\/+$/, "") ?? "https://iamettech-ssx5e88n.manus.space";
+      const verifyUrl = `${baseUrl}/tienda/verificar?token=${updated.verificationToken}`;
+
+      // Enviar correo de verificación al visitante
+      const emailResult = await sendVerificationEmail({
+        to: input.email,
+        name: visitor.name,
+        verifyUrl,
+      });
+
       await notifyOwner({
         title: `Reenvío de verificación Tienda IAMET: ${visitor.name}`,
-        content: `Email: ${visitor.email}\n\nLink de verificación: ${verifyUrl}`,
-      });
-      return { ok: true };
+        content: `Email: ${visitor.email}\n\nCorreo enviado: ${emailResult.ok ? "✅ Sí" : "❌ No — " + (emailResult.error ?? "")}\n\nLink de verificación: ${verifyUrl}`,
+      }).catch(() => {});
+
+      return { ok: true, emailSent: emailResult.ok };
     }),
 });
 
