@@ -115,7 +115,7 @@ const storeAuthRouter = router({
     .input(z.object({ name: z.string().min(1), email: z.string().email(), phone: z.string().optional() }))
     .mutation(async ({ input }) => {
       const { visitor, isNew } = await createOrUpdateStoreVisitor(input);
-      const baseUrl = process.env.VITE_OAUTH_PORTAL_URL?.replace(/\/+$/, "") ?? "https://iamettech-ssx5e88n.manus.space";
+      const baseUrl = (process.env.VITE_APP_URL ?? process.env.VITE_FRONTEND_FORGE_API_URL ?? "https://iamettech-ssx5e88n.manus.space").replace(/\/+$/, "");
       const verifyUrl = `${baseUrl}/tienda/verificar?token=${visitor.verificationToken}`;
 
       // Enviar correo de verificación al visitante
@@ -155,7 +155,7 @@ const storeAuthRouter = router({
       const visitor = await getStoreVisitorByEmail(input.email);
       if (!visitor) throw new TRPCError({ code: "NOT_FOUND", message: "Email no registrado" });
       const { visitor: updated } = await createOrUpdateStoreVisitor({ name: visitor.name, email: visitor.email, phone: visitor.phone ?? undefined });
-      const baseUrl = process.env.VITE_OAUTH_PORTAL_URL?.replace(/\/+$/, "") ?? "https://iamettech-ssx5e88n.manus.space";
+      const baseUrl = (process.env.VITE_APP_URL ?? process.env.VITE_FRONTEND_FORGE_API_URL ?? "https://iamettech-ssx5e88n.manus.space").replace(/\/+$/, "");
       const verifyUrl = `${baseUrl}/tienda/verificar?token=${updated.verificationToken}`;
 
       // Enviar correo de verificación al visitante
