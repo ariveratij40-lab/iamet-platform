@@ -1,17 +1,19 @@
 # IAMET Platform — Guía de Despliegue (Staging)
 
-Entorno: `staging.iamet.mx` | Stack: Docker Compose + PostgreSQL 16 + Redis 7 + Nginx global
+Entorno: `staging.iamet.mx` | Repositorio: `ariveratij40-lab/iamet-platform`
+Stack: Docker Compose + PostgreSQL 16 + Redis 7 + Nginx global + Certbot webroot
 
 ---
 
 ## Arquitectura del Despliegue
 
 ```
-/opt/infra/nginx/conf.d/staging.iamet.mx.conf   ← Nginx global (reverse proxy)
-/opt/infra/certbot/                              ← SSL Certbot compartido
-/opt/apps/iamet/staging/                         ← Código fuente + docker-compose
+/opt/infra/nginx/sites-enabled/30-iamet-staging.conf  ← Nginx global (reverse proxy)
+/opt/infra/certbot/conf/                               ← Certificados SSL (Let's Encrypt)
+/opt/infra/certbot/www/                                ← Webroot para ACME challenge
+/opt/apps/iamet/staging/                               ← Código fuente + docker-compose
 
-Red Docker: infra_network (externa, ya existente)
+Red Docker: infra_network (externa, ya existente en el VPS)
 
 Contenedores:
   iamet_app_staging    → Node.js 20, puerto 3000 (interno, sin exposición al host)
@@ -19,7 +21,8 @@ Contenedores:
   iamet_redis_staging  → Redis 7
 ```
 
-El Nginx global enruta `staging.iamet.mx` → `iamet_app_staging:3000` dentro de `infra_network`. Ningún puerto se expone al host directamente.
+El Nginx global enruta `staging.iamet.mx` → `iamet_app_staging:3000` dentro de `infra_network`.
+Ningún puerto se expone directamente al host. No se usa PM2. No se usa MySQL.
 
 ---
 
@@ -86,27 +89,36 @@ cp .env.staging.example .env.staging
 nano .env.staging   # Completar todos los valores reales
 ```
 
-### 4. Obtener certificado SSL con Certbot
+### 4. Instalar configuración de Nginx
+
+El Nginx global ya ocupa el puerto 80. La configuración usa `--webroot` para el ACME challenge.
 
 ```bash
-# Asegurarse de que el DNS de staging.iamet.mx apunta al VPS antes de ejecutar esto
+# Copiar la config al directorio sites-enabled del Nginx global
+sudo cp infra/nginx/30-iamet-staging.conf /opt/infra/nginx/sites-enabled/
+sudo nginx -t && sudo nginx -s reload
+```
+
+### 5. Obtener certificado SSL con Certbot webroot
+
+> El Nginx global ya debe estar sirviendo el dominio `staging.iamet.mx` (paso 4) antes de ejecutar esto, para que Certbot pueda validar el ACME challenge por HTTP.
+
+```bash
 docker run --rm \
   -v /opt/infra/certbot/conf:/etc/letsencrypt \
   -v /opt/infra/certbot/www:/var/www/certbot \
-  -p 80:80 \
   certbot/certbot certonly \
-  --standalone \
+  --webroot \
+  --webroot-path=/var/www/certbot \
   --email admin@iamet.mx \
   --agree-tos \
   --no-eff-email \
   -d staging.iamet.mx
 ```
 
-### 5. Instalar configuración de Nginx
-
+Recargar Nginx después de obtener el certificado:
 ```bash
-sudo cp infra/nginx/staging.iamet.mx.conf /opt/infra/nginx/conf.d/
-sudo nginx -t && sudo nginx -s reload
+sudo nginx -s reload
 ```
 
 ### 6. Construir y levantar los servicios
@@ -141,7 +153,6 @@ curl -I https://staging.iamet.mx
 
 ```bash
 cd /opt/apps/iamet/staging
-chmod +x infra/scripts/deploy.sh
 ./infra/scripts/deploy.sh
 ```
 
@@ -160,7 +171,6 @@ El script `deploy.sh`:
 git log --oneline -10
 
 # Revertir a un commit específico
-chmod +x infra/scripts/rollback.sh
 ./infra/scripts/rollback.sh <commit_hash>
 ```
 
@@ -190,17 +200,20 @@ docker exec -it iamet_redis_staging redis-cli -a <REDIS_PASSWORD>
 
 ---
 
-## Renovación de SSL (automática)
+## Renovación de SSL (automática con Certbot webroot)
 
-Agregar al crontab del VPS:
+Agregar al crontab del VPS. El Nginx global ya está corriendo, por lo que la renovación usa `--webroot` sin necesidad de detener ningún servicio:
 
 ```bash
 # crontab -e
 0 3 * * * docker run --rm \
   -v /opt/infra/certbot/conf:/etc/letsencrypt \
   -v /opt/infra/certbot/www:/var/www/certbot \
-  certbot/certbot renew --quiet && \
-  nginx -s reload
+  certbot/certbot renew \
+  --webroot \
+  --webroot-path=/var/www/certbot \
+  --quiet \
+  && nginx -s reload
 ```
 
 ---
@@ -209,24 +222,22 @@ Agregar al crontab del VPS:
 
 ```
 iamet-platform/
-├── Dockerfile                          ← Build multi-stage (builder + production)
-├── docker-compose.staging.yml          ← Compose para staging
-├── .env.staging.example                ← Plantilla de variables de entorno
-├── .dockerignore                       ← Exclusiones del contexto Docker
+├── Dockerfile                               ← Build multi-stage (builder + production)
+├── docker-compose.staging.yml               ← Compose: PostgreSQL 16 + Redis 7 + app
+├── .env.staging.example                     ← Plantilla de variables de entorno
+├── .dockerignore                            ← Exclusiones del contexto Docker
 └── infra/
     ├── nginx/
-    │   └── staging.iamet.mx.conf       ← Copiar a /opt/infra/nginx/conf.d/
+    │   └── 30-iamet-staging.conf            ← Copiar a /opt/infra/nginx/sites-enabled/
     └── scripts/
-        ├── deploy.sh                   ← Despliegue completo
-        ├── migrate.sh                  ← Solo migraciones DB
-        └── rollback.sh                 ← Rollback a commit anterior
+        ├── deploy.sh                        ← Despliegue completo (pull + build + restart)
+        ├── migrate.sh                       ← Solo migraciones DB
+        └── rollback.sh                      ← Rollback a commit anterior
 ```
 
 ---
 
-## Notas sobre la Migración MySQL → PostgreSQL
-
-El proyecto fue migrado de MySQL a PostgreSQL 16. Cambios realizados:
+## Resumen de la Migración MySQL → PostgreSQL 16
 
 | Componente | Antes | Después |
 |---|---|---|
@@ -235,5 +246,5 @@ El proyecto fue migrado de MySQL a PostgreSQL 16. Cambios realizados:
 | Schema | `mysqlTable`, `varchar`, `tinyint` | `pgTable`, `text`, `boolean` |
 | `drizzle.config.ts` | `dialect: "mysql"` | `dialect: "postgresql"` |
 | Upsert | `onDuplicateKeyUpdate` | `onConflictDoUpdate` |
-| Insert ID | `result[0].insertId` | `.returning({ id: table.id })` |
+| Insert ID | `result[0].insertId` | `.returning({ id })` |
 | `DATABASE_URL` | `mysql://...` | `postgresql://...` |
