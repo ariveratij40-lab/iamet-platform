@@ -190,3 +190,12 @@
 - [ ] Mensaje de "revisa tu correo" con opción de reenviar verificación
 - [ ] Sesión de tienda persistida en localStorage (no requiere login de Manus)
 - [ ] En admin: ver lista de visitantes registrados con fecha de verificación y actividad
+
+## Rediseño Página Principal — Layout tipo Copilot
+
+- [x] Actualizar index.css con paleta modo oscuro (negro+azul+amarillo) y claro (gris claro+negro+azul)
+- [x] Crear LanguageContext.tsx con soporte ES/EN y hook useLanguage
+- [x] Rediseñar Navbar.tsx como sidebar izquierda colapsable con botón toggle, idioma y tema
+- [x] Rediseñar Home.tsx: layout tipo Copilot con prompt central, saludo IAMET, chips de servicios debajo
+- [x] Toggle de idioma ES/EN en la barra lateral
+- [x] Toggle de modo oscuro/claro en la barra lateral

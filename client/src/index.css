@@ -16,30 +16,33 @@
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
 
-  /* IAMET Color Palette — Apple Light Theme */
-  /* Fondos blancos / gris muy claro estilo Apple */
-  --color-iamet-bg:           oklch(0.985 0.002 240);  /* #F5F5F7 Apple gray */
-  --color-iamet-bg-secondary: oklch(0.972 0.003 240);  /* #F0F0F2 */
-  --color-iamet-bg-tertiary:  oklch(0.955 0.004 240);  /* #EAEAEC */
-  --color-iamet-surface:      oklch(1.000 0.000 0);    /* Blanco puro */
-  --color-iamet-surface-2:    oklch(0.965 0.003 240);  /* Gris muy claro */
-  --color-iamet-border:       oklch(0.86 0.005 240);   /* Borde gris suave */
-  --color-iamet-border-subtle:oklch(0.92 0.003 240);   /* Borde muy sutil */
+  /* ── LIGHT MODE: gris claro + negro + azul ─────────────────────────────── */
+  --color-iamet-bg:            oklch(0.960 0.003 240);   /* #F0F0F2 gris claro */
+  --color-iamet-bg-secondary:  oklch(0.945 0.004 240);   /* #EAEAEC */
+  --color-iamet-bg-tertiary:   oklch(0.925 0.005 240);   /* #E2E2E5 */
+  --color-iamet-surface:       oklch(0.985 0.002 240);   /* casi blanco */
+  --color-iamet-surface-2:     oklch(0.970 0.003 240);   /* gris muy claro */
+  --color-iamet-border:        oklch(0.840 0.006 240);   /* borde gris */
+  --color-iamet-border-subtle: oklch(0.900 0.004 240);   /* borde sutil */
 
-  /* Apple Blue Accent — #0071E3 */
-  --color-iamet-accent:       oklch(0.55 0.22 255);
-  --color-iamet-accent-hover: oklch(0.48 0.22 255);
-  --color-iamet-accent-muted: oklch(0.55 0.22 255 / 0.10);
-  --color-iamet-accent-glow:  oklch(0.55 0.22 255 / 0.20);
+  /* Azul principal modo claro — #1D4ED8 */
+  --color-iamet-accent:        oklch(0.48 0.22 255);
+  --color-iamet-accent-hover:  oklch(0.42 0.22 255);
+  --color-iamet-accent-muted:  oklch(0.48 0.22 255 / 0.10);
+  --color-iamet-accent-glow:   oklch(0.48 0.22 255 / 0.20);
 
-  /* Cyan Secondary */
-  --color-iamet-cyan:         oklch(0.60 0.18 210);
-  --color-iamet-cyan-muted:   oklch(0.60 0.18 210 / 0.12);
+  /* Cyan secundario */
+  --color-iamet-cyan:          oklch(0.58 0.18 210);
+  --color-iamet-cyan-muted:    oklch(0.58 0.18 210 / 0.12);
 
-  /* Text — escala de grises Apple */
-  --color-iamet-text:         oklch(0.15 0.008 240);   /* #1D1D1F Apple black */
-  --color-iamet-text-muted:   oklch(0.38 0.008 240);   /* #6E6E73 Apple gray text */
-  --color-iamet-text-subtle:  oklch(0.58 0.006 240);   /* #86868B Apple subtle */
+  /* Texto modo claro */
+  --color-iamet-text:          oklch(0.12 0.008 240);    /* negro */
+  --color-iamet-text-muted:    oklch(0.35 0.008 240);    /* gris oscuro */
+  --color-iamet-text-subtle:   oklch(0.55 0.006 240);    /* gris medio */
+
+  /* Sidebar modo claro */
+  --color-iamet-sidebar-bg:    oklch(0.975 0.002 240);
+  --color-iamet-sidebar-border:oklch(0.870 0.005 240);
 
   /* Vertical Colors */
   --color-v-infra:    oklch(0.60 0.20 230);
@@ -51,52 +54,53 @@
   --color-v-comply:   oklch(0.62 0.22 25);
 
   /* Semantic tokens para shadcn — Tailwind v4 requiere prefijo --color-* */
-  --color-background:         oklch(0.985 0.002 240);
-  --color-foreground:         oklch(0.15 0.008 240);
-  --color-card:               oklch(1.000 0.000 0);
-  --color-card-foreground:    oklch(0.15 0.008 240);
-  --color-popover:            oklch(1.000 0.000 0);
-  --color-popover-foreground: oklch(0.15 0.008 240);
-  --color-primary:            oklch(0.55 0.22 255);
-  --color-primary-foreground: oklch(1.000 0.000 0);
-  --color-secondary:          oklch(0.965 0.003 240);
-  --color-secondary-foreground: oklch(0.15 0.008 240);
-  --color-muted:              oklch(0.955 0.004 240);
-  --color-muted-foreground:   oklch(0.38 0.008 240);
-  --color-accent:             oklch(0.965 0.003 240);
-  --color-accent-foreground:  oklch(0.15 0.008 240);
-  --color-destructive:        oklch(0.58 0.22 25);
+  --color-background:          oklch(0.960 0.003 240);
+  --color-foreground:          oklch(0.12 0.008 240);
+  --color-card:                oklch(0.985 0.002 240);
+  --color-card-foreground:     oklch(0.12 0.008 240);
+  --color-popover:             oklch(0.985 0.002 240);
+  --color-popover-foreground:  oklch(0.12 0.008 240);
+  --color-primary:             oklch(0.48 0.22 255);
+  --color-primary-foreground:  oklch(1.000 0.000 0);
+  --color-secondary:           oklch(0.945 0.004 240);
+  --color-secondary-foreground:oklch(0.12 0.008 240);
+  --color-muted:               oklch(0.925 0.005 240);
+  --color-muted-foreground:    oklch(0.35 0.008 240);
+  --color-accent:              oklch(0.945 0.004 240);
+  --color-accent-foreground:   oklch(0.12 0.008 240);
+  --color-destructive:         oklch(0.58 0.22 25);
   --color-destructive-foreground: oklch(1.000 0.000 0);
-  --color-border:             oklch(0.86 0.005 240);
-  --color-input:              oklch(0.92 0.003 240);
-  --color-ring:               oklch(0.55 0.22 255);
-  --color-sidebar:            oklch(1.000 0.000 0);
-  --color-sidebar-foreground: oklch(0.15 0.008 240);
-  --color-sidebar-accent:     oklch(0.965 0.003 240);
-  --color-sidebar-accent-foreground: oklch(0.15 0.008 240);
-  --color-sidebar-border:     oklch(0.86 0.005 240);
-  --color-sidebar-ring:       oklch(0.55 0.22 255);
+  --color-border:              oklch(0.840 0.006 240);
+  --color-input:               oklch(0.900 0.004 240);
+  --color-ring:                oklch(0.48 0.22 255);
+  --color-sidebar:             oklch(0.975 0.002 240);
+  --color-sidebar-foreground:  oklch(0.12 0.008 240);
+  --color-sidebar-accent:      oklch(0.945 0.004 240);
+  --color-sidebar-accent-foreground: oklch(0.12 0.008 240);
+  --color-sidebar-border:      oklch(0.870 0.005 240);
+  --color-sidebar-ring:        oklch(0.48 0.22 255);
+
   /* Legacy vars para compatibilidad con shadcn */
-  --background:               oklch(0.985 0.002 240);
-  --foreground:               oklch(0.15 0.008 240);
-  --card:               oklch(1.000 0.000 0);
-  --card-foreground:    oklch(0.15 0.008 240);
-  --popover:            oklch(1.000 0.000 0);
-  --popover-foreground: oklch(0.15 0.008 240);
-  --primary:            oklch(0.55 0.22 255);
-  --primary-foreground: oklch(1.000 0.000 0);
-  --secondary:          oklch(0.965 0.003 240);
-  --secondary-foreground:oklch(0.15 0.008 240);
-  --muted:              oklch(0.955 0.004 240);
-  --muted-foreground:   oklch(0.38 0.008 240);
-  --accent:             oklch(0.965 0.003 240);
-  --accent-foreground:  oklch(0.15 0.008 240);
-  --destructive:        oklch(0.58 0.22 25);
-  --destructive-foreground: oklch(1.000 0.000 0);
-  --border:             oklch(0.86 0.005 240);
-  --input:              oklch(0.92 0.003 240);
-  --ring:               oklch(0.55 0.22 255);
-  --radius:             0.625rem;
+  --background:               oklch(0.960 0.003 240);
+  --foreground:               oklch(0.12 0.008 240);
+  --card:                     oklch(0.985 0.002 240);
+  --card-foreground:          oklch(0.12 0.008 240);
+  --popover:                  oklch(0.985 0.002 240);
+  --popover-foreground:       oklch(0.12 0.008 240);
+  --primary:                  oklch(0.48 0.22 255);
+  --primary-foreground:       oklch(1.000 0.000 0);
+  --secondary:                oklch(0.945 0.004 240);
+  --secondary-foreground:     oklch(0.12 0.008 240);
+  --muted:                    oklch(0.925 0.005 240);
+  --muted-foreground:         oklch(0.35 0.008 240);
+  --accent:                   oklch(0.945 0.004 240);
+  --accent-foreground:        oklch(0.12 0.008 240);
+  --destructive:              oklch(0.58 0.22 25);
+  --destructive-foreground:   oklch(1.000 0.000 0);
+  --border:                   oklch(0.840 0.006 240);
+  --input:                    oklch(0.900 0.004 240);
+  --ring:                     oklch(0.48 0.22 255);
+  --radius:                   0.625rem;
 
   /* Chart colors */
   --chart-1: oklch(0.62 0.22 230);
@@ -104,6 +108,90 @@
   --chart-3: oklch(0.68 0.18 160);
   --chart-4: oklch(0.75 0.18 75);
   --chart-5: oklch(0.62 0.22 25);
+}
+
+/* ─── DARK MODE: negro + azul + amarillo ─────────────────────────────────── */
+.dark {
+  /* Fondos oscuros */
+  --color-iamet-bg:            oklch(0.095 0.008 240);   /* #0A0A0F negro profundo */
+  --color-iamet-bg-secondary:  oklch(0.115 0.010 240);   /* #111118 */
+  --color-iamet-bg-tertiary:   oklch(0.140 0.012 240);   /* #161620 */
+  --color-iamet-surface:       oklch(0.130 0.010 240);   /* #131319 */
+  --color-iamet-surface-2:     oklch(0.155 0.012 240);   /* #181820 */
+  --color-iamet-border:        oklch(0.240 0.015 240);   /* borde oscuro */
+  --color-iamet-border-subtle: oklch(0.190 0.012 240);   /* borde muy sutil */
+
+  /* Azul eléctrico modo oscuro — #2563EB */
+  --color-iamet-accent:        oklch(0.58 0.22 255);
+  --color-iamet-accent-hover:  oklch(0.65 0.22 255);
+  --color-iamet-accent-muted:  oklch(0.58 0.22 255 / 0.15);
+  --color-iamet-accent-glow:   oklch(0.58 0.22 255 / 0.25);
+
+  /* Amarillo acento modo oscuro — #EAB308 / #FACC15 */
+  --color-iamet-yellow:        oklch(0.82 0.18 90);
+  --color-iamet-yellow-muted:  oklch(0.82 0.18 90 / 0.15);
+  --color-iamet-yellow-glow:   oklch(0.82 0.18 90 / 0.20);
+
+  /* Cyan secundario */
+  --color-iamet-cyan:          oklch(0.72 0.18 210);
+  --color-iamet-cyan-muted:    oklch(0.72 0.18 210 / 0.12);
+
+  /* Texto modo oscuro */
+  --color-iamet-text:          oklch(0.940 0.005 240);   /* casi blanco */
+  --color-iamet-text-muted:    oklch(0.700 0.008 240);   /* gris claro */
+  --color-iamet-text-subtle:   oklch(0.520 0.006 240);   /* gris medio */
+
+  /* Sidebar modo oscuro */
+  --color-iamet-sidebar-bg:    oklch(0.105 0.009 240);
+  --color-iamet-sidebar-border:oklch(0.200 0.013 240);
+
+  /* Semantic tokens dark */
+  --color-background:          oklch(0.095 0.008 240);
+  --color-foreground:          oklch(0.940 0.005 240);
+  --color-card:                oklch(0.130 0.010 240);
+  --color-card-foreground:     oklch(0.940 0.005 240);
+  --color-popover:             oklch(0.130 0.010 240);
+  --color-popover-foreground:  oklch(0.940 0.005 240);
+  --color-primary:             oklch(0.58 0.22 255);
+  --color-primary-foreground:  oklch(1.000 0.000 0);
+  --color-secondary:           oklch(0.155 0.012 240);
+  --color-secondary-foreground:oklch(0.940 0.005 240);
+  --color-muted:               oklch(0.140 0.012 240);
+  --color-muted-foreground:    oklch(0.700 0.008 240);
+  --color-accent:              oklch(0.155 0.012 240);
+  --color-accent-foreground:   oklch(0.940 0.005 240);
+  --color-destructive:         oklch(0.62 0.22 25);
+  --color-destructive-foreground: oklch(1.000 0.000 0);
+  --color-border:              oklch(0.240 0.015 240);
+  --color-input:               oklch(0.190 0.012 240);
+  --color-ring:                oklch(0.58 0.22 255);
+  --color-sidebar:             oklch(0.105 0.009 240);
+  --color-sidebar-foreground:  oklch(0.940 0.005 240);
+  --color-sidebar-accent:      oklch(0.155 0.012 240);
+  --color-sidebar-accent-foreground: oklch(0.940 0.005 240);
+  --color-sidebar-border:      oklch(0.200 0.013 240);
+  --color-sidebar-ring:        oklch(0.58 0.22 255);
+
+  /* Legacy vars dark */
+  --background:               oklch(0.095 0.008 240);
+  --foreground:               oklch(0.940 0.005 240);
+  --card:                     oklch(0.130 0.010 240);
+  --card-foreground:          oklch(0.940 0.005 240);
+  --popover:                  oklch(0.130 0.010 240);
+  --popover-foreground:       oklch(0.940 0.005 240);
+  --primary:                  oklch(0.58 0.22 255);
+  --primary-foreground:       oklch(1.000 0.000 0);
+  --secondary:                oklch(0.155 0.012 240);
+  --secondary-foreground:     oklch(0.940 0.005 240);
+  --muted:                    oklch(0.140 0.012 240);
+  --muted-foreground:         oklch(0.700 0.008 240);
+  --accent:                   oklch(0.155 0.012 240);
+  --accent-foreground:        oklch(0.940 0.005 240);
+  --destructive:              oklch(0.62 0.22 25);
+  --destructive-foreground:   oklch(1.000 0.000 0);
+  --border:                   oklch(0.240 0.015 240);
+  --input:                    oklch(0.190 0.012 240);
+  --ring:                     oklch(0.58 0.22 255);
 }
 
 /* ─── Base Layer ──────────────────────────────────────────────────────────── */
@@ -120,12 +208,10 @@
   }
 
   body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans);
     background-color: var(--color-iamet-bg);
     color: var(--color-iamet-text);
     font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -151,20 +237,20 @@
 /* ─── IAMET Utility Classes ───────────────────────────────────────────────── */
 @layer utilities {
 
-  /* Neumorphism — adaptado a tema claro */
+  /* Neumorphism — adaptado a ambos temas */
   .neumorphic {
     background: var(--color-iamet-surface);
     box-shadow:
-      0 1px 3px oklch(0.60 0.005 240 / 0.12),
-      0 4px 12px oklch(0.60 0.005 240 / 0.08);
+      0 1px 3px oklch(0 0 0 / 0.12),
+      0 4px 12px oklch(0 0 0 / 0.08);
     border: 1px solid var(--color-iamet-border-subtle);
   }
 
   .neumorphic-inset {
     background: var(--color-iamet-bg-secondary);
     box-shadow:
-      inset 0 1px 3px oklch(0.60 0.005 240 / 0.10),
-      inset 0 2px 6px oklch(0.60 0.005 240 / 0.06);
+      inset 0 1px 3px oklch(0 0 0 / 0.10),
+      inset 0 2px 6px oklch(0 0 0 / 0.06);
     border: 1px solid var(--color-iamet-border-subtle);
   }
 
@@ -173,8 +259,8 @@
   }
   .neumorphic-hover:hover {
     box-shadow:
-      0 2px 8px oklch(0.60 0.005 240 / 0.14),
-      0 8px 24px oklch(0.60 0.005 240 / 0.10),
+      0 2px 8px oklch(0 0 0 / 0.14),
+      0 8px 24px oklch(0 0 0 / 0.10),
       0 0 0 1px var(--color-iamet-accent-muted);
     transform: translateY(-1px);
   }
@@ -198,25 +284,25 @@
     background-clip: text;
   }
 
-  /* Glass morphism — tema claro */
+  /* Glass morphism */
   .glass {
-    background: oklch(1.000 0.000 0 / 0.80);
+    background: var(--color-iamet-surface);
     backdrop-filter: blur(20px) saturate(1.8);
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
-    border: 1px solid oklch(0.86 0.005 240 / 0.6);
+    border: 1px solid var(--color-iamet-border-subtle);
   }
 
-  /* Grid pattern background — tema claro */
+  /* Grid pattern background */
   .bg-grid {
     background-image:
-      linear-gradient(oklch(0.75 0.005 240 / 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, oklch(0.75 0.005 240 / 0.5) 1px, transparent 1px);
+      linear-gradient(var(--color-iamet-border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-iamet-border-subtle) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   /* Dot pattern */
   .bg-dots {
-    background-image: radial-gradient(oklch(0.70 0.005 240 / 0.5) 1px, transparent 1px);
+    background-image: radial-gradient(var(--color-iamet-border) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
