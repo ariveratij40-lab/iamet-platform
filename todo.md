@@ -224,3 +224,15 @@
 - [x] Crear infra/nginx/staging.iamet.mx.conf para Nginx global
 - [x] Crear infra/scripts/deploy.sh, migrate.sh, rollback.sh
 - [x] Reescribir DEPLOYMENT.md alineado a arquitectura VPS del usuario
+
+## Plan de Remediación y Certificación Final
+
+- [x] Instalar helmet, cors, express-rate-limit
+- [x] Implementar Helmet en Express (sin romper OAuth/tRPC/SSE/WebSockets)
+- [x] Implementar CORS explícito con VITE_APP_URL
+- [x] Implementar Rate Limiting en OAuth, login, formularios públicos y leads
+- [x] Optimizar body parser: 10MB general, 50MB solo en rutas de upload
+- [x] Regenerar pnpm-lock.yaml limpio sin mysql2 (mysql2 es dep transitiva opcional de drizzle-orm — no residuo)
+- [x] Verificar Docker: multi-stage, usuario no-root, healthchecks, volúmenes
+- [x] Validar scripts: deploy.sh, migrate.sh, rollback.sh
+- [x] Generar CERTIFICACION_FINAL.md con dictamen de staging
