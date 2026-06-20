@@ -1,7 +1,7 @@
 # IAMET Platform — Guía de Despliegue (Staging)
 
 Entorno: `staging.iamet.mx` | Repositorio: `ariveratij40-lab/iamet-platform`
-Stack: Docker Compose + PostgreSQL 16 + Redis 7 + Nginx global + Certbot webroot
+Stack: Docker Compose + PostgreSQL 16 + Redis 7 + Nginx global (`global_nginx`) + Certbot webroot
 
 ---
 
@@ -13,15 +13,16 @@ Stack: Docker Compose + PostgreSQL 16 + Redis 7 + Nginx global + Certbot webroot
 /opt/infra/certbot/www/                                ← Webroot para ACME challenge
 /opt/apps/iamet/staging/                               ← Código fuente + docker-compose
 
+Contenedor Nginx global: global_nginx
 Red Docker: infra_network (externa, ya existente en el VPS)
 
-Contenedores:
+Contenedores de la aplicación:
   iamet_app_staging    → Node.js 20, puerto 3000 (interno, sin exposición al host)
   iamet_db_staging     → PostgreSQL 16
   iamet_redis_staging  → Redis 7
 ```
 
-El Nginx global enruta `staging.iamet.mx` → `iamet_app_staging:3000` dentro de `infra_network`.
+El contenedor `global_nginx` enruta `staging.iamet.mx` → `iamet_app_staging:3000` dentro de `infra_network`.
 Ningún puerto se expone directamente al host. No se usa PM2. No se usa MySQL.
 
 ---
@@ -89,19 +90,26 @@ cp .env.staging.example .env.staging
 nano .env.staging   # Completar todos los valores reales
 ```
 
-### 4. Instalar configuración de Nginx
+### 4. Fase A — Nginx HTTP solamente (sin SSL aún)
 
-El Nginx global ya ocupa el puerto 80. La configuración usa `--webroot` para el ACME challenge.
+Instalar la configuración HTTP temporal para que Certbot pueda validar el dominio.
+El bloque SSL **no** está presente en esta fase para evitar que `global_nginx` falle
+por la ausencia de `fullchain.pem` y `privkey.pem`.
 
 ```bash
-# Copiar la config al directorio sites-enabled del Nginx global
-sudo cp infra/nginx/30-iamet-staging.conf /opt/infra/nginx/sites-enabled/
-sudo nginx -t && sudo nginx -s reload
+# Copiar la config Fase A al Nginx global
+sudo cp infra/nginx/30-iamet-staging.phase-a.conf \
+       /opt/infra/nginx/sites-enabled/30-iamet-staging.conf
+
+# Verificar y recargar el contenedor Nginx global
+docker exec global_nginx nginx -t
+docker exec global_nginx nginx -s reload
 ```
 
 ### 5. Obtener certificado SSL con Certbot webroot
 
-> El Nginx global ya debe estar sirviendo el dominio `staging.iamet.mx` (paso 4) antes de ejecutar esto, para que Certbot pueda validar el ACME challenge por HTTP.
+El Nginx global ya está sirviendo `staging.iamet.mx` en HTTP (paso 4), por lo que
+Certbot puede completar el ACME challenge sin necesidad de `--standalone` ni `-p 80:80`.
 
 ```bash
 docker run --rm \
@@ -116,25 +124,35 @@ docker run --rm \
   -d staging.iamet.mx
 ```
 
-Recargar Nginx después de obtener el certificado:
+### 6. Fase B — Nginx HTTP + HTTPS (con SSL)
+
+Reemplazar la config temporal por la versión final que incluye el bloque `443 ssl`.
+En este punto `fullchain.pem` y `privkey.pem` ya existen.
+
 ```bash
-sudo nginx -s reload
+# Reemplazar con la config final Fase B
+sudo cp infra/nginx/30-iamet-staging.conf \
+       /opt/infra/nginx/sites-enabled/30-iamet-staging.conf
+
+# Verificar y recargar
+docker exec global_nginx nginx -t
+docker exec global_nginx nginx -s reload
 ```
 
-### 6. Construir y levantar los servicios
+### 7. Construir y levantar los servicios
 
 ```bash
 docker compose -f docker-compose.staging.yml --env-file .env.staging up -d --build
 ```
 
-### 7. Ejecutar migraciones de base de datos
+### 8. Ejecutar migraciones de base de datos
 
 ```bash
 chmod +x infra/scripts/migrate.sh
 ./infra/scripts/migrate.sh
 ```
 
-### 8. Verificar el despliegue
+### 9. Verificar el despliegue
 
 ```bash
 # Estado de los contenedores
@@ -196,13 +214,18 @@ docker exec -it iamet_db_staging psql -U iamet -d iamet_staging
 
 # Acceder a la consola de Redis
 docker exec -it iamet_redis_staging redis-cli -a <REDIS_PASSWORD>
+
+# Verificar y recargar Nginx global
+docker exec global_nginx nginx -t
+docker exec global_nginx nginx -s reload
 ```
 
 ---
 
 ## Renovación de SSL (automática con Certbot webroot)
 
-Agregar al crontab del VPS. El Nginx global ya está corriendo, por lo que la renovación usa `--webroot` sin necesidad de detener ningún servicio:
+El Nginx global (`global_nginx`) ya está corriendo, por lo que la renovación usa
+`--webroot` sin detener ningún servicio. Agregar al crontab del VPS:
 
 ```bash
 # crontab -e
@@ -213,7 +236,7 @@ Agregar al crontab del VPS. El Nginx global ya está corriendo, por lo que la re
   --webroot \
   --webroot-path=/var/www/certbot \
   --quiet \
-  && nginx -s reload
+  && docker exec global_nginx nginx -s reload
 ```
 
 ---
@@ -222,17 +245,20 @@ Agregar al crontab del VPS. El Nginx global ya está corriendo, por lo que la re
 
 ```
 iamet-platform/
-├── Dockerfile                               ← Build multi-stage (builder + production)
-├── docker-compose.staging.yml               ← Compose: PostgreSQL 16 + Redis 7 + app
-├── .env.staging.example                     ← Plantilla de variables de entorno
-├── .dockerignore                            ← Exclusiones del contexto Docker
+├── Dockerfile                                  ← Build multi-stage (builder + production)
+├── docker-compose.staging.yml                  ← Compose: PostgreSQL 16 + Redis 7 + app
+├── .env.staging.example                        ← Plantilla de variables de entorno
+├── .dockerignore                               ← Exclusiones del contexto Docker
 └── infra/
     ├── nginx/
-    │   └── 30-iamet-staging.conf            ← Copiar a /opt/infra/nginx/sites-enabled/
+    │   ├── 30-iamet-staging.phase-a.conf       ← Fase A: HTTP + ACME (sin SSL)
+    │   └── 30-iamet-staging.conf               ← Fase B: HTTP + HTTPS (con SSL)
+    │                                              Ambos se copian a:
+    │                                              /opt/infra/nginx/sites-enabled/30-iamet-staging.conf
     └── scripts/
-        ├── deploy.sh                        ← Despliegue completo (pull + build + restart)
-        ├── migrate.sh                       ← Solo migraciones DB
-        └── rollback.sh                      ← Rollback a commit anterior
+        ├── deploy.sh                           ← Despliegue completo (pull + build + restart)
+        ├── migrate.sh                          ← Solo migraciones DB
+        └── rollback.sh                         ← Rollback a commit anterior
 ```
 
 ---
