@@ -209,3 +209,18 @@
 - [x] Configurar RESEND_API_KEY como variable de entorno
 - [x] Verificar dominio iamet.mx en Resend (DKIM, SPF, MX)
 - [x] Test de envío exitoso desde noreply@iamet.mx
+
+## Migración PostgreSQL + Infraestructura Docker VPS
+
+- [x] Migrar driver de mysql2 a postgres (postgres-js) en server/db.ts
+- [x] Actualizar drizzle/schema.ts de mysqlTable a pgTable con tipos PostgreSQL
+- [x] Actualizar drizzle.config.ts dialect: "mysql" → "postgresql"
+- [x] Reemplazar onDuplicateKeyUpdate → onConflictDoUpdate en db.ts
+- [x] Reemplazar insertId → .returning({ id }) en db.ts
+- [x] Crear Dockerfile multi-stage (builder + production)
+- [x] Crear docker-compose.staging.yml con PostgreSQL 16, Redis 7 y app en infra_network
+- [x] Crear .env.staging.example con todas las variables documentadas
+- [x] Crear .dockerignore
+- [x] Crear infra/nginx/staging.iamet.mx.conf para Nginx global
+- [x] Crear infra/scripts/deploy.sh, migrate.sh, rollback.sh
+- [x] Reescribir DEPLOYMENT.md alineado a arquitectura VPS del usuario

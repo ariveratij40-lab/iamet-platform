@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.gitignore
+.env*
+!.env.staging.example
+*.log
+.manus-logs
+README.md
+DEPLOYMENT.md
+*.test.ts
+*.spec.ts
+test-email-send.mjs
+check-resend-domain.mjs
+infra/scripts

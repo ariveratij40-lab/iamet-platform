@@ -1,5 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import {
   InsertUser, User, users,
   verticals, Vertical,
@@ -20,12 +21,14 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
-let _db: ReturnType<typeof drizzle> | null = null;
+type DrizzlePg = ReturnType<typeof drizzle>;
+let _db: DrizzlePg | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const client = postgres(process.env.DATABASE_URL);
+      _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -62,7 +65,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
   if (!values.lastSignedIn) values.lastSignedIn = new Date();
   if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string): Promise<User | undefined> {
@@ -127,12 +130,12 @@ export async function createLead(data: InsertLead): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   const { score, breakdown } = calculateLeadScore(data);
-  const result = await db.insert(leads).values({
+  const [created] = await db.insert(leads).values({
     ...data,
     score,
     scoreBreakdown: breakdown,
-  });
-  return (result as any)[0]?.insertId ?? 0;
+  }).returning({ id: leads.id });
+  return created?.id ?? 0;
 }
 
 export async function getLeads(filters?: {
@@ -163,8 +166,8 @@ export async function updateLeadStatus(id: number, status: string, notes?: strin
 export async function createConversation(data: InsertConversation): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(conversations).values(data);
-  return (result as any)[0]?.insertId ?? 0;
+  const [created] = await db.insert(conversations).values(data).returning({ id: conversations.id });
+  return created?.id ?? 0;
 }
 
 export async function getConversationBySession(sessionId: string): Promise<Conversation | undefined> {
@@ -212,8 +215,8 @@ export async function getMessagesByConversation(conversationId: number): Promise
 export async function createAdvisorSession(data: InsertAdvisorSession): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(advisorSessions).values(data);
-  return (result as any)[0]?.insertId ?? 0;
+  const [created] = await db.insert(advisorSessions).values(data).returning({ id: advisorSessions.id });
+  return created?.id ?? 0;
 }
 
 export async function getAdvisorSession(sessionId: string): Promise<AdvisorSession | undefined> {
@@ -249,8 +252,8 @@ export async function getCourseBySlug(slug: string): Promise<Course | undefined>
 export async function createEnrollment(data: InsertEnrollment): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(enrollments).values(data);
-  return (result as any)[0]?.insertId ?? 0;
+  const [created] = await db.insert(enrollments).values(data).returning({ id: enrollments.id });
+  return created?.id ?? 0;
 }
 
 // ─── Visitor Tracking ────────────────────────────────────────────────────────
