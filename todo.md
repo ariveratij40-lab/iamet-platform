@@ -236,3 +236,14 @@
 - [x] Verificar Docker: multi-stage, usuario no-root, healthchecks, volúmenes
 - [x] Validar scripts: deploy.sh, migrate.sh, rollback.sh
 - [x] Generar CERTIFICACION_FINAL.md con dictamen de staging
+
+## Separación LLM / Storage — VPS Standalone
+
+- [x] Instalar @aws-sdk/client-s3 y @aws-sdk/s3-request-presigner
+- [x] Actualizar server/_core/env.ts: agregar llmApiUrl, llmApiKey, llmModel, r2Endpoint, r2Region, r2Bucket, r2AccessKeyId, r2SecretAccessKey, r2PublicUrl
+- [x] Actualizar server/_core/llm.ts: usar ENV.llmApiUrl/llmApiKey/llmModel (separado de forgeApiUrl)
+- [x] Reescribir server/storage.ts: implementación S3-compatible con @aws-sdk/client-s3 (R2/S3/MinIO)
+- [x] Reescribir server/_core/storageProxy.ts: soporte para bucket público (301), privado (presigned 307) y fallback 503 sin R2
+- [x] Actualizar .env.staging.example con bloques LLM_* y R2_* documentados
+- [x] TypeScript: 0 errores
+- [x] Build producción: dist/index.js 121.4 KB generado
