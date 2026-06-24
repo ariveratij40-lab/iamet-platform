@@ -720,7 +720,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         await notifyOwner({
           title: `Nueva solicitud de cotización: ${refCode}`,
           content: `**${input.visitorName}** (${input.company ?? "sin empresa"}) solicitó cotización.\n\nEmail: ${input.email}\nTeléfono: ${input.phone ?? "N/A"}\n\n**Productos:**\n${itemList}\n\nNotas: ${input.notes ?? "ninguna"}`,
-        });
+        }).catch(() => {});
         return { refCode, id: quote.id };
       }),
   }),

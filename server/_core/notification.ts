@@ -68,18 +68,10 @@ export async function notifyOwner(
 ): Promise<boolean> {
   const { title, content } = validatePayload(payload);
 
-  if (!ENV.forgeApiUrl) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Notification service URL is not configured.",
-    });
-  }
-
-  if (!ENV.forgeApiKey) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Notification service API key is not configured.",
-    });
+  // En VPS standalone (sin Manus Forge) simplemente no notificar — no es un error fatal.
+  if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
+    console.warn("[Notification] Manus Forge not configured (BUILT_IN_FORGE_API_URL/KEY empty). Skipping owner notification.");
+    return false;
   }
 
   const endpoint = buildEndpointUrl(ENV.forgeApiUrl);
