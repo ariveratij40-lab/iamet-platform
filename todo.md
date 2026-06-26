@@ -259,6 +259,6 @@
 - [x] tRPC procedure `store.saveCart`: guarda el carrito actual del usuario en BD (upsertSavedCart)
 - [x] tRPC procedure `store.getSavedCart`: recupera el carrito guardado del usuario
 - [x] Página `/tienda/perfil`: datos del usuario, historial de cotizaciones con estado y fecha, carrito guardado
-- [ ] Auto-guardar carrito en BD cuando el usuario autenticado agrega/quita productos (pendiente)
-- [ ] Al hacer login, restaurar el carrito guardado automáticamente (pendiente)
+- [x] Auto-guardar carrito en BD cuando el usuario autenticado agrega/quita productos (debounced 2s)
+- [x] Al hacer login, restaurar el carrito guardado automáticamente
 - [x] Migración SQL: agregar columna `userId` a `quote_requests` y crear tabla `saved_carts`

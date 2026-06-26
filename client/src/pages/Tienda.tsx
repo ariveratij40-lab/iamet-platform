@@ -488,12 +488,54 @@ export default function Tienda() {
     if (!open) setCartStep("items");
   };
 
-  const { data: categories, isLoading: catsLoading } = trpc.store.getCategories.useQuery();
+    const { data: categories, isLoading: catsLoading } = trpc.store.getCategories.useQuery();
   const { data: products, isLoading: prodsLoading } = trpc.store.getProducts.useQuery({});
-
   // Seed data on first load if empty
   const seedMutation = trpc.store.seedData.useMutation();
   const utils = trpc.useUtils();
+
+  // ─ Carrito guardado: restaurar al hacer login ─
+  const { data: savedCart } = trpc.store.getSavedCart.useQuery(undefined, { enabled: isAuthenticated });
+  const saveCartMutation = trpc.store.saveCart.useMutation();
+  const [cartRestored, setCartRestored] = useState(false);
+
+  // Restaurar carrito guardado cuando el usuario se autentica por primera vez
+  useEffect(() => {
+    if (!savedCart || cartRestored || !products) return;
+    const savedItems = (savedCart.items ?? []) as Array<{
+      productId: number; productName: string; productSku?: string;
+      quantity: number; priceRef?: number;
+    }>;
+    if (savedItems.length === 0) { setCartRestored(true); return; }
+    const restoredCart: CartItem[] = savedItems
+      .map((si) => {
+        const prod = products.find((p) => p.id === si.productId);
+        if (!prod) return null;
+        return { product: prod, quantity: si.quantity, notes: "" };
+      })
+      .filter(Boolean) as CartItem[];
+    if (restoredCart.length > 0) setCart(restoredCart);
+    setCartRestored(true);
+  }, [savedCart, products, cartRestored]);
+
+  // Auto-guardar carrito cuando cambia (debounced 2s)
+  const saveCartRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!isAuthenticated || !cartRestored) return;
+    if (saveCartRef.current) clearTimeout(saveCartRef.current);
+    saveCartRef.current = setTimeout(() => {
+      saveCartMutation.mutate({
+        items: cart.map((i) => ({
+          productId: i.product.id,
+          productName: i.product.name,
+          productSku: i.product.sku ?? undefined,
+          quantity: i.quantity,
+          priceRef: i.product.priceRef ?? undefined,
+        })),
+      });
+    }, 2000);
+    return () => { if (saveCartRef.current) clearTimeout(saveCartRef.current); };
+  }, [cart, isAuthenticated, cartRestored]);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
