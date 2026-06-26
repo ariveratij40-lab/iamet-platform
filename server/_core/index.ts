@@ -10,7 +10,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
+import { serveStatic } from "./serveStatic";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -166,7 +166,11 @@ async function startServer() {
   );
 
   // ─── Frontend (Vite dev o archivos estáticos) ─────────────────────────────
+  // vite is a devDependency — use dynamic string import so esbuild doesn't bundle vite.ts
   if (process.env.NODE_ENV === "development") {
+    // String concatenation prevents esbuild from statically analyzing and bundling vite.ts
+    const vitePath = "./" + "vite";
+    const { setupVite } = await import(vitePath);
     await setupVite(app, server);
   } else {
     serveStatic(app);
