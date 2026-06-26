@@ -142,8 +142,14 @@ docker exec global_nginx nginx -s reload
 ### 7. Construir y levantar los servicios
 
 ```bash
-docker compose -f docker-compose.staging.yml --env-file .env.staging up -d --build
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging \
+  up -d --build
 ```
+
+> **Importante:** Siempre incluir `-f docker-compose.override.yml` — contiene variables críticas como `LLM_*` y `R2_*`.
 
 ### 8. Ejecutar migraciones de base de datos
 
@@ -156,7 +162,10 @@ chmod +x infra/scripts/migrate.sh
 
 ```bash
 # Estado de los contenedores
-docker compose -f docker-compose.staging.yml --env-file .env.staging ps
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging ps
 
 # Logs de la aplicación
 docker logs iamet_app_staging -f --tail 50
@@ -201,13 +210,23 @@ git log --oneline -10
 docker logs iamet_app_staging -f
 
 # Reiniciar solo la aplicación (sin reconstruir)
-docker compose -f docker-compose.staging.yml --env-file .env.staging restart iamet_app_staging
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging \
+  restart iamet_app_staging
 
 # Detener todos los servicios
-docker compose -f docker-compose.staging.yml --env-file .env.staging down
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging down
 
 # ⚠ DESTRUCTIVO — detener y eliminar volúmenes (borra la DB)
-docker compose -f docker-compose.staging.yml --env-file .env.staging down -v
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging down -v
 
 # Acceder a la consola de PostgreSQL
 docker exec -it iamet_db_staging psql -U iamet -d iamet_staging
