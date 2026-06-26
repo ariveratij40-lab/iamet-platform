@@ -247,3 +247,18 @@
 - [x] Actualizar .env.staging.example con bloques LLM_* y R2_* documentados
 - [x] TypeScript: 0 errores
 - [x] Build producción: dist/index.js 121.4 KB generado
+
+## Login con Manus OAuth en la Tienda + Perfil de Usuario
+
+- [x] Reemplazar StoreAuthModal (email/verificación) por guard de Manus OAuth en `/tienda` y `/tienda/:slug`
+- [x] Botón "Iniciar sesión" visible en el navbar de la tienda para usuarios no autenticados
+- [x] Avatar + nombre del usuario autenticado en el navbar de la tienda con dropdown (Mis cotizaciones / Cerrar sesión)
+- [x] Columna `userId` (FK a `users.id`) en tabla `quote_requests` para vincular cotizaciones al usuario
+- [x] Tabla `saved_carts`: id, userId, items (JSON), updatedAt
+- [x] tRPC procedure `store.getMyQuotes`: retorna historial de cotizaciones del usuario autenticado
+- [x] tRPC procedure `store.saveCart`: guarda el carrito actual del usuario en BD (upsertSavedCart)
+- [x] tRPC procedure `store.getSavedCart`: recupera el carrito guardado del usuario
+- [x] Página `/tienda/perfil`: datos del usuario, historial de cotizaciones con estado y fecha, carrito guardado
+- [ ] Auto-guardar carrito en BD cuando el usuario autenticado agrega/quita productos (pendiente)
+- [ ] Al hacer login, restaurar el carrito guardado automáticamente (pendiente)
+- [x] Migración SQL: agregar columna `userId` a `quote_requests` y crear tabla `saved_carts`

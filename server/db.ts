@@ -20,6 +20,7 @@ import {
   storeVisitors, StoreVisitor, InsertStoreVisitor,
   quoteRequests, QuoteRequest, InsertQuoteRequest,
   quoteItems, QuoteItem, InsertQuoteItem,
+  savedCarts, SavedCart,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -751,4 +752,39 @@ export async function adminGetStoreVisitors(limit = 50): Promise<StoreVisitor[]>
   const db = await getDb();
   if (!db) return [];
   return db.select().from(storeVisitors).orderBy(desc(storeVisitors.createdAt)).limit(limit);
+}
+
+// ─── Carrito Guardado ─────────────────────────────────────────────────────────
+export async function getSavedCart(userId: number): Promise<SavedCart | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [cart] = await db.select().from(savedCarts).where(eq(savedCarts.userId, userId)).limit(1);
+  return cart ?? null;
+}
+
+export async function upsertSavedCart(userId: number, items: unknown[]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.select({ id: savedCarts.id }).from(savedCarts).where(eq(savedCarts.userId, userId)).limit(1);
+  if (existing.length > 0) {
+    await db.update(savedCarts).set({ items: items as any, updatedAt: new Date() }).where(eq(savedCarts.userId, userId));
+  } else {
+    await db.insert(savedCarts).values({ userId, items: items as any });
+  }
+}
+
+// ─── Cotizaciones del Usuario ─────────────────────────────────────────────────
+export async function getQuotesByUser(userId: number): Promise<(QuoteRequest & { items: QuoteItem[] })[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const quotes = await db.select().from(quoteRequests)
+    .where(eq((quoteRequests as any).userId, userId))
+    .orderBy(desc(quoteRequests.createdAt))
+    .limit(50);
+  const result: (QuoteRequest & { items: QuoteItem[] })[] = [];
+  for (const q of quotes) {
+    const items = await db.select().from(quoteItems).where(eq(quoteItems.quoteRequestId, q.id));
+    result.push({ ...q, items });
+  }
+  return result;
 }

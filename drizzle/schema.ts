@@ -269,6 +269,7 @@ export type InsertStoreVisitor = typeof storeVisitors.$inferInsert;
 export const quoteRequests = pgTable("quote_requests", {
   id: serial("id").primaryKey(),
   refCode: varchar("refCode", { length: 32 }).notNull().unique(),
+  userId: integer("userId"),   // FK a users.id (null si es visitante anónimo)
   visitorName: varchar("visitorName", { length: 128 }).notNull(),
   company: varchar("company", { length: 256 }),
   email: varchar("email", { length: 320 }).notNull(),
@@ -292,3 +293,13 @@ export const quoteItems = pgTable("quote_items", {
 });
 export type QuoteItem = typeof quoteItems.$inferSelect;
 export type InsertQuoteItem = typeof quoteItems.$inferInsert;
+
+// ─── Carrito Guardado ─────────────────────────────────────────────────────────
+export const savedCarts = pgTable("saved_carts", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull().unique(), // un carrito por usuario
+  items: json("items").notNull().default([]),    // Array de { productId, quantity, notes }
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type SavedCart = typeof savedCarts.$inferSelect;
+export type InsertSavedCart = typeof savedCarts.$inferInsert;

@@ -40,6 +40,9 @@ import {
   verifyStoreVisitorToken,
   getStoreVisitorByEmail,
   adminGetStoreVisitors,
+  getSavedCart,
+  upsertSavedCart,
+  getQuotesByUser,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -687,6 +690,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         email: z.string().email(),
         phone: z.string().optional(),
         notes: z.string().optional(),
+        userId: z.number().optional(), // usuario autenticado (opcional)
         items: z.array(z.object({
           productId: z.number().optional(),
           productName: z.string(),
@@ -700,13 +704,14 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         const quote = await createQuoteRequest(
           {
             refCode,
+            userId: input.userId,
             visitorName: input.visitorName,
             company: input.company,
             email: input.email,
             phone: input.phone,
             notes: input.notes,
             status: "pending",
-          },
+          } as any,
           input.items.map((i) => ({
             quoteRequestId: 0,
             productId: i.productId,
@@ -723,6 +728,29 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         }).catch(() => {});
         return { refCode, id: quote.id };
       }),
+    // Carrito guardado (requiere autenticación)
+    saveCart: protectedProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          productId: z.number(),
+          productName: z.string(),
+          productSku: z.string().optional(),
+          quantity: z.number().min(1),
+          imageUrl: z.string().optional(),
+          priceRef: z.number().optional(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await upsertSavedCart(ctx.user.id, input.items);
+        return { ok: true };
+      }),
+    getSavedCart: protectedProcedure.query(async ({ ctx }) => {
+      const cart = await getSavedCart(ctx.user.id);
+      return { items: (cart?.items as any[]) ?? [] };
+    }),
+    getMyQuotes: protectedProcedure.query(async ({ ctx }) => {
+      return getQuotesByUser(ctx.user.id);
+    }),
   }),
 
   // ─── Admin: Tienda y Cotizaciones ────────────────────────────────────────────

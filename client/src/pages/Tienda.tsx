@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useStoreAuth } from "@/hooks/useStoreAuth";
-import { StoreAuthModal } from "@/components/StoreAuthModal";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import {
   ShoppingCart, Search, Shield, Network, Monitor, Cable, Code2, Zap, Wrench,
-  Plus, Minus, Trash2, Package, CheckCircle2, ChevronRight, X, Tag, Star
+  Plus, Minus, Trash2, Package, CheckCircle2, ChevronRight, X, Tag, Star,
+  LogIn, LogOut, ClipboardList, ArrowLeft
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Product = {
@@ -383,12 +389,23 @@ function downloadQuotePdf(snapshot: QuoteSnapshot) {
 }
 
 // ─── Quote Form ─────────────────────────────────────────────────────────────────────────────────
-function QuoteForm({ cart, onClose, onSuccess }: {
+function QuoteForm({ cart, onClose, onSuccess, user }: {
   cart: CartItem[];
   onClose: () => void;
   onSuccess: (refCode: string, contact: QuoteSnapshot["contact"]) => void;
+  user?: { name?: string | null; email?: string | null; id?: number } | null;
 }) {
-  const [form, setForm] = useState({ visitorName: "", company: "", email: "", phone: "", notes: "" });
+  const [form, setForm] = useState({
+    visitorName: user?.name ?? "",
+    company: "",
+    email: user?.email ?? "",
+    phone: "",
+    notes: ""
+  });
+  useEffect(() => {
+    if (user?.name) setForm(f => ({ ...f, visitorName: f.visitorName || user.name! }));
+    if (user?.email) setForm(f => ({ ...f, email: f.email || user.email! }));
+  }, [user?.name, user?.email]);
   const submitMutation = trpc.store.submitQuote.useMutation({
     onSuccess: (data) => onSuccess(data.refCode, form),
   });
@@ -397,6 +414,7 @@ function QuoteForm({ cart, onClose, onSuccess }: {
     e.preventDefault();
     submitMutation.mutate({
       ...form,
+      userId: user?.id,
       items: cart.map((i) => ({
         productId: i.product.id,
         productName: i.product.name,
@@ -454,7 +472,7 @@ function QuoteForm({ cart, onClose, onSuccess }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Tienda() {
   const [, navigate] = useLocation();
-  const { visitor, isAuthenticated, login } = useStoreAuth();
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -524,23 +542,88 @@ export default function Tienda() {
 
   const totalRef = cart.reduce((sum, i) => sum + (i.product.priceRef ?? 0) * i.quantity, 0);
 
+  if (!loading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "linear-gradient(135deg, #0f1623 0%, #141d2e 50%, #0f1623 100%)" }}>
+        <div className="max-w-sm w-full text-center space-y-6">
+          <div className="w-20 h-20 rounded-2xl mx-auto flex items-center justify-center" style={{ background: "linear-gradient(145deg, #1e2535, #161c2a)", boxShadow: "6px 6px 12px #0d1118, -4px -4px 10px #2a3347" }}>
+            <Package className="w-10 h-10 text-cyan-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">Tienda IAMET</h1>
+            <p className="text-slate-400 text-sm">Inicia sesión para acceder al catálogo de productos y solicitar cotizaciones personalizadas.</p>
+          </div>
+          <a
+            href={getLoginUrl()}
+            className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-white transition-all"
+            style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)", boxShadow: "0 4px 20px rgba(8,145,178,0.4)" }}
+          >
+            <LogIn className="w-5 h-5" />
+            Iniciar sesión con IAMET
+          </a>
+          <button onClick={() => navigate("/")} className="flex items-center justify-center gap-2 w-full text-slate-400 hover:text-white text-sm transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #0f1623 0%, #141d2e 50%, #0f1623 100%)" }}>
-      {/* Auth Guard */}
-      <StoreAuthModal
-        open={!isAuthenticated}
-        onAuthenticated={login}
-        onExit={() => navigate("/")}
-      />
-
-      {/* Welcome Banner */}
-      {isAuthenticated && visitor && (
-        <div className="bg-cyan-500/10 border-b border-cyan-500/20 px-4 py-2 text-center">
-          <span className="text-sm text-cyan-300">
-            Bienvenido, <strong>{visitor.name}</strong> — Estás viendo precios y puedes solicitar cotizaciones
-          </span>
+      {/* Navbar de tienda */}
+      <div className="sticky top-0 z-50 border-b border-white/5" style={{ background: "rgba(15,22,35,0.97)", backdropFilter: "blur(12px)" }}>
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate("/")} className="text-slate-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-2">
+              <Package className="w-5 h-5 text-cyan-400" />
+              <span className="font-semibold text-white text-sm">Tienda IAMET</span>
+            </div>
+          </div>
+          {user && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCartOpen(true)}
+                className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cart.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-amber-950 text-xs font-bold flex items-center justify-center">
+                    {cart.length}
+                  </span>
+                )}
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-xl px-3 py-1.5 hover:bg-white/5 transition-all">
+                    <Avatar className="w-7 h-7">
+                      <AvatarFallback className="bg-cyan-600 text-white text-xs font-bold">
+                        {(user.name ?? "U").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm text-white hidden sm:block">{user.name ?? "Usuario"}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-slate-900 border-white/10">
+                  <DropdownMenuItem onClick={() => navigate("/tienda/perfil")} className="text-slate-300 hover:text-white cursor-pointer">
+                    <ClipboardList className="w-4 h-4 mr-2" />
+                    Mis cotizaciones
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem onClick={() => logout()} className="text-red-400 hover:text-red-300 cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Cerrar sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Hero */}
       <div className="relative overflow-hidden">
@@ -800,6 +883,7 @@ export default function Tienda() {
               <div className="flex-1 overflow-y-auto px-6 py-4">
                 <QuoteForm
                   cart={cart}
+                  user={user}
                   onClose={() => handleCartOpenChange(false)}
                   onSuccess={(refCode, contact) => {
                     const snap: QuoteSnapshot = { refCode, items: [...cart], contact };

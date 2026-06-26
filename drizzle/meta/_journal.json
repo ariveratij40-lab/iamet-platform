@@ -8,6 +8,13 @@
       "when": 1781984295092,
       "tag": "0000_marvelous_ravenous",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782507895268,
+      "tag": "0001_goofy_the_santerians",
+      "breakpoints": true
     }
   ]
 }

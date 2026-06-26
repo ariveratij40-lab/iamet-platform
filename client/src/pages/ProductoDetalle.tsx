@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useStoreAuth } from "@/hooks/useStoreAuth";
-import { StoreAuthModal } from "@/components/StoreAuthModal";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -405,7 +405,7 @@ function SuccessModal({ refCode, onClose }: { refCode: string; onClose: () => vo
 export default function ProductoDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const [, navigate] = useLocation();
-  const { isAuthenticated, login } = useStoreAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
@@ -501,12 +501,24 @@ export default function ProductoDetalle() {
       className="min-h-screen pt-16 pr-14"
       style={{ background: "linear-gradient(135deg, #0f1623 0%, #111827 50%, #0a0f1a 100%)" }}
     >
-      {/* Guard de autenticación de tienda */}
-      <StoreAuthModal
-        open={!isAuthenticated}
-        onAuthenticated={login}
-        onExit={() => navigate("/tienda")}
-      />
+      {/* Guard de autenticación — redirige a login si no está autenticado */}
+      {!loading && !isAuthenticated && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4" style={{ background: "rgba(10,15,26,0.97)" }}>
+          <div className="max-w-sm w-full text-center space-y-5">
+            <Package className="w-12 h-12 text-cyan-400 mx-auto" />
+            <div>
+              <h2 className="text-xl font-bold text-white mb-1">Acceso requerido</h2>
+              <p className="text-slate-400 text-sm">Inicia sesión para ver el detalle del producto.</p>
+            </div>
+            <a href={getLoginUrl()} className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-white" style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)" }}>
+              Iniciar sesión con IAMET
+            </a>
+            <button onClick={() => navigate("/tienda")} className="text-slate-400 hover:text-white text-sm transition-colors">
+              Volver al catálogo
+            </button>
+          </div>
+        </div>
+      )}
       {/* Floating cart button */}
       <AnimatePresence>
         {cart.length > 0 && (
