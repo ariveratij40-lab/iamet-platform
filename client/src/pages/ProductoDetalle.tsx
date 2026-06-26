@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useStoreAuth } from "@/hooks/useStoreAuth";
+import { StoreAuthModal } from "@/components/StoreAuthModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -403,6 +405,7 @@ function SuccessModal({ refCode, onClose }: { refCode: string; onClose: () => vo
 export default function ProductoDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const [, navigate] = useLocation();
+  const { isAuthenticated, login } = useStoreAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
@@ -498,6 +501,12 @@ export default function ProductoDetalle() {
       className="min-h-screen pt-16 pr-14"
       style={{ background: "linear-gradient(135deg, #0f1623 0%, #111827 50%, #0a0f1a 100%)" }}
     >
+      {/* Guard de autenticación de tienda */}
+      <StoreAuthModal
+        open={!isAuthenticated}
+        onAuthenticated={login}
+        onExit={() => navigate("/tienda")}
+      />
       {/* Floating cart button */}
       <AnimatePresence>
         {cart.length > 0 && (
