@@ -5,7 +5,7 @@ import { publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storeUsers } from "../../drizzle/schema";
 import { eq, and, gt } from "drizzle-orm";
-import { sendVerificationEmail } from "../email";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../email";
 import { ENV } from "../_core/env";
 import crypto from "crypto";
 
@@ -188,10 +188,10 @@ export const storeAuthRouter = router({
 
       const resetUrl = makeResetUrl(input.origin, resetToken);
 
-      await sendVerificationEmail({
+      await sendPasswordResetEmail({
         to: input.email,
         name: user.name ?? "usuario",
-        verifyUrl: resetUrl,
+        resetUrl,
       }).catch((err: unknown) => console.error("[StoreAuth] Error enviando email de reset:", err));
 
       return { ok: true };

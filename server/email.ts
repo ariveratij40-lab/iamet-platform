@@ -92,6 +92,123 @@ function buildVerificationEmailHtml(params: {
   `.trim();
 }
 
+// ─── Plantilla HTML del correo de recuperación de contraseña ────────────────
+function buildPasswordResetEmailHtml(params: {
+  name: string;
+  resetUrl: string;
+}): string {
+  const { name, resetUrl } = params;
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperación de contraseña — IAMET</title>
+</head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:'Inter',Arial,sans-serif;color:#e2e8f0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#131319;border-radius:16px;border:1px solid #1e2030;overflow:hidden;max-width:560px;width:100%;">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);padding:32px 40px;text-align:center;">
+              <img src="https://iamettech-ssx5e88n.manus.space/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+                   alt="IAMET Evolución Tecnológica"
+                   height="48"
+                   style="height:48px;width:auto;object-fit:contain;" />
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#f1f5f9;letter-spacing:-0.02em;">
+                Recupera tu contraseña
+              </h1>
+              <p style="margin:0 0 24px;font-size:15px;color:#94a3b8;line-height:1.6;">
+                Hola <strong style="color:#e2e8f0;">${name}</strong>,<br/>
+                Recibimos una solicitud para restablecer la contraseña de tu cuenta en la Tienda IAMET. Haz clic en el botón para crear una nueva contraseña.
+              </p>
+
+              <!-- CTA Button -->
+              <table cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="background:#2563eb;border-radius:10px;">
+                    <a href="${resetUrl}"
+                       style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.01em;">
+                      Restablecer contraseña →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 16px;font-size:13px;color:#64748b;line-height:1.6;">
+                Si el botón no funciona, copia y pega este enlace en tu navegador:
+              </p>
+              <p style="margin:0 0 28px;font-size:12px;color:#3b82f6;word-break:break-all;background:#0f172a;padding:12px 16px;border-radius:8px;border:1px solid #1e2030;">
+                ${resetUrl}
+              </p>
+
+              <p style="margin:0;font-size:12px;color:#475569;line-height:1.6;">
+                Este enlace es válido por <strong>2 horas</strong>. Si no solicitaste este cambio, puedes ignorar este correo — tu contraseña no será modificada.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#0d0d14;padding:20px 40px;border-top:1px solid #1e2030;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#475569;">
+                © 2025 IAMET Evolución Tecnológica — Integrador de Soluciones Tecnológicas
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+// ─── Envío de correo de recuperación de contraseña ───────────────────────────
+export async function sendPasswordResetEmail(params: {
+  to: string;
+  name: string;
+  resetUrl: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const { to, name, resetUrl } = params;
+
+  if (!ENV.resendApiKey) {
+    console.warn("[Email] RESEND_API_KEY no configurada — no se enviará correo de reset a:", to);
+    console.info("[Email] URL de reset (dev):", resetUrl);
+    return { ok: false, error: "RESEND_API_KEY no configurada" };
+  }
+
+  try {
+    const resend = getResend();
+    const { data, error } = await resend.emails.send({
+      from: "IAMET Tienda <noreply@iamet.mx>",
+      to: [to],
+      subject: "Recupera tu contraseña — Tienda IAMET",
+      html: buildPasswordResetEmailHtml({ name, resetUrl }),
+    });
+
+    if (error) {
+      console.error("[Email] Error Resend (reset):", error);
+      return { ok: false, error: error.message };
+    }
+
+    console.info("[Email] Correo de reset enviado a:", to, "id:", data?.id);
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[Email] Excepción al enviar correo de reset:", msg);
+    return { ok: false, error: msg };
+  }
+}
+
 // ─── Función principal de envío ───────────────────────────────────────────────
 export async function sendVerificationEmail(params: {
   to: string;
