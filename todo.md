@@ -262,3 +262,11 @@
 - [x] Auto-guardar carrito en BD cuando el usuario autenticado agrega/quita productos (debounced 2s)
 - [x] Al hacer login, restaurar el carrito guardado automáticamente
 - [x] Migración SQL: agregar columna `userId` a `quote_requests` y crear tabla `saved_carts`
+
+## Notificación por Email en Nueva Cotización + Migración VPS
+
+- [x] Función `sendQuoteNotificationEmail` en server/email.ts con plantilla HTML profesional
+- [x] Envío a alvaro.rivera@iamet.mx desde noreply@iamet.mx al recibir cada cotización
+- [x] Llamada a `sendQuoteNotificationEmail` en `store.submitQuote` (no bloquea la respuesta)
+- [x] Archivo SQL de migración VPS: `infra/scripts/migrate-vps-20260626.sql`
+- [x] Migración incluye: columna `userId` en `quote_requests` + tabla `saved_carts`

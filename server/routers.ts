@@ -46,7 +46,7 @@ import {
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
-import { sendVerificationEmail } from "./email";
+import { sendVerificationEmail, sendQuoteNotificationEmail } from "./email";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -725,6 +725,20 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         await notifyOwner({
           title: `Nueva solicitud de cotización: ${refCode}`,
           content: `**${input.visitorName}** (${input.company ?? "sin empresa"}) solicitó cotización.\n\nEmail: ${input.email}\nTeléfono: ${input.phone ?? "N/A"}\n\n**Productos:**\n${itemList}\n\nNotas: ${input.notes ?? "ninguna"}`,
+        }).catch(() => {});
+        // Notificación por email a alvaro.rivera@iamet.mx
+        sendQuoteNotificationEmail({
+          refCode,
+          visitorName: input.visitorName,
+          company: input.company,
+          email: input.email,
+          phone: input.phone,
+          notes: input.notes,
+          items: input.items.map((i) => ({
+            productName: i.productName,
+            productSku: i.productSku,
+            quantity: i.quantity,
+          })),
         }).catch(() => {});
         return { refCode, id: quote.id };
       }),
