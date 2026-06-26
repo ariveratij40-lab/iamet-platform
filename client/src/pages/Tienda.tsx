@@ -211,11 +211,23 @@ type QuoteSnapshot = {
 
 function downloadQuotePdf(snapshot: QuoteSnapshot) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const margin = 18;
+  const pageW = doc.internal.pageSize.getWidth(); // 210mm
+  const pageH = doc.internal.pageSize.getHeight(); // 297mm
+  const margin = 14;
+  const contentW = pageW - margin * 2; // 182mm
   let y = 20;
 
-  // Header
+  // ─── Definición de columnas (anchos fijos, sin superposición) ───
+  // #: 6mm | Producto: 80mm | SKU: 32mm | Cant: 14mm | Precio: 50mm
+  const COL = {
+    num:   { x: margin,          w: 6  },
+    name:  { x: margin + 6,      w: 80 },
+    sku:   { x: margin + 86,     w: 34 },
+    qty:   { x: margin + 120,    w: 14 },
+    price: { x: margin + 134,    w: 48 },
+  };
+
+  // ─── Header ───
   doc.setFillColor(15, 22, 35);
   doc.rect(0, 0, pageW, 38, "F");
   doc.setFont("helvetica", "bold");
@@ -235,83 +247,134 @@ function downloadQuotePdf(snapshot: QuoteSnapshot) {
   doc.text("Fecha: " + new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" }), pageW - margin, y + 17, { align: "right" });
   y = 48;
 
-  // Datos de contacto
+  // ─── Datos de contacto ───
+  const c = snapshot.contact;
+  // Calcular altura dinámica según si hay notas
+  const notasLines = c.notes ? doc.splitTextToSize(c.notes, contentW / 2 - 22) : [];
+  const contactH = c.notes ? 36 + (notasLines.length - 1) * 4 : 34;
   doc.setFillColor(30, 37, 53);
-  doc.roundedRect(margin, y, pageW - margin * 2, 36, 3, 3, "F");
+  doc.roundedRect(margin, y, contentW, contactH, 3, 3, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setTextColor(6, 182, 212);
   doc.text("DATOS DE CONTACTO", margin + 4, y + 7);
-  const c = snapshot.contact;
-  const col1 = margin + 4;
-  const col2 = pageW / 2 + 4;
-  doc.setFontSize(8.5);
-  doc.setTextColor(220, 230, 245);
-  doc.setFont("helvetica", "bold"); doc.text("Nombre:", col1, y + 15);
-  doc.setFont("helvetica", "normal"); doc.text(c.visitorName || "—", col1 + 18, y + 15);
-  doc.setFont("helvetica", "bold"); doc.text("Empresa:", col2, y + 15);
-  doc.setFont("helvetica", "normal"); doc.text(c.company || "—", col2 + 19, y + 15);
-  doc.setFont("helvetica", "bold"); doc.text("Email:", col1, y + 23);
-  doc.setFont("helvetica", "normal"); doc.text(c.email || "—", col1 + 18, y + 23);
-  doc.setFont("helvetica", "bold"); doc.text("Teléfono:", col2, y + 23);
-  doc.setFont("helvetica", "normal"); doc.text(c.phone || "—", col2 + 19, y + 23);
-  if (c.notes) {
-    doc.setFont("helvetica", "bold"); doc.text("Notas:", col1, y + 31);
-    doc.setFont("helvetica", "normal");
-    doc.text(doc.splitTextToSize(c.notes, pageW - margin * 2 - 22), col1 + 18, y + 31);
-  }
-  y += 44;
 
-  // Tabla de productos
+  const lCol1 = margin + 4;
+  const lCol2 = margin + contentW / 2 + 4;
+  const labelW1 = 16; // ancho reservado para etiqueta col1
+  const labelW2 = 18; // ancho reservado para etiqueta col2
+  const valW = contentW / 2 - labelW1 - 8;
+
+  doc.setFontSize(8);
+  doc.setTextColor(220, 230, 245);
+
+  // Fila 1
+  doc.setFont("helvetica", "bold");  doc.text("Nombre:",   lCol1,          y + 15);
+  doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(c.visitorName || "—", valW)[0], lCol1 + labelW1, y + 15);
+  doc.setFont("helvetica", "bold");  doc.text("Empresa:",  lCol2,          y + 15);
+  doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(c.company || "—", valW)[0],    lCol2 + labelW2, y + 15);
+
+  // Fila 2
+  doc.setFont("helvetica", "bold");  doc.text("Email:",    lCol1,          y + 23);
+  doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(c.email || "—", valW)[0],    lCol1 + labelW1, y + 23);
+  doc.setFont("helvetica", "bold");  doc.text("Teléfono:", lCol2,          y + 23);
+  doc.setFont("helvetica", "normal"); doc.text(c.phone || "—",                lCol2 + labelW2, y + 23);
+
+  // Notas (si existen)
+  if (c.notes) {
+    doc.setFont("helvetica", "bold");  doc.text("Notas:", lCol1, y + 31);
+    doc.setFont("helvetica", "normal"); doc.text(notasLines, lCol1 + labelW1, y + 31);
+  }
+  y += contactH + 8;
+
+  // ─── Tabla de productos ───
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(6, 182, 212);
   doc.text("PRODUCTOS SOLICITADOS", margin, y);
   y += 5;
+
+  // Encabezado de tabla
   doc.setFillColor(6, 182, 212);
-  doc.rect(margin, y, pageW - margin * 2, 7, "F");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(15, 22, 35);
-  doc.text("#", margin + 2, y + 5);
-  doc.text("Producto", margin + 10, y + 5);
-  doc.text("SKU", pageW - margin - 60, y + 5);
-  doc.text("Cant.", pageW - margin - 32, y + 5);
-  doc.text("Precio Ref.", pageW - margin - 18, y + 5, { align: "right" });
+  doc.rect(margin, y, contentW, 7, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(15, 22, 35);
+  doc.text("#",          COL.num.x + 1,                  y + 5);
+  doc.text("Producto",   COL.name.x,                     y + 5);
+  doc.text("SKU",        COL.sku.x,                      y + 5);
+  doc.text("Cant.",      COL.qty.x,                      y + 5);
+  doc.text("Precio Ref.",COL.price.x + COL.price.w,      y + 5, { align: "right" });
   y += 7;
+
+  // Filas de productos
   snapshot.items.forEach((item, idx) => {
-    const rowH = 8;
-    if (idx % 2 === 0) { doc.setFillColor(22, 28, 42); doc.rect(margin, y, pageW - margin * 2, rowH, "F"); }
+    // Calcular altura dinámica según nombre del producto
+    const nameLines = doc.splitTextToSize(item.product.name, COL.name.w - 2);
+    const rowH = Math.max(8, nameLines.length * 4.5 + 3);
+
+    // Verificar si necesitamos nueva página
+    if (y + rowH > pageH - 40) {
+      doc.addPage();
+      y = 20;
+      // Repetir encabezado de tabla en nueva página
+      doc.setFillColor(6, 182, 212);
+      doc.rect(margin, y, contentW, 7, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor(15, 22, 35);
+      doc.text("#",          COL.num.x + 1,             y + 5);
+      doc.text("Producto",   COL.name.x,                y + 5);
+      doc.text("SKU",        COL.sku.x,                 y + 5);
+      doc.text("Cant.",      COL.qty.x,                 y + 5);
+      doc.text("Precio Ref.",COL.price.x + COL.price.w, y + 5, { align: "right" });
+      y += 7;
+    }
+
+    if (idx % 2 === 0) {
+      doc.setFillColor(22, 28, 42);
+      doc.rect(margin, y, contentW, rowH, "F");
+    }
+
+    const textY = y + (rowH / 2) + 1.5; // centrado vertical
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(220, 230, 245);
-    doc.text(String(idx + 1), margin + 2, y + 5.5);
-    doc.text(doc.splitTextToSize(item.product.name, 80)[0], margin + 10, y + 5.5);
-    doc.setTextColor(148, 163, 184);
-    doc.text(item.product.sku ?? "—", pageW - margin - 60, y + 5.5);
-    doc.setTextColor(220, 230, 245);
-    doc.text(String(item.quantity), pageW - margin - 32, y + 5.5);
+    doc.text(String(idx + 1),  COL.num.x + 1,  textY);
+    // Nombre: multilínea si es largo
+    const nameY = y + 4.5;
+    doc.text(nameLines,        COL.name.x,     nameY);
+    doc.setTextColor(148, 163, 184); doc.setFontSize(7.5);
+    doc.text(doc.splitTextToSize(item.product.sku ?? "—", COL.sku.w - 2)[0], COL.sku.x, textY);
+    doc.setTextColor(220, 230, 245); doc.setFontSize(8);
+    doc.text(String(item.quantity), COL.qty.x, textY);
     const price = item.product.priceRef
       ? "$" + (item.product.priceRef * item.quantity).toLocaleString("es-MX") + " MXN"
       : "A consultar";
-    doc.text(price, pageW - margin - 18, y + 5.5, { align: "right" });
+    doc.text(price, COL.price.x + COL.price.w, textY, { align: "right" });
     y += rowH;
   });
+
+  // Total
   const total = snapshot.items.reduce((s, i) => s + (i.product.priceRef ?? 0) * i.quantity, 0);
   if (total > 0) {
-    y += 2;
-    doc.setDrawColor(6, 182, 212); doc.setLineWidth(0.3); doc.line(margin, y, pageW - margin, y); y += 5;
+    y += 3;
+    doc.setDrawColor(6, 182, 212); doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(6, 182, 212);
-    doc.text("Total referencial:", pageW - margin - 50, y);
-    doc.text("$" + total.toLocaleString("es-MX") + " MXN", pageW - margin - 18, y, { align: "right" });
-    y += 8;
+    doc.text("Total referencial:",                       COL.price.x - 2, y, { align: "right" });
+    doc.text("$" + total.toLocaleString("es-MX") + " MXN", COL.price.x + COL.price.w, y, { align: "right" });
+    y += 10;
+  } else {
+    y += 6;
   }
 
-  // Nota de validez
-  y += 4;
-  doc.setFillColor(22, 28, 42);
-  doc.roundedRect(margin, y, pageW - margin * 2, 18, 3, 3, "F");
-  doc.setFont("helvetica", "italic"); doc.setFontSize(7.5); doc.setTextColor(148, 163, 184);
+  // ─── Nota de validez ───
   const nota = "Los precios indicados son de referencia y están sujetos a cambio. La cotización formal será enviada por nuestro equipo comercial en un plazo máximo de 24 horas hábiles. Este documento no constituye una factura ni un contrato de compra-venta.";
-  doc.text(doc.splitTextToSize(nota, pageW - margin * 2 - 8), margin + 4, y + 6);
+  const notaLines = doc.splitTextToSize(nota, contentW - 8);
+  const notaH = notaLines.length * 4 + 8;
+  doc.setFillColor(22, 28, 42);
+  doc.roundedRect(margin, y, contentW, notaH, 3, 3, "F");
+  doc.setFont("helvetica", "italic"); doc.setFontSize(7.5); doc.setTextColor(148, 163, 184);
+  doc.text(notaLines, margin + 4, y + 6);
 
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 12;
-  doc.setDrawColor(30, 37, 53); doc.setLineWidth(0.5); doc.line(margin, footerY - 3, pageW - margin, footerY - 3);
+  // ─── Footer ───
+  const footerY = pageH - 12;
+  doc.setDrawColor(30, 37, 53); doc.setLineWidth(0.5);
+  doc.line(margin, footerY - 3, pageW - margin, footerY - 3);
   doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(100, 120, 150);
   doc.text("IAMET Evolución Tecnológica • www.iamet.com.mx", margin, footerY);
   doc.text("Ref: " + snapshot.refCode, pageW - margin, footerY, { align: "right" });
