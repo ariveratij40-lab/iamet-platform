@@ -1,6 +1,8 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
+import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
 import postgres from "postgres";
+import mysql from "mysql2/promise";
 import {
   InsertUser, User, users,
   verticals, Vertical,
@@ -21,16 +23,28 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
-type DrizzlePg = ReturnType<typeof drizzle>;
-let _db: DrizzlePg | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDrizzle = any;
+let _db: AnyDrizzle | null = null;
 
-export async function getDb() {
+export async function getDb(): Promise<AnyDrizzle | null> {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      const client = postgres(process.env.DATABASE_URL);
-      _db = drizzle(client);
+      const url = process.env.DATABASE_URL;
+      const isMysql = url.startsWith('mysql://');
+      if (isMysql) {
+        // TiDB Cloud / MySQL — use mysql2 driver
+        const pool = mysql.createPool(url);
+        _db = drizzleMysql(pool);
+        console.log('[Database] Connected (MySQL/TiDB)');
+      } else {
+        // PostgreSQL (VPS / local)
+        const client = postgres(url, { max: 5, idle_timeout: 20, connect_timeout: 10 });
+        _db = drizzlePg(client);
+        console.log('[Database] Connected (PostgreSQL)');
+      }
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.warn('[Database] Failed to connect:', error);
       _db = null;
     }
   }
@@ -428,18 +442,18 @@ export async function getActiveLiveSessions(): Promise<Array<{
     .orderBy(desc(conversations.updatedAt))
     .limit(50);
   const results = await Promise.all(
-    takenOver.map(async (conv) => {
+    takenOver.map(async (conv: Record<string, unknown>) => {
       const msgs = await db!
         .select()
         .from(liveChatMessages)
-        .where(eq(liveChatMessages.sessionId, conv.sessionId))
+        .where(eq(liveChatMessages.sessionId, conv.sessionId as string))
         .orderBy(desc(liveChatMessages.createdAt))
         .limit(1);
       const [unreadRow] = await db!
         .select({ count: sql<number>`count(*)` })
         .from(liveChatMessages)
         .where(and(
-          eq(liveChatMessages.sessionId, conv.sessionId),
+          eq(liveChatMessages.sessionId, conv.sessionId as string),
           eq(liveChatMessages.read, false),
           eq(liveChatMessages.role, "user")
         ));
@@ -482,12 +496,16 @@ export async function getStoreProducts(opts: {
     .orderBy(desc(storeProducts.featured), storeProducts.name)
     .limit(opts.limit ?? 200);
 
-  let results = rows.map((r) => ({ ...r.product, categoryName: r.categoryName, categorySlug: r.categorySlug }));
-  if (opts.categorySlug) results = results.filter((p) => p.categorySlug === opts.categorySlug);
-  if (opts.featuredOnly) results = results.filter((p) => p.featured);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let results = rows.map((r: any) => ({ ...r.product, categoryName: r.categoryName, categorySlug: r.categorySlug }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (opts.categorySlug) results = results.filter((p: any) => p.categorySlug === opts.categorySlug);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (opts.featuredOnly) results = results.filter((p: any) => p.featured);
   if (opts.search) {
     const q = opts.search.toLowerCase();
-    results = results.filter((p) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    results = results.filter((p: any) =>
       p.name.toLowerCase().includes(q) ||
       (p.shortDesc ?? "").toLowerCase().includes(q) ||
       (p.sku ?? "").toLowerCase().includes(q)
@@ -518,8 +536,10 @@ export async function getStoreProductBySlug(slug: string): Promise<
     .orderBy(desc(storeProducts.featured), storeProducts.name)
     .limit(5);
   const related = relatedRows
-    .map((r) => ({ ...r.product, categoryName: r.categoryName, categorySlug: r.categorySlug }))
-    .filter((p) => p.slug !== slug)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((r: any) => ({ ...r.product, categoryName: r.categoryName, categorySlug: r.categorySlug }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((p: any) => p.slug !== slug)
     .slice(0, 4);
   return { ...product, related };
 }
@@ -540,8 +560,8 @@ export async function getQuoteRequests(limit = 50): Promise<Array<QuoteRequest &
   if (!db) return [];
   const quotes = await db.select().from(quoteRequests).orderBy(desc(quoteRequests.createdAt)).limit(limit);
   const results = await Promise.all(
-    quotes.map(async (q) => {
-      const items = await db!.select().from(quoteItems).where(eq(quoteItems.quoteRequestId, q.id));
+    quotes.map(async (q: Record<string, unknown>) => {
+      const items = await db!.select().from(quoteItems).where(eq(quoteItems.quoteRequestId, q.id as number));
       return { ...q, items };
     })
   );
@@ -591,7 +611,8 @@ export async function seedStoreData(): Promise<{ categoriesInserted: number; pro
 
   await db.insert(storeCategories).values(cats);
   const insertedCats = await db.select().from(storeCategories).orderBy(storeCategories.order);
-  const catMap = Object.fromEntries(insertedCats.map((c) => [c.slug, c.id]));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const catMap = Object.fromEntries(insertedCats.map((c: any) => [c.slug, c.id]));
 
   const products: InsertStoreProduct[] = [
     // Seguridad
