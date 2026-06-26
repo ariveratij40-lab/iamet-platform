@@ -96,10 +96,11 @@ async function startServer() {
     "http://localhost:5173",
   ].filter(Boolean) as string[];
 
-  // En desarrollo también permitir el dominio del sandbox de Manus
-  const isManusDevOrigin = (origin: string) =>
-    process.env.NODE_ENV === "development" &&
-    /\.manus\.computer$/.test(origin);
+  // Permitir dominios de Manus (sandbox de desarrollo y sitios publicados)
+  // y el dominio de staging del VPS si está configurado en VITE_APP_URL
+  const isAllowedDynamicOrigin = (origin: string) =>
+    /\.manus\.computer$/.test(origin) ||
+    /\.manus\.space$/.test(origin);
 
   app.use(
     cors({
@@ -107,8 +108,8 @@ async function startServer() {
         // Permitir requests sin origin (curl, Postman, server-to-server)
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
-        // Permitir sandbox de Manus en desarrollo
-        if (isManusDevOrigin(origin)) return callback(null, true);
+        // Permitir dominios de Manus (sandbox y publicados)
+        if (isAllowedDynamicOrigin(origin)) return callback(null, true);
         callback(new Error(`CORS: origen no permitido — ${origin}`));
       },
       credentials: true, // Necesario para cookies de sesión OAuth
