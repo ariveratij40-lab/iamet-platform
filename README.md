@@ -1118,3 +1118,121 @@ await createInvite.mutateAsync({ eventId: "123", origin: window.location.origin 
 // Backend - use input.origin to build the URL
 const inviteUrl = `${input.origin}/events/${eventId}/join?token=${token}`;
 ```
+
+---
+
+## 🚀 Despliegue en VPS (Self-Hosted)
+
+Esta sección documenta cómo desplegar IAMET Platform en un VPS con Docker Compose, PostgreSQL 16 y Redis 7.
+
+### Requisitos previos
+
+- Docker Engine 24+ y Docker Compose v2
+- Red Docker `infra_network` creada: `docker network create infra_network`
+- PostgreSQL 16 y Redis 7 corriendo como servicios externos en `infra_network`
+- Nginx global como reverse proxy en `infra_network`
+
+### Variables de entorno requeridas
+
+Crea `/opt/apps/iamet/staging/.env.staging` con los siguientes valores:
+
+```bash
+# ─── Aplicación ───────────────────────────────────────────────────────────────
+NODE_ENV=production
+VITE_APP_URL=https://staging.iamet.mx
+JWT_SECRET=<cadena aleatoria de 32+ caracteres>
+
+# ─── Base de datos (PostgreSQL 16) ────────────────────────────────────────────
+DATABASE_URL=postgres://iamet_user:password@postgres:5432/iamet_staging
+
+# ─── LLM — Agente Virtual IA ──────────────────────────────────────────────────
+# Groq (recomendado para staging — gratis): https://console.groq.com
+LLM_API_URL=https://api.groq.com/openai
+LLM_API_KEY=gsk_XXXXXXXXXXXXXXXX
+LLM_MODEL=llama-3.3-70b-versatile
+
+# ─── Storage — Cloudflare R2 ──────────────────────────────────────────────────
+# Crear bucket en https://dash.cloudflare.com → R2 → Create bucket
+R2_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+R2_REGION=auto
+R2_BUCKET=iamet-storage
+R2_ACCESS_KEY_ID=<R2 Access Key ID>
+R2_SECRET_ACCESS_KEY=<R2 Secret Access Key>
+# Habilitar URL pública en Cloudflare R2 → Settings → Public Access
+R2_PUBLIC_URL=https://pub-<HASH>.r2.dev
+
+# ─── Email — Resend ───────────────────────────────────────────────────────────
+# Obtener en https://resend.com → API Keys
+# Dominio iamet.mx debe estar verificado en Resend
+RESEND_API_KEY=re_XXXXXXXXXXXXXXXX
+
+# ─── Manus OAuth (solo para instancia Manus, no necesario en VPS) ─────────────
+# VITE_APP_ID=<inyectado automáticamente por Manus>
+# OAUTH_SERVER_URL=https://api.manus.im
+# VITE_OAUTH_PORTAL_URL=https://manus.im
+
+# ─── Forge (no requerido en VPS) ──────────────────────────────────────────────
+BUILT_IN_FORGE_API_URL=
+BUILT_IN_FORGE_API_KEY=
+```
+
+### Comandos de despliegue
+
+```bash
+cd /opt/apps/iamet/staging
+
+# 1. Bajar el código más reciente
+git pull origin main
+
+# 2. Build de la imagen (sin caché para garantizar código fresco)
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging \
+  build --no-cache iamet_app_staging
+
+# 3. Recrear el contenedor con la nueva imagen
+docker compose \
+  -f docker-compose.staging.yml \
+  -f docker-compose.override.yml \
+  --env-file .env.staging \
+  up -d --force-recreate iamet_app_staging
+
+# 4. Verificar que el servidor arrancó correctamente
+docker logs iamet_app_staging --tail 30
+```
+
+### Logs esperados al arrancar correctamente
+
+```
+[Database] Connected (PostgreSQL)
+[OAuth] Initialized with baseURL: https://api.manus.im
+Server running on http://localhost:3000/
+```
+
+### Aplicar migraciones de base de datos
+
+Las migraciones se aplican automáticamente al arrancar si usas `pnpm db:push`. Para aplicarlas manualmente desde el contenedor:
+
+```bash
+docker exec iamet_app_staging pnpm db:push
+```
+
+### Notas importantes
+
+- **Nombre del servicio:** el servicio se llama `iamet_app_staging`, no `app`. Usar el nombre incorrecto causa errores silenciosos.
+- **`--env-file .env.staging`:** siempre pasar este flag; sin él las variables de entorno no se inyectan al contenedor.
+- **`-f docker-compose.override.yml`:** el override contiene la configuración de red `infra_network` y el reverse proxy. Sin él el contenedor no es accesible desde Nginx.
+- **Vite en producción:** el bundle del servidor (`dist/index.js`) no incluye `vite` — es una devDependency que solo se carga en desarrollo. El servidor en producción usa `serveStatic.ts` directamente.
+- **Driver de base de datos:** `server/db.ts` detecta automáticamente el protocolo del `DATABASE_URL` y usa `mysql2` para `mysql://` (TiDB Cloud de Manus) o `postgres-js` para `postgres://` (PostgreSQL del VPS).
+
+### Arquitectura de servicios externos
+
+| Servicio | Proveedor | Variable clave |
+|---|---|---|
+| Base de datos | PostgreSQL 16 (Docker) | `DATABASE_URL` |
+| LLM / Agente Virtual | Groq + Llama 3.3 70B | `LLM_API_URL`, `LLM_API_KEY` |
+| Storage de archivos | Cloudflare R2 | `R2_ENDPOINT`, `R2_BUCKET` |
+| Email transaccional | Resend | `RESEND_API_KEY` |
+| Cache | Redis 7 (Docker) | Configurado en override |
+| Reverse proxy | Nginx global | Configurado en `infra_network` |
