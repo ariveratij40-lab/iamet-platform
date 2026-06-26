@@ -1,6 +1,5 @@
 import { useLocation } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { useStoreSession } from "@/hooks/useStoreSession";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,15 +20,17 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function TiendaPerfil() {
   const [, navigate] = useLocation();
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, loading, logout } = useStoreSession();
 
-  const { data: quotes, isLoading: quotesLoading } = trpc.store.getMyQuotes.useQuery(
-    undefined,
-    { enabled: isAuthenticated }
+  const token = typeof window !== "undefined" ? localStorage.getItem("store_token") ?? "" : "";
+
+  const { data: quotes, isLoading: quotesLoading } = trpc.storeAuth.getMyQuotes.useQuery(
+    { token },
+    { enabled: isAuthenticated && !!token }
   );
-  const { data: savedCart, isLoading: cartLoading } = trpc.store.getSavedCart.useQuery(
-    undefined,
-    { enabled: isAuthenticated }
+  const { data: savedCart, isLoading: cartLoading } = trpc.storeAuth.getSavedCart.useQuery(
+    { token },
+    { enabled: isAuthenticated && !!token }
   );
 
   // Guard
@@ -43,11 +44,11 @@ export default function TiendaPerfil() {
             <Package className="w-8 h-8 text-cyan-400" />
           </div>
           <p className="text-slate-400 text-sm">Inicia sesión para ver tu perfil.</p>
-          <a href={getLoginUrl()}
+          <button onClick={() => navigate("/tienda/login")}
             className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-white transition-all"
             style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)" }}>
             Iniciar sesión
-          </a>
+          </button>
         </div>
       </div>
     );

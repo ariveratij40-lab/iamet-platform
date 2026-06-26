@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { useStoreSession } from "@/hooks/useStoreSession";
 import { trpc } from "@/lib/trpc";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -472,7 +471,7 @@ function QuoteForm({ cart, onClose, onSuccess, user }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Tienda() {
   const [, navigate] = useLocation();
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, loading, logout } = useStoreSession();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -495,8 +494,12 @@ export default function Tienda() {
   const utils = trpc.useUtils();
 
   // ─ Carrito guardado: restaurar al hacer login ─
-  const { data: savedCart } = trpc.store.getSavedCart.useQuery(undefined, { enabled: isAuthenticated });
-  const saveCartMutation = trpc.store.saveCart.useMutation();
+  const storeToken = typeof window !== "undefined" ? localStorage.getItem("store_token") ?? "" : "";
+  const { data: savedCart } = trpc.storeAuth.getSavedCart.useQuery(
+    { token: storeToken },
+    { enabled: isAuthenticated && !!storeToken }
+  );
+  const saveCartMutation = trpc.storeAuth.saveCart.useMutation();
   const [cartRestored, setCartRestored] = useState(false);
 
   // Restaurar carrito guardado cuando el usuario se autentica por primera vez
@@ -525,6 +528,7 @@ export default function Tienda() {
     if (saveCartRef.current) clearTimeout(saveCartRef.current);
     saveCartRef.current = setTimeout(() => {
       saveCartMutation.mutate({
+        token: storeToken,
         items: cart.map((i) => ({
           productId: i.product.id,
           productName: i.product.name,
@@ -595,14 +599,14 @@ export default function Tienda() {
             <h1 className="text-2xl font-bold text-white mb-2">Tienda IAMET</h1>
             <p className="text-slate-400 text-sm">Inicia sesión para acceder al catálogo de productos y solicitar cotizaciones personalizadas.</p>
           </div>
-          <a
-            href={getLoginUrl()}
+          <button
+            onClick={() => navigate("/tienda/login")}
             className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-white transition-all"
             style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)", boxShadow: "0 4px 20px rgba(8,145,178,0.4)" }}
           >
             <LogIn className="w-5 h-5" />
-            Iniciar sesión con IAMET
-          </a>
+            Iniciar sesión en la Tienda
+          </button>
           <button onClick={() => navigate("/")} className="flex items-center justify-center gap-2 w-full text-slate-400 hover:text-white text-sm transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Volver al inicio

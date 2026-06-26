@@ -1,8 +1,7 @@
 import { useState, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { useStoreSession } from "@/hooks/useStoreSession";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -405,7 +404,7 @@ function SuccessModal({ refCode, onClose }: { refCode: string; onClose: () => vo
 export default function ProductoDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const [, navigate] = useLocation();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useStoreSession();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
@@ -510,9 +509,9 @@ export default function ProductoDetalle() {
               <h2 className="text-xl font-bold text-white mb-1">Acceso requerido</h2>
               <p className="text-slate-400 text-sm">Inicia sesión para ver el detalle del producto.</p>
             </div>
-            <a href={getLoginUrl()} className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-white" style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)" }}>
-              Iniciar sesión con IAMET
-            </a>
+            <button onClick={() => navigate("/tienda/login")} className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-white" style={{ background: "linear-gradient(135deg, #0891b2, #0e7490)" }}>
+              Iniciar sesión en la Tienda
+            </button>
             <button onClick={() => navigate("/tienda")} className="text-slate-400 hover:text-white text-sm transition-colors">
               Volver al catálogo
             </button>

@@ -303,3 +303,22 @@ export const savedCarts = pgTable("saved_carts", {
 });
 export type SavedCart = typeof savedCarts.$inferSelect;
 export type InsertSavedCart = typeof savedCarts.$inferInsert;
+
+// ─── Usuarios de la Tienda (auth propia, sin Manus OAuth) ──────────────────────────────────────────
+export const storeUsers = pgTable("store_users", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: text("passwordHash").notNull(),
+  phone: varchar("phone", { length: 32 }),
+  company: varchar("company", { length: 256 }),
+  emailVerified: boolean("emailVerified").default(false).notNull(),
+  verificationToken: varchar("verificationToken", { length: 128 }),
+  tokenExpiry: timestamp("tokenExpiry"),
+  resetToken: varchar("resetToken", { length: 128 }),
+  resetTokenExpiry: timestamp("resetTokenExpiry"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type StoreUser = typeof storeUsers.$inferSelect;
+export type InsertStoreUser = typeof storeUsers.$inferInsert;

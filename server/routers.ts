@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { storeAuthRouter as newStoreAuthRouter } from "./routers/storeAuth";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -112,8 +113,8 @@ const adminStoreRouter = router({
     }),
 });
 
-// ─── Store Auth Router (registro y verificación de visitantes) ─────────────────
-const storeAuthRouter = router({
+// ─── Store Auth Router (LEGACY — reemplazado por ./routers/storeAuth.ts) ─────────────────
+const _legacyStoreAuthRouter = router({
   register: publicProcedure
     .input(z.object({ name: z.string().min(1), email: z.string().email(), phone: z.string().optional(), origin: z.string().url().optional() }))
     .mutation(async ({ input }) => {
@@ -810,6 +811,6 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
     }),
   }),
   adminStoreV2: adminStoreRouter,
-  storeAuth: storeAuthRouter,
+  storeAuth: newStoreAuthRouter,
 });
 export type AppRouter = typeof appRouter;

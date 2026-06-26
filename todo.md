@@ -270,3 +270,24 @@
 - [x] Llamada a `sendQuoteNotificationEmail` en `store.submitQuote` (no bloquea la respuesta)
 - [x] Archivo SQL de migración VPS: `infra/scripts/migrate-vps-20260626.sql`
 - [x] Migración incluye: columna `userId` en `quote_requests` + tabla `saved_carts`
+
+## Autenticación Propia en Tienda (sin Manus OAuth)
+
+- [x] Tabla `store_users`: id, name, email, passwordHash, phone, company, emailVerified, verificationToken, resetToken, createdAt, updatedAt
+- [x] Migración SQL VPS para tabla `store_users` (en infra/scripts/migrate-vps-20260626.sql)
+- [x] tRPC procedure `storeAuth.register`: crea cuenta, hashea password, envía email de verificación
+- [x] tRPC procedure `storeAuth.login`: valida email+password, retorna JWT de 30 días
+- [x] tRPC procedure `storeAuth.verifyEmail`: valida token, marca emailVerified
+- [x] tRPC procedure `storeAuth.forgotPassword`: envía link de reset por email (válido 2h)
+- [x] tRPC procedure `storeAuth.resetPassword`: valida token y actualiza contraseña
+- [x] tRPC procedure `storeAuth.me`: retorna datos del usuario autenticado por JWT
+- [x] tRPC procedure `storeAuth.getMyQuotes`: cotizaciones del usuario con JWT de tienda
+- [x] tRPC procedure `storeAuth.getSavedCart`: carrito guardado con JWT de tienda
+- [x] tRPC procedure `storeAuth.saveCart`: guarda carrito con JWT de tienda
+- [x] Hook `useStoreSession`: maneja JWT en localStorage, expone user/isAuthenticated/loading/logout
+- [x] Página `/tienda/login`: formulario email+password con tabs Login/Registro, identidad IAMET
+- [x] Página `/tienda/verificar-email?token=xxx`: confirma email y redirige al login
+- [x] Página `/tienda/nueva-contrasena?token=xxx`: formulario de nueva contraseña
+- [x] Guard en `/tienda`, `/tienda/:slug` y `/tienda/perfil`: redirige a `/tienda/login` si no hay sesión
+- [x] Navbar de tienda actualizado: botón "Iniciar sesión" → `/tienda/login`, avatar+dropdown cuando autenticado
+- [x] Página `/tienda/perfil` usa `useStoreSession` y procedures `storeAuth.*` con JWT

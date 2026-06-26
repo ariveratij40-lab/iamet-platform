@@ -16,6 +16,8 @@ import ProductoDetalle from "./pages/ProductoDetalle";
 import TiendaVerificar from "./pages/TiendaVerificar";
 import AdminTienda from "./pages/AdminTienda";
 import TiendaPerfil from "./pages/TiendaPerfil";
+import TiendaLogin from "./pages/TiendaLogin";
+import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
 import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
 
@@ -33,7 +35,10 @@ function Router() {
         <Route path="/contacto" component={Contact} />
         {/* Tienda */}
         <Route path="/tienda" component={Tienda} />
+        <Route path="/tienda/login" component={TiendaLogin} />
         <Route path="/tienda/verificar" component={TiendaVerificar} />
+        <Route path="/tienda/verificar-email" component={TiendaVerificar} />
+        <Route path="/tienda/nueva-contrasena" component={TiendaNuevaContrasena} />
         <Route path="/tienda/perfil" component={TiendaPerfil} />
         <Route path="/tienda/:slug" component={ProductoDetalle} />
         {/* Admin */}
