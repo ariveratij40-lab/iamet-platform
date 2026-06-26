@@ -112,10 +112,10 @@ const adminStoreRouter = router({
 // ─── Store Auth Router (registro y verificación de visitantes) ─────────────────
 const storeAuthRouter = router({
   register: publicProcedure
-    .input(z.object({ name: z.string().min(1), email: z.string().email(), phone: z.string().optional() }))
+    .input(z.object({ name: z.string().min(1), email: z.string().email(), phone: z.string().optional(), origin: z.string().url().optional() }))
     .mutation(async ({ input }) => {
       const { visitor, isNew } = await createOrUpdateStoreVisitor(input);
-      const baseUrl = (process.env.VITE_APP_URL ?? process.env.VITE_FRONTEND_FORGE_API_URL ?? "https://iamettech-ssx5e88n.manus.space").replace(/\/+$/, "");
+      const baseUrl = (input.origin ?? process.env.VITE_APP_URL ?? "https://iamettech-ssx5e88n.manus.space").replace(/\/+$/, "");
       const verifyUrl = `${baseUrl}/tienda/verificar?token=${visitor.verificationToken}`;
 
       // Enviar correo de verificación al visitante
@@ -150,12 +150,12 @@ const storeAuthRouter = router({
       return { exists: true, verified: !!visitor.verifiedAt };
     }),
   resend: publicProcedure
-    .input(z.object({ email: z.string().email() }))
+    .input(z.object({ email: z.string().email(), origin: z.string().url().optional() }))
     .mutation(async ({ input }) => {
       const visitor = await getStoreVisitorByEmail(input.email);
       if (!visitor) throw new TRPCError({ code: "NOT_FOUND", message: "Email no registrado" });
       const { visitor: updated } = await createOrUpdateStoreVisitor({ name: visitor.name, email: visitor.email, phone: visitor.phone ?? undefined });
-      const baseUrl = (process.env.VITE_APP_URL ?? process.env.VITE_FRONTEND_FORGE_API_URL ?? "https://iamettech-ssx5e88n.manus.space").replace(/\/+$/, "");
+      const baseUrl = (input.origin ?? process.env.VITE_APP_URL ?? "https://iamettech-ssx5e88n.manus.space").replace(/\/+$/, "");
       const verifyUrl = `${baseUrl}/tienda/verificar?token=${updated.verificationToken}`;
 
       // Enviar correo de verificación al visitante

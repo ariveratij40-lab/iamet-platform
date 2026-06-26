@@ -63,7 +63,7 @@ export function StoreAuthModal({ open, onAuthenticated, onExit }: Props) {
   const handleRegister = () => {
     if (!form.name.trim()) { toast.error("Por favor ingresa tu nombre"); return; }
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { toast.error("Ingresa un email válido"); return; }
-    registerMutation.mutate({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || undefined });
+    registerMutation.mutate({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || undefined, origin: window.location.origin });
   };
 
   const handleVerify = () => {
@@ -196,7 +196,7 @@ export function StoreAuthModal({ open, onAuthenticated, onExit }: Props) {
               <div className="flex flex-col gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => resendMutation.mutate({ email: form.email })}
+                  onClick={() => resendMutation.mutate({ email: form.email, origin: window.location.origin })}
                   disabled={resendMutation.isPending}
                   className="w-full border-white/10 text-slate-300 hover:text-white text-sm"
                 >
