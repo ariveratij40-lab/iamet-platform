@@ -28,6 +28,11 @@ import { ENV } from "./_core/env";
 type AnyDrizzle = any;
 let _db: AnyDrizzle | null = null;
 
+// ─── Helper: detectar si el driver activo es MySQL/TiDB ──────────────────────
+export function isMysqlDb(): boolean {
+  return (process.env.DATABASE_URL ?? '').startsWith('mysql://');
+}
+
 export async function getDb(): Promise<AnyDrizzle | null> {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -80,7 +85,13 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
   if (!values.lastSignedIn) values.lastSignedIn = new Date();
   if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
-  await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
+  if (isMysqlDb()) {
+    // MySQL/TiDB: usar onDuplicateKeyUpdate
+    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  } else {
+    // PostgreSQL: usar onConflictDoUpdate
+    await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
+  }
 }
 
 export async function getUserByOpenId(openId: string): Promise<User | undefined> {
@@ -145,9 +156,7 @@ export async function createLead(data: InsertLead): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   const { score, breakdown } = calculateLeadScore(data);
-  const url = process.env.DATABASE_URL ?? '';
-  const isMysql = url.startsWith('mysql://');
-  if (isMysql) {
+  if (isMysqlDb()) {
     const result: any = await db.insert(leads).values({ ...data, score, scoreBreakdown: breakdown });
     return result[0]?.insertId ?? 0;
   }
@@ -183,9 +192,7 @@ export async function updateLeadStatus(id: number, status: string, notes?: strin
 export async function createConversation(data: InsertConversation): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const url = process.env.DATABASE_URL ?? '';
-  const isMysql = url.startsWith('mysql://');
-  if (isMysql) {
+  if (isMysqlDb()) {
     const result: any = await db.insert(conversations).values(data);
     return result[0]?.insertId ?? 0;
   }
@@ -238,9 +245,7 @@ export async function getMessagesByConversation(conversationId: number): Promise
 export async function createAdvisorSession(data: InsertAdvisorSession): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const url = process.env.DATABASE_URL ?? '';
-  const isMysql = url.startsWith('mysql://');
-  if (isMysql) {
+  if (isMysqlDb()) {
     const result: any = await db.insert(advisorSessions).values(data);
     return result[0]?.insertId ?? 0;
   }
@@ -281,9 +286,7 @@ export async function getCourseBySlug(slug: string): Promise<Course | undefined>
 export async function createEnrollment(data: InsertEnrollment): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const url = process.env.DATABASE_URL ?? '';
-  const isMysql = url.startsWith('mysql://');
-  if (isMysql) {
+  if (isMysqlDb()) {
     const result: any = await db.insert(enrollments).values(data);
     return result[0]?.insertId ?? 0;
   }

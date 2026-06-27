@@ -277,8 +277,12 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
+        const t0 = Date.now();
+        console.log(`[Agent] sendMessage session=${input.sessionId} specialist=${input.specialistId ?? 'auto'} msgLen=${input.message.length}`);
+
         const conversation = await getConversationBySession(input.sessionId);
         if (!conversation) {
+          console.error(`[Agent] Session not found: ${input.sessionId}`);
           throw new TRPCError({ code: "NOT_FOUND", message: "Sesión no encontrada." });
         }
 
@@ -306,10 +310,18 @@ export const appRouter = router({
         ];
 
         // Call LLM
-        const response = await invokeLLM({ messages: llmMessages });
+        let response: any;
+        try {
+          response = await invokeLLM({ messages: llmMessages });
+        } catch (llmErr: unknown) {
+          const llmErrMsg = llmErr instanceof Error ? llmErr.message : String(llmErr);
+          console.error(`[Agent] LLM call failed session=${input.sessionId} specialist=${specialistId ?? 'none'} error=${llmErrMsg}`);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error al contactar el modelo de IA: ${llmErrMsg}` });
+        }
         const rawContent = response?.choices?.[0]?.message?.content;
         const assistantContent =
           typeof rawContent === "string" ? rawContent : "Disculpa, ocurrió un error. ¿Puedes repetir tu pregunta?";
+        console.log(`[Agent] LLM OK session=${input.sessionId} specialist=${specialistId ?? 'none'} elapsed=${Date.now()-t0}ms replyLen=${assistantContent.length}`);
 
         // Save assistant message
         await addMessage({

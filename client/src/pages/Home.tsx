@@ -7,7 +7,7 @@ import {
   Server, Shield, Cpu, Code2, Network, Zap, Brain, Database,
   Factory, KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList,
   Building2, Stethoscope, GraduationCap, Hotel, ShoppingBag, Landmark,
-  Award, BookOpen, ArrowRight, CheckCircle2, Globe,
+  Award, BookOpen, ArrowRight, CheckCircle2, Globe, AlertCircle, RefreshCw,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
@@ -21,6 +21,8 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   id: string;
+  isError?: boolean;
+  retryText?: string;
 }
 
 interface AgentPromptHandle {
@@ -104,6 +106,8 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
+    const [lastFailedText, setLastFailedText] = useState<string | null>(null);
+    const [lastFailedSpecialist, setLastFailedSpecialist] = useState<string | undefined>(undefined);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -136,21 +140,39 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
       const userMsg: ChatMessage = { id: nanoid(), role: "user", content };
       setMessages((prev) => [...prev, userMsg]);
 
+      const activeSpecialistId = specialistId ?? selectedSpecialist ?? undefined;
       try {
         const activeSessionId = await ensureSession();
         const res = await sendMessage.mutateAsync({
           sessionId: activeSessionId,
           message: content,
-          specialistId: specialistId ?? selectedSpecialist ?? undefined,
+          specialistId: activeSpecialistId,
         });
+        setLastFailedText(null);
+        setLastFailedSpecialist(undefined);
         setMessages((prev) => [
           ...prev,
           { id: nanoid(), role: "assistant", content: res.reply },
         ]);
-      } catch {
+      } catch (err: unknown) {
+        // Log del error real para debugging
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error('[IAMET Agent Error]', errorMsg, err);
+        // Guardar contexto para reintentar
+        setLastFailedText(content);
+        setLastFailedSpecialist(activeSpecialistId);
+        // Mostrar toast con opción de reintentar
+        toast.error('El asistente no pudo responder', {
+          description: errorMsg.length < 120 ? errorMsg : 'Error de conexión. Por favor intenta de nuevo.',
+          action: {
+            label: 'Reintentar',
+            onClick: () => handleSend(content, activeSpecialistId),
+          },
+          duration: 8000,
+        });
         setMessages((prev) => [
           ...prev,
-          { id: nanoid(), role: "assistant", content: "Lo siento, hubo un error. Por favor intenta de nuevo." },
+          { id: nanoid(), role: "assistant", content: "No pude procesar tu solicitud en este momento.", isError: true, retryText: content },
         ]);
       } finally {
         setIsLoading(false);
@@ -202,10 +224,34 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
                     style={
                       msg.role === "user"
                         ? { background: "var(--color-iamet-accent)", color: "#fff", borderTopRightRadius: "4px" }
+                        : msg.isError
+                        ? { background: "oklch(0.25 0.03 20)", color: "oklch(0.75 0.12 20)", borderTopLeftRadius: "4px", border: "1px solid oklch(0.4 0.1 20)" }
                         : { background: "var(--color-iamet-surface)", color: "var(--color-iamet-text-muted)", borderTopLeftRadius: "4px", border: "1px solid var(--color-iamet-border-subtle)" }
                     }
                   >
-                    {msg.role === "assistant" ? <Streamdown>{msg.content}</Streamdown> : msg.content}
+                    {msg.role === "assistant" && msg.isError ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "oklch(0.65 0.15 20)" }} />
+                          <span>{msg.content}</span>
+                        </div>
+                        {msg.retryText && (
+                          <button
+                            onClick={() => handleSend(msg.retryText!, lastFailedSpecialist)}
+                            disabled={isLoading}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all duration-150 btn-press w-fit"
+                            style={{ background: "oklch(0.35 0.05 20)", color: "oklch(0.8 0.08 20)" }}
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            Reintentar
+                          </button>
+                        )}
+                      </div>
+                    ) : msg.role === "assistant" ? (
+                      <Streamdown>{msg.content}</Streamdown>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
                 </motion.div>
               ))}

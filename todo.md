@@ -338,3 +338,14 @@
 ### Navegación
 - [x] Agregar sección "Industrias" como ruta /industrias con página propia
 - [x] Agregar sección "Centro de Conocimiento" como ruta /conocimiento (pendiente página dedicada)
+
+## Auditoría MySQL/TiDB y mejoras de agente
+
+- [x] Auditar db.ts completo: identificar .returning(), onConflictDoUpdate, y otros patrones PostgreSQL-only
+- [x] Corregir todos los .returning() en db.ts para usar insertId en MySQL
+- [x] Corregir onConflictDoUpdate → onDuplicateKeyUpdate para MySQL
+- [x] Mejorar frontend: toast de error con botón "Reintentar" cuando falla el agente
+- [x] Mejorar frontend: log del error real en consola para debugging
+- [x] Mejorar backend: log estructurado del error real en el servidor
+- [x] Probar flujo completo: createConversation, createLead, createAdvisorSession, createEnrollment
+- [x] Probar envío de mensaje con cada especialista IA (10 especialistas)
