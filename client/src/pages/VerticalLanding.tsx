@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   Server, Shield, Cpu, Brain, Headphones, GraduationCap, FileCheck,
   ArrowRight, CheckCircle2, ChevronRight, Phone, Mail, Calendar,
+  KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Database, Factory, Network, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -10,13 +11,20 @@ import LeadForm from "@/components/LeadForm";
 
 const VERTICAL_ICONS: Record<string, React.ElementType> = {
   Server, Shield, Cpu, Brain, Headphones, GraduationCap, FileCheck,
+  KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Database, Factory, Network, Zap,
 };
 
 const VERTICAL_COLORS: Record<string, string> = {
   infraestructura: "oklch(0.65 0.20 240)",
   seguridad: "oklch(0.62 0.22 25)",
+  "control-acceso": "oklch(0.72 0.18 75)",
+  cctv: "oklch(0.62 0.22 290)",
+  "audio-voceo": "oklch(0.65 0.22 330)",
+  "salas-juntas": "oklch(0.68 0.18 185)",
   rfid: "oklch(0.68 0.18 160)",
   "software-ia": "oklch(0.70 0.22 280)",
+  "computo-licenciamiento": "oklch(0.68 0.20 265)",
+  "polizas-servicios": "oklch(0.68 0.18 40)",
   "servicios-administrados": "oklch(0.68 0.18 160)",
   educacion: "oklch(0.75 0.18 75)",
   compliance: "oklch(0.62 0.22 25)",
@@ -147,6 +155,108 @@ const VERTICAL_CONTENT: Record<string, {
       { title: "Gobierno", desc: "Implementación de controles de seguridad para datos públicos." },
     ],
     cta: "Solicitar Auditoría de Compliance",
+  },
+  "control-acceso": {
+    tagline: "Controla quién entra, cuándo y dónde con tecnología biométrica de última generación.",
+    benefits: [
+      "Lectores biométricos de huella, facial e iris",
+      "Tarjetas inteligentes y credenciales móviles HID",
+      "Torniquetes y barreras vehiculares",
+      "Software de gestión y reportes de acceso",
+      "Integración con CCTV, nómina y ERP",
+      "Certificación OSDP para comunicaciones seguras",
+    ],
+    useCases: [
+      { title: "Corporativo", desc: "Control de acceso por zonas con credencial móvil y registro de bitacóra." },
+      { title: "Industrial", desc: "Acceso a áreas restringidas con biometría y registro de tiempo." },
+      { title: "Gobierno", desc: "Gestión de identidades y acceso a instalaciones críticas." },
+    ],
+    cta: "Solicitar Diagnóstico de Control de Acceso",
+  },
+  cctv: {
+    tagline: "Vigila cada ángulo de tus instalaciones con inteligencia artificial integrada.",
+    benefits: [
+      "Cámaras IP 2MP a 8MP, PTZ y fisheye",
+      "Analítica de video: detección de intrusos, conteo de personas, LPR",
+      "Videovigilancia perimetral con radar y térmica",
+      "NVR y servidor de grabación con retención configurable",
+      "Integración con control de acceso y alarmas",
+      "Monitoreo remoto desde NOC 24/7",
+    ],
+    useCases: [
+      { title: "Retail", desc: "CCTV con analítica de comportamiento y conteo de personas en tienda." },
+      { title: "Manufactura", desc: "Videovigilancia de líneas de producción y áreas restringidas." },
+      { title: "Corporativo", desc: "Sistema centralizado de videovigilancia multi-sede." },
+    ],
+    cta: "Solicitar Diseño de Sistema CCTV",
+  },
+  "audio-voceo": {
+    tagline: "Comunica con claridad en cualquier entorno con sistemas de audio profesional.",
+    benefits: [
+      "Sistemas de voceo IP y analógico para interiores y exteriores",
+      "Intercomunicación de video y audio",
+      "Audio distribuido para zonas múltiples",
+      "Sistemas de evacuación y emergencia (NFPA 72)",
+      "Integración con sistemas de alarma y control de acceso",
+      "Amplificadores, bocinas y controladores de zona",
+    ],
+    useCases: [
+      { title: "Hospitales", desc: "Voceo de emergencia y comunicación entre áreas clínicas." },
+      { title: "Manufactura", desc: "Comunicación en planta con zonas de ruido elevado." },
+      { title: "Centros Comerciales", desc: "Audio ambiental y voceo de emergencia en áreas públicas." },
+    ],
+    cta: "Solicitar Diseño de Sistema de Audio",
+  },
+  "salas-juntas": {
+    tagline: "Transforma tus reuniones en experiencias de colaboración de clase mundial.",
+    benefits: [
+      "Videoconferencia: Cisco Webex, Microsoft Teams, Zoom Rooms",
+      "Pantallas interactivas y proyectores 4K",
+      "Micrófonos de arreglo y sistemas de audio profesional",
+      "Control centralizado con paneles táctiles",
+      "Colaboración híbrida: presencial + remoto sin fricción",
+      "Señalización digital y sistemas de reserva de salas",
+    ],
+    useCases: [
+      { title: "Corporativo", desc: "Salas de juntas ejecutivas con videoconferencia y control AV integrado." },
+      { title: "Educación", desc: "Aulas híbridas con captura de video y colaboración en tiempo real." },
+      { title: "Gobierno", desc: "Salas de situación con múltiples fuentes de video y audio." },
+    ],
+    cta: "Solicitar Diseño de Sala de Juntas",
+  },
+  "computo-licenciamiento": {
+    tagline: "Equipa a tu empresa con la tecnología correcta al mejor costo total de propiedad.",
+    benefits: [
+      "Equipos de cómputo empresarial: laptops, desktops, workstations",
+      "Servidores y almacenamiento: Dell, HP, Lenovo, IBM",
+      "Licenciamiento Microsoft 365, Windows, Office",
+      "Licenciamiento Adobe, Autodesk y software especializado",
+      "Configuración, imagen y despliegue masivo",
+      "Soporte y garantía extendida",
+    ],
+    useCases: [
+      { title: "PyME", desc: "Renovación de parque de cómputo con financiamiento y soporte." },
+      { title: "Corporativo", desc: "Despliegue masivo de equipos con imagen estandarizada." },
+      { title: "Gobierno", desc: "Licenciamiento por volumen y gestión de activos de software." },
+    ],
+    cta: "Solicitar Cotización de Equipo",
+  },
+  "polizas-servicios": {
+    tagline: "Garantiza la continuidad operativa de tu infraestructura con SLA definidos.",
+    benefits: [
+      "Pólizas de mantenimiento preventivo y correctivo",
+      "NOC 24/7 con monitoreo proactivo de infraestructura",
+      "Mesa de ayuda técnica multinivel (N1, N2, N3)",
+      "Tiempos de respuesta garantizados por contrato",
+      "Gestión de parches, actualizaciones y vulnerabilidades",
+      "Reportes ejecutivos mensuales de desempeño",
+    ],
+    useCases: [
+      { title: "Manufactura", desc: "Póliza integral para infraestructura de planta con SLA 4 horas." },
+      { title: "Salud", desc: "Soporte 24/7 para sistemas críticos hospitalarios." },
+      { title: "Gobierno", desc: "Operación administrada de infraestructura con reportes de cumplimiento." },
+    ],
+    cta: "Solicitar Propuesta de Póliza",
   },
 };
 

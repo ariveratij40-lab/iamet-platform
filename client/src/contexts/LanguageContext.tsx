@@ -26,12 +26,18 @@ export const translations = {
     // Solutions submenu
     solutions: {
       infra: "Infraestructura Tecnológica",
-      security: "Seguridad Electrónica",
+      controlAcceso: "Control de Acceso",
+      cctv: "CCTV y Videovigilancia",
+      audioVoceo: "Audio y Voceo",
+      salasJuntas: "Salas de Juntas",
       rfid: "RFID y Automatización",
       software: "Software e IA",
-      managed: "Servicios Administrados",
+      computo: "Cómputo y Licenciamiento",
+      polizas: "Pólizas y Servicios Administrados",
       compliance: "Compliance y Auditoría",
     },
+    // Knowledge center
+    knowledge: "Centro de Conocimiento",
     // Home page
     home: {
       greeting: "Hola, somos IAMET",
@@ -120,12 +126,18 @@ export const translations = {
     // Solutions submenu
     solutions: {
       infra: "IT Infrastructure",
-      security: "Electronic Security",
+      controlAcceso: "Access Control",
+      cctv: "CCTV & Surveillance",
+      audioVoceo: "Audio & PA Systems",
+      salasJuntas: "Meeting Rooms",
       rfid: "RFID & Automation",
       software: "Software & AI",
-      managed: "Managed Services",
+      computo: "Computing & Licensing",
+      polizas: "Managed Services & SLA",
       compliance: "Compliance & Audit",
     },
+    // Knowledge center
+    knowledge: "Knowledge Center",
     // Home page
     home: {
       greeting: "Hello, we are IAMET",

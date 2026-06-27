@@ -302,3 +302,39 @@
 - [x] Estado con badge: Pendiente (amarillo), En revisión (azul), Cotizado (verde), Cerrado (gris)
 - [x] Botón "Nueva solicitud" que navega a la tienda para iniciar nueva cotización
 - [x] Estado vacío cuando no hay solicitudes previas
+
+## Rediseño IAMET 2026 — Engineering Operating System
+
+### Home — Asistente Inteligente (Hero)
+- [x] Rediseñar Home.tsx: hero full-screen con asistente como elemento principal
+- [x] Título poderoso + subtítulo enterprise (no "¿en qué puedo ayudarte?")
+- [x] Botón de voz (placeholder UI con toast "próximamente")
+- [x] Botón adjuntar documentos (placeholder UI con toast "próximamente")
+- [x] Sección de Especialistas IA: grid de chips seleccionables (10 especialistas)
+- [x] Al seleccionar especialista, el asistente adopta su personalidad y contexto
+- [x] Ejemplos de prompts mejorados (6 ejemplos del documento)
+- [x] Secciones post-scroll: Soluciones, Industrias, Partners, Normativas, Centro de Conocimiento, CTA de Contacto
+
+### Especialistas IA (Backend)
+- [x] Crear server/specialists.ts con 10 perfiles de especialistas (personalidad, keywords, system prompt)
+- [x] Especialistas: Infraestructura, CCTV, Control de Acceso, RFID, Redes, Energía, Software, IA, Data Centers, Industria 4.0
+- [x] Actualizar agent.sendMessage para aceptar specialistId y usar el prompt del especialista seleccionado
+- [x] Cada especialista hace preguntas, recomienda arquitectura, fabricantes, genera propuesta y lista de materiales
+
+### Soluciones — 9 Verticales
+- [x] Actualizar DB seed: 9 verticales (agregar Control de Acceso, CCTV, Audio y Voceo, Salas de Juntas, Cómputo y Licenciamiento, Pólizas y Servicios Administrados)
+- [x] Actualizar VerticalLanding.tsx con contenido para las 9 verticales
+- [x] Actualizar Navbar.tsx: 9 verticales en el submenú de Soluciones
+- [x] Actualizar LanguageContext.tsx con labels de las 9 verticales
+- [x] Actualizar routers.ts: lista de slugs válidos para lead scoring
+
+### Secciones Post-Scroll en Home
+- [x] Sección Industrias: grid de sectores (manufactura, salud, educación, gobierno, retail, hotelería, finanzas)
+- [x] Sección Partners/Fabricantes: logos de marcas (Panduit, Cisco, Hikvision, Dahua, HID, Zebra, etc.)
+- [x] Sección Normativas: ISO 27001, TIA-568, NFPA, NOM, etc.
+- [x] Sección Centro de Conocimiento: cards de recursos (guías, whitepapers, casos de éxito)
+- [x] Sección Contacto al final de la Home
+
+### Navegación
+- [x] Agregar sección "Industrias" como ruta /industrias con página propia
+- [x] Agregar sección "Centro de Conocimiento" como ruta /conocimiento (pendiente página dedicada)

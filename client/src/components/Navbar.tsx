@@ -2,10 +2,11 @@ import { useState, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutGrid, Shield, Cpu, Zap, BookOpen, Phone, LogIn,
+  LayoutGrid, Cpu, Zap, BookOpen, Phone, LogIn,
   LayoutDashboard, ChevronRight, ChevronLeft, Home,
-  Server, Brain, Headphones, FileCheck, Globe, Activity, ShoppingCart,
-  Sun, Moon, Languages,
+  Server, Brain, FileCheck, Globe, ShoppingCart,
+  Sun, Moon, Languages, Activity,
+  KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Network,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -30,10 +31,14 @@ export default function Navbar() {
       href: "/soluciones",
       children: [
         { label: t.solutions.infra, href: "/soluciones/infraestructura", icon: Server },
-        { label: t.solutions.security, href: "/soluciones/seguridad", icon: Shield },
+        { label: t.solutions.controlAcceso, href: "/soluciones/control-acceso", icon: KeyRound },
+        { label: t.solutions.cctv, href: "/soluciones/cctv", icon: Camera },
+        { label: t.solutions.audioVoceo, href: "/soluciones/audio-voceo", icon: Volume2 },
+        { label: t.solutions.salasJuntas, href: "/soluciones/salas-juntas", icon: Monitor },
         { label: t.solutions.rfid, href: "/soluciones/rfid", icon: Cpu },
         { label: t.solutions.software, href: "/soluciones/software-ia", icon: Brain },
-        { label: t.solutions.managed, href: "/soluciones/servicios-administrados", icon: Headphones },
+        { label: t.solutions.computo, href: "/soluciones/computo-licenciamiento", icon: Laptop },
+        { label: t.solutions.polizas, href: "/soluciones/polizas-servicios", icon: ClipboardList },
         { label: t.solutions.compliance, href: "/soluciones/compliance", icon: FileCheck },
       ],
     },

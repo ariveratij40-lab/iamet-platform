@@ -47,6 +47,7 @@ import {
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
+import { buildSpecialistPrompt, detectSpecialist } from "./specialists";
 import { sendVerificationEmail, sendQuoteNotificationEmail } from "./email";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
@@ -272,6 +273,7 @@ export const appRouter = router({
         z.object({
           sessionId: z.string(),
           message: z.string().min(1).max(2000),
+          specialistId: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -290,8 +292,11 @@ export const appRouter = router({
         // Get conversation history
         const history = await getMessagesByConversation(conversation.id);
 
-        // Build system prompt dynamically based on conversation topic
-        const systemPrompt = buildSystemPrompt(history);
+        // Build system prompt: use specialist if provided, else auto-detect
+        const specialistId = input.specialistId ?? detectSpecialist(history);
+        const systemPrompt = specialistId
+          ? buildSpecialistPrompt(specialistId)
+          : buildSystemPrompt(history);
         const llmMessages = [
           { role: "system" as const, content: systemPrompt },
           ...history.slice(-12).map((m) => ({
@@ -315,6 +320,7 @@ export const appRouter = router({
 
         // Detect if infrastructure topic is active for frontend indicator
         const isInfraMode = detectInfrastructureTopic(history);
+        const activeSpecialistId = specialistId ?? detectSpecialist([...history, { role: 'assistant', content: assistantContent }]);
 
         // Update conversation metadata
         const messageCount = history.length + 2;
@@ -341,7 +347,7 @@ export const appRouter = router({
           }
         }
 
-        return { reply: assistantContent, isInfraMode };
+        return { reply: assistantContent, isInfraMode, specialistId: activeSpecialistId };
       }),
 
     getHistory: publicProcedure

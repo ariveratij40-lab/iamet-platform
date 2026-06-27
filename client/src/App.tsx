@@ -19,6 +19,8 @@ import TiendaPerfil from "./pages/TiendaPerfil";
 import TiendaLogin from "./pages/TiendaLogin";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
 import Contact from "./pages/Contact";
+import Industrias from "./pages/Industrias";
+import Soluciones from "./pages/Soluciones";
 import Navbar from "./components/Navbar";
 
 function Router() {
@@ -27,8 +29,11 @@ function Router() {
       <Navbar />
       <Switch>
         <Route path="/" component={Home} />
-        {/* Verticales — ruta dinámica */}
+        {/* Soluciones — hub y verticales */}
+        <Route path="/soluciones" component={Soluciones} />
         <Route path="/soluciones/:slug" component={VerticalLanding} />
+        {/* Industrias */}
+        <Route path="/industrias" component={Industrias} />
         {/* Herramientas */}
         <Route path="/tech-advisor" component={TechAdvisor} />
         <Route path="/academy" component={Academy} />
