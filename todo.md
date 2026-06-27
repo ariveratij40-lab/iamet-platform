@@ -291,3 +291,14 @@
 - [x] Guard en `/tienda`, `/tienda/:slug` y `/tienda/perfil`: redirige a `/tienda/login` si no hay sesión
 - [x] Navbar de tienda actualizado: botón "Iniciar sesión" → `/tienda/login`, avatar+dropdown cuando autenticado
 - [x] Página `/tienda/perfil` usa `useStoreSession` y procedures `storeAuth.*` con JWT
+
+## Historial de Solicitudes en Perfil de Tienda
+
+- [x] Vincular `quote_requests.storeUserId` a `store_users.id` al enviar cotización (QuoteForm en Tienda.tsx)
+- [x] Agregar columna `storeUserId` en `quote_requests` (migración SQL)
+- [x] Procedure `storeAuth.getMyQuotes`: retorna cotizaciones con items, estado, fecha y refCode vinculadas al storeUserId
+- [x] Página `/tienda/perfil`: sección "Mis Solicitudes" con tarjetas expandibles por cotización
+- [x] Cada tarjeta muestra: refCode, fecha, estado con badge de color, lista de productos con cantidad
+- [x] Estado con badge: Pendiente (amarillo), En revisión (azul), Cotizado (verde), Cerrado (gris)
+- [x] Botón "Nueva solicitud" que navega a la tienda para iniciar nueva cotización
+- [x] Estado vacío cuando no hay solicitudes previas

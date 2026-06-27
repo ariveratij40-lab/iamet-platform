@@ -692,6 +692,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         phone: z.string().optional(),
         notes: z.string().optional(),
         userId: z.number().optional(), // usuario autenticado (opcional)
+        storeUserId: z.number().optional(), // usuario de tienda propia (opcional)
         items: z.array(z.object({
           productId: z.number().optional(),
           productName: z.string(),
@@ -706,6 +707,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
           {
             refCode,
             userId: input.userId,
+            storeUserId: input.storeUserId,
             visitorName: input.visitorName,
             company: input.company,
             email: input.email,

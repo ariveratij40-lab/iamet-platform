@@ -413,7 +413,8 @@ function QuoteForm({ cart, onClose, onSuccess, user }: {
     e.preventDefault();
     submitMutation.mutate({
       ...form,
-      userId: user?.id,
+      userId: undefined,
+      storeUserId: user?.id,
       items: cart.map((i) => ({
         productId: i.product.id,
         productName: i.product.name,

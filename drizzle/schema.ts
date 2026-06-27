@@ -270,6 +270,7 @@ export const quoteRequests = pgTable("quote_requests", {
   id: serial("id").primaryKey(),
   refCode: varchar("refCode", { length: 32 }).notNull().unique(),
   userId: integer("userId"),   // FK a users.id (null si es visitante anónimo)
+  storeUserId: integer("storeUserId"), // FK a store_users.id (null si no autenticado en tienda)
   visitorName: varchar("visitorName", { length: 128 }).notNull(),
   company: varchar("company", { length: 256 }),
   email: varchar("email", { length: 320 }).notNull(),
