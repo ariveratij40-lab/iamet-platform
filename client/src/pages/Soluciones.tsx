@@ -86,7 +86,7 @@ export default function Soluciones() {
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section
         className="pt-24 pb-16 px-4 relative overflow-hidden"
-        style={{ paddingLeft: "calc(72px + 1rem)" }}
+        style={{  }}
       >
         <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
         <div style={{ maxWidth: "1100px", margin: "0 auto" }} className="relative z-10">
@@ -124,7 +124,7 @@ export default function Soluciones() {
       {/* ── Grid ──────────────────────────────────────────────────────────── */}
       <section
         className="py-8 pb-20 px-4"
-        style={{ paddingLeft: "calc(72px + 1rem)" }}
+        style={{  }}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

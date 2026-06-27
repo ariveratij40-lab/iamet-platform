@@ -72,6 +72,19 @@ const apiLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === "development",
 });
 
+/**
+ * Limiter para el agente IA (sendMessage).
+ * 30 mensajes por IP en 5 minutos — evita abuso de LLM y costos excesivos.
+ */
+const agentLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutos
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Has enviado demasiados mensajes. Espera unos minutos e intenta de nuevo." },
+  skip: () => process.env.NODE_ENV === "development",
+});
+
 async function startServer() {
   const app = express();
   const server = createServer(app);
@@ -155,6 +168,15 @@ async function startServer() {
       "/api/trpc/advisor.startSession",
     ],
     formLimiter
+  );
+
+  // Limiter para el agente IA — evita abuso de LLM y costos excesivos
+  app.use(
+    [
+      "/api/trpc/agent.sendMessage",
+      "/api/trpc/agent.startSession",
+    ],
+    agentLimiter
   );
 
   // ─── tRPC API ─────────────────────────────────────────────────────────────

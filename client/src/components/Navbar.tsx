@@ -5,25 +5,27 @@ import {
   LayoutGrid, Cpu, Zap, BookOpen, Phone, LogIn,
   LayoutDashboard, ChevronRight, ChevronLeft, Home,
   Server, Brain, FileCheck, Globe, ShoppingCart,
-  Sun, Moon, Languages, Activity,
+  Sun, Moon, Languages, Activity, Menu, X,
   KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Network,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/useMobile";
 
 export default function Navbar() {
   const [expanded, setExpanded] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [location, navigate] = useLocation();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
+  const isMobile = useIsMobile();
 
   const isActive = (href: string) => location === href || location.startsWith(href + "/");
 
-  // Nav items usando traducciones
   const navItems = [
     {
       label: t.nav.solutions,
@@ -55,15 +57,224 @@ export default function Navbar() {
     } else {
       setExpanded(false);
       setActiveSubmenu(null);
+      setMobileOpen(false);
       if (item.href) navigate(item.href);
     }
   }, [navigate, navItems]);
 
+  const closeMobile = () => { setMobileOpen(false); setActiveSubmenu(null); };
+
   const sidebarWidth = expanded ? 260 : 56;
 
+  // ── MOBILE: top bar + drawer ──────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <>
+        {/* Top bar móvil */}
+        <div
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14"
+          style={{
+            background: "var(--color-iamet-sidebar-bg, var(--color-iamet-bg-secondary))",
+            borderBottom: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))",
+            boxShadow: "0 2px 12px oklch(0 0 0 / 0.15)",
+          }}
+        >
+          <Link href="/" onClick={closeMobile}>
+            <img
+              src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+              alt="IAMET"
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-2 rounded-lg transition-colors duration-150"
+            style={{ color: "var(--color-iamet-text-muted)" }}
+            aria-label="Menú"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {/* Overlay */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              key="mobile-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40"
+              style={{ background: "oklch(0 0 0 / 0.55)", backdropFilter: "blur(2px)" }}
+              onClick={closeMobile}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Drawer lateral */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              key="mobile-drawer"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+              className="fixed top-0 left-0 h-full z-50 flex flex-col overflow-y-auto"
+              style={{
+                width: 280,
+                background: "var(--color-iamet-sidebar-bg, var(--color-iamet-bg-secondary))",
+                borderRight: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))",
+              }}
+            >
+              {/* Header del drawer */}
+              <div
+                className="flex items-center justify-between px-4 h-14 flex-shrink-0"
+                style={{ borderBottom: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))" }}
+              >
+                <Link href="/" onClick={closeMobile}>
+                  <img
+                    src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+                    alt="IAMET"
+                    className="h-8 w-auto object-contain"
+                  />
+                </Link>
+                <button onClick={closeMobile} style={{ color: "var(--color-iamet-text-muted)" }}>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Nav items en drawer */}
+              <nav className="flex-1 py-2">
+                <Link href="/" onClick={closeMobile}>
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                    style={{ color: location === "/" ? "var(--color-iamet-accent)" : "var(--color-iamet-text-muted)" }}
+                  >
+                    <Home className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm font-medium">{t.nav.home}</span>
+                  </button>
+                </Link>
+
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  const submenuOpen = activeSubmenu === item.label;
+
+                  return (
+                    <div key={item.href}>
+                      <button
+                        onClick={() => handleItemClick(item)}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                        style={{ color: active ? "var(--color-iamet-accent)" : "var(--color-iamet-text-muted)" }}
+                      >
+                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium flex-1">{item.label}</span>
+                        {item.children && (
+                          <motion.div animate={{ rotate: submenuOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                            <ChevronRight className="w-4 h-4 opacity-50" />
+                          </motion.div>
+                        )}
+                      </button>
+
+                      <AnimatePresence>
+                        {item.children && submenuOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.22 }}
+                            className="overflow-hidden"
+                            style={{ background: "var(--color-iamet-bg)" }}
+                          >
+                            {item.children.map((child) => {
+                              const ChildIcon = child.icon;
+                              return (
+                                <Link key={child.href} href={child.href} onClick={closeMobile}>
+                                  <div
+                                    className="flex items-center gap-2.5 px-6 py-2.5 text-xs"
+                                    style={{ color: "var(--color-iamet-text-subtle)" }}
+                                  >
+                                    <ChildIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
+                                    <span>{child.label}</span>
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </nav>
+
+              {/* Controles inferiores */}
+              <div
+                className="flex-shrink-0 py-2"
+                style={{ borderTop: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))" }}
+              >
+                <button
+                  onClick={() => setLanguage(language === "es" ? "en" : "es")}
+                  className="w-full flex items-center gap-3 px-4 py-3"
+                  style={{ color: "var(--color-iamet-text-muted)" }}
+                >
+                  <Languages className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium flex-1">{t.nav.language}</span>
+                  <span
+                    className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "var(--color-iamet-accent-muted)", color: "var(--color-iamet-accent)" }}
+                  >
+                    {language.toUpperCase()}
+                  </span>
+                </button>
+                {toggleTheme && (
+                  <button
+                    onClick={toggleTheme}
+                    className="w-full flex items-center gap-3 px-4 py-3"
+                    style={{ color: "var(--color-iamet-text-muted)" }}
+                  >
+                    {theme === "dark"
+                      ? <Sun className="w-5 h-5 flex-shrink-0" style={{ color: "var(--color-iamet-yellow, #eab308)" }} />
+                      : <Moon className="w-5 h-5 flex-shrink-0" />}
+                    <span className="text-sm font-medium">{theme === "dark" ? t.nav.lightMode : t.nav.darkMode}</span>
+                  </button>
+                )}
+                {user ? (
+                  <>
+                    <Link href="/admin/monitor" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Activity className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">{t.nav.liveMonitor}</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">{t.nav.dashboard}</span>
+                      </button>
+                    </Link>
+                  </>
+                ) : (
+                  <a href={getLoginUrl()}>
+                    <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                      <LogIn className="w-5 h-5 flex-shrink-0" />
+                      <span className="text-sm font-medium">{t.nav.login}</span>
+                    </button>
+                  </a>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
+
+  // ── DESKTOP: sidebar izquierdo (comportamiento original) ──────────────────
   return (
     <>
-      {/* ── Overlay cuando el sidebar está expandido ────────────────────────── */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -79,7 +290,6 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* ── Sidebar IZQUIERDO ─────────────────────────────────────────────── */}
       <motion.aside
         animate={{ width: sidebarWidth }}
         transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
@@ -92,12 +302,11 @@ export default function Navbar() {
             : "2px 0 12px oklch(0 0 0 / 0.15)",
         }}
       >
-        {/* Logo + Toggle button */}
+        {/* Logo + Toggle */}
         <div
           className="flex items-center h-[64px] flex-shrink-0 overflow-hidden"
           style={{ borderBottom: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))" }}
         >
-          {/* Logo — visible solo cuando expandido */}
           <AnimatePresence>
             {expanded && (
               <motion.div
@@ -117,8 +326,6 @@ export default function Navbar() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Toggle button */}
           <button
             onClick={() => { setExpanded(!expanded); if (expanded) setActiveSubmenu(null); }}
             className="w-14 h-full flex items-center justify-center flex-shrink-0 transition-all duration-150 btn-press"
@@ -136,17 +343,12 @@ export default function Navbar() {
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2">
-          {/* Inicio */}
           <Link href="/" onClick={() => { setExpanded(false); setActiveSubmenu(null); }}>
             <button
               className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150 group relative"
               style={{
-                color: location === "/"
-                  ? "var(--color-iamet-accent)"
-                  : "var(--color-iamet-text-muted)",
-                background: location === "/"
-                  ? "var(--color-iamet-accent-muted)"
-                  : "transparent",
+                color: location === "/" ? "var(--color-iamet-accent)" : "var(--color-iamet-text-muted)",
+                background: location === "/" ? "var(--color-iamet-accent-muted)" : "transparent",
               }}
               onMouseEnter={e => {
                 if (location !== "/") {
@@ -243,7 +445,6 @@ export default function Navbar() {
                   )}
                 </button>
 
-                {/* Submenu */}
                 <AnimatePresence>
                   {expanded && item.children && submenuOpen && (
                     <motion.div
@@ -277,15 +478,14 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* ── Controles inferiores: Idioma, Tema, Auth ──────────────────────── */}
+        {/* Controles inferiores */}
         <div
           className="flex-shrink-0 py-2"
           style={{ borderTop: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))" }}
         >
-          {/* Toggle de idioma ES / EN */}
           <button
             onClick={() => setLanguage(language === "es" ? "en" : "es")}
-            className="w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-150 btn-press"
+            className="w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-150 btn-press relative"
             style={{ color: "var(--color-iamet-text-muted)" }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLElement).style.background = "var(--color-iamet-bg-tertiary)";
@@ -310,17 +510,13 @@ export default function Navbar() {
                   <span className="text-sm font-medium whitespace-nowrap">{t.nav.language}</span>
                   <span
                     className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{
-                      background: "var(--color-iamet-accent-muted)",
-                      color: "var(--color-iamet-accent)",
-                    }}
+                    style={{ background: "var(--color-iamet-accent-muted)", color: "var(--color-iamet-accent)" }}
                   >
                     {language.toUpperCase()}
                   </span>
                 </motion.div>
               )}
             </AnimatePresence>
-            {/* Indicador compacto cuando colapsado */}
             {!expanded && (
               <span
                 className="absolute left-8 top-1/2 -translate-y-1/2 text-[9px] font-bold"
@@ -331,7 +527,6 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Toggle de tema oscuro/claro */}
           {toggleTheme && (
             <button
               onClick={toggleTheme}
@@ -354,11 +549,9 @@ export default function Navbar() {
                 transition={{ duration: 0.25 }}
                 className="flex-shrink-0"
               >
-                {theme === "dark" ? (
-                  <Sun style={{ width: 18, height: 18, color: "var(--color-iamet-yellow, #eab308)" }} />
-                ) : (
-                  <Moon style={{ width: 18, height: 18 }} />
-                )}
+                {theme === "dark"
+                  ? <Sun style={{ width: 18, height: 18, color: "var(--color-iamet-yellow, #eab308)" }} />
+                  : <Moon style={{ width: 18, height: 18 }} />}
               </motion.div>
               <AnimatePresence>
                 {expanded && (
@@ -376,7 +569,6 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Auth */}
           {user ? (
             <>
               <Link href="/admin/monitor" onClick={() => setExpanded(false)}>

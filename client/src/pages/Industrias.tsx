@@ -110,7 +110,7 @@ export default function Industrias() {
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section
         className="pt-24 pb-16 px-4 relative overflow-hidden"
-        style={{ paddingLeft: "calc(72px + 1rem)" }}
+        style={{  }}
       >
         <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
         <div
@@ -152,7 +152,7 @@ export default function Industrias() {
       {/* ── Grid de industrias ────────────────────────────────────────────── */}
       <section
         className="py-12 px-4"
-        style={{ paddingLeft: "calc(72px + 1rem)" }}
+        style={{  }}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div className="space-y-6">
@@ -254,7 +254,7 @@ export default function Industrias() {
       {/* ── CTA ───────────────────────────────────────────────────────────── */}
       <section
         className="py-20 px-4"
-        style={{ background: "var(--color-iamet-bg-secondary)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg-secondary)" }}
       >
         <div style={{ maxWidth: "760px", margin: "0 auto" }}>
           <motion.div

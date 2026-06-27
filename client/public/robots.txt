@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /tienda/perfil
+Disallow: /tienda/login
+Disallow: /tienda/verificar
+Disallow: /tienda/nueva-contrasena
+
+Sitemap: https://iamettech-ssx5e88n.manus.space/sitemap.xml

@@ -376,7 +376,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <main
         className="flex-1 flex flex-col items-center justify-center relative overflow-hidden"
-        style={{ paddingLeft: "72px", minHeight: "100vh" }}
+        style={{ minHeight: "100vh" }}
       >
         {/* Background glow */}
         <motion.div
@@ -598,7 +598,6 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5, duration: 0.5 }}
-          style={{ paddingLeft: "72px" }}
         >
           <span className="text-xs" style={{ color: "var(--color-iamet-text-subtle)" }}>Descubre más</span>
           <motion.div
@@ -616,7 +615,7 @@ export default function Home() {
       <section
         id="soluciones"
         className="py-20 px-4"
-        style={{ background: "var(--color-iamet-bg-secondary)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg-secondary)" }}
         onMouseEnter={() => setCurrentSection("soluciones")}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
@@ -691,7 +690,7 @@ export default function Home() {
       <section
         id="industrias"
         className="py-20 px-4"
-        style={{ background: "var(--color-iamet-bg)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg)" }}
         onMouseEnter={() => setCurrentSection("industrias")}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
@@ -755,7 +754,7 @@ export default function Home() {
       <section
         id="partners"
         className="py-16 px-4"
-        style={{ background: "var(--color-iamet-bg-secondary)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg-secondary)" }}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <motion.div
@@ -810,7 +809,7 @@ export default function Home() {
       <section
         id="normativas"
         className="py-16 px-4"
-        style={{ background: "var(--color-iamet-bg)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg)" }}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <motion.div
@@ -873,7 +872,7 @@ export default function Home() {
       <section
         id="conocimiento"
         className="py-20 px-4"
-        style={{ background: "var(--color-iamet-bg-secondary)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg-secondary)" }}
       >
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <motion.div
@@ -972,7 +971,7 @@ export default function Home() {
       <section
         id="contacto"
         className="py-20 px-4"
-        style={{ background: "var(--color-iamet-bg)", paddingLeft: "calc(72px + 1rem)" }}
+        style={{ background: "var(--color-iamet-bg)" }}
       >
         <div style={{ maxWidth: "760px", margin: "0 auto" }}>
           <motion.div

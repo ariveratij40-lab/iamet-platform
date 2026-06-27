@@ -349,3 +349,52 @@
 - [x] Mejorar backend: log estructurado del error real en el servidor
 - [x] Probar flujo completo: createConversation, createLead, createAdvisorSession, createEnrollment
 - [x] Probar envío de mensaje con cada especialista IA (10 especialistas)
+
+## Fase 2 — Estabilización y QA Funcional
+
+### 1. Especialistas IA
+- [x] Prueba automatizada: los 10 especialistas responden con contexto correcto (vitest)
+- [x] Validar que el specialistId se persiste correctamente en la conversación
+- [x] Verificar que el especialista auto-detectado funciona cuando no se selecciona ninguno
+
+### 2. Formularios y Leads
+- [x] Validar formulario de contacto: campos requeridos, mensajes de error claros
+- [x] Validar formulario de cotización en tienda: items, notas, envío
+- [x] Verificar que createLead guarda correctamente en BD con score calculado
+- [x] Verificar que se envía el email de notificación al admin al recibir cotización
+
+### 3. Navegación
+- [x] Verificar que todas las rutas de Soluciones (9 verticales) cargan sin 404
+- [x] Verificar que /industrias carga correctamente
+- [x] Verificar que /soluciones carga correctamente
+- [x] Verificar que el Navbar submenú de Soluciones muestra los 9 items
+- [x] Verificar que los links del footer apuntan a rutas válidas
+
+### 4. Responsive Móvil
+- [x] Hero de Home: asistente y especialistas visibles en 375px
+- [x] Navbar: menú hamburguesa funcional en móvil
+- [x] Tienda: grid de productos responsive en móvil
+- [x] Tienda Perfil: tarjetas de historial legibles en móvil
+- [x] VerticalLanding: layout correcto en móvil
+- [x] Industrias y Soluciones: grids responsive en móvil
+
+### 5. Logs sin Errores
+- [x] Revisar devserver.log: sin errores críticos al inicio
+- [x] Revisar browserConsole.log: sin errores JS no controlados
+- [x] Revisar networkRequests.log: sin 4xx/5xx inesperados
+- [x] Verificar que los logs del agente muestran [Agent] OK correctamente
+
+### 6. SEO Básico
+- [x] Meta title y description únicos por página (Home, Soluciones, Industrias, Verticales)
+- [x] Open Graph tags: og:title, og:description, og:image, og:url
+- [x] sitemap.xml generado con todas las rutas públicas
+- [x] robots.txt configurado correctamente
+- [x] Canonical URLs en todas las páginas
+
+### 7. Seguridad
+- [x] Rate limiting en endpoints del agente (30 msgs/5min por IP)
+- [x] Rate limiting en endpoints de tienda (registro, login, cotización)
+- [x] Sanitización de inputs en el agente (trim, maxLength ya en zod)
+- [x] Variables de entorno: ninguna expuesta en el bundle del cliente
+- [x] Errores del servidor: nunca exponer stack traces al cliente
+- [x] Headers de seguridad: Helmet activo (X-Content-Type-Options, X-Frame-Options, HSTS)
