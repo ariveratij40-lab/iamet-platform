@@ -145,11 +145,13 @@ export async function createLead(data: InsertLead): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   const { score, breakdown } = calculateLeadScore(data);
-  const [created] = await db.insert(leads).values({
-    ...data,
-    score,
-    scoreBreakdown: breakdown,
-  }).returning({ id: leads.id });
+  const url = process.env.DATABASE_URL ?? '';
+  const isMysql = url.startsWith('mysql://');
+  if (isMysql) {
+    const result: any = await db.insert(leads).values({ ...data, score, scoreBreakdown: breakdown });
+    return result[0]?.insertId ?? 0;
+  }
+  const [created] = await db.insert(leads).values({ ...data, score, scoreBreakdown: breakdown }).returning({ id: leads.id });
   return created?.id ?? 0;
 }
 
@@ -181,6 +183,12 @@ export async function updateLeadStatus(id: number, status: string, notes?: strin
 export async function createConversation(data: InsertConversation): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
+  const url = process.env.DATABASE_URL ?? '';
+  const isMysql = url.startsWith('mysql://');
+  if (isMysql) {
+    const result: any = await db.insert(conversations).values(data);
+    return result[0]?.insertId ?? 0;
+  }
   const [created] = await db.insert(conversations).values(data).returning({ id: conversations.id });
   return created?.id ?? 0;
 }
@@ -230,6 +238,12 @@ export async function getMessagesByConversation(conversationId: number): Promise
 export async function createAdvisorSession(data: InsertAdvisorSession): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
+  const url = process.env.DATABASE_URL ?? '';
+  const isMysql = url.startsWith('mysql://');
+  if (isMysql) {
+    const result: any = await db.insert(advisorSessions).values(data);
+    return result[0]?.insertId ?? 0;
+  }
   const [created] = await db.insert(advisorSessions).values(data).returning({ id: advisorSessions.id });
   return created?.id ?? 0;
 }
@@ -267,6 +281,12 @@ export async function getCourseBySlug(slug: string): Promise<Course | undefined>
 export async function createEnrollment(data: InsertEnrollment): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
+  const url = process.env.DATABASE_URL ?? '';
+  const isMysql = url.startsWith('mysql://');
+  if (isMysql) {
+    const result: any = await db.insert(enrollments).values(data);
+    return result[0]?.insertId ?? 0;
+  }
   const [created] = await db.insert(enrollments).values(data).returning({ id: enrollments.id });
   return created?.id ?? 0;
 }
