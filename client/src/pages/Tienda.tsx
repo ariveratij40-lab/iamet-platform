@@ -59,28 +59,28 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 // ─── Product Image Map ────────────────────────────────────────────────────────
 const PRODUCT_IMAGES: Record<string, string> = {
-  "camara-ip-domo-4mp": "/manus-storage/cam-domo_6caf2a1b.jpg",
-  "camara-ptz-4k-ia": "/manus-storage/cam-ptz_7e725eb4.png",
-  "switch-24p-poe-plus": "/manus-storage/switch-poe_ebb39972.jpg",
-  "access-point-wifi6-techo": "/manus-storage/access-point_f9dffcf6.png",
-  "laptop-empresarial-i7-16gb": "/manus-storage/laptop-biz_2d8ed067.jpg",
-  "ups-online-3kva-torre": "/manus-storage/ups-tower_cf48b2ce.jpg",
-  "rack-abierto-42u": "/manus-storage/rack-42u_362067cf.jpg",
-  "switch-administrable-24p": "/manus-storage/switch-rack_99807981.jpg",
+  "camara-ip-domo-4mp": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/cam-domo.jpg",
+  "camara-ptz-4k-ia": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/cam-ptz.png",
+  "switch-24p-poe-plus": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/switch-poe.jpg",
+  "access-point-wifi6-techo": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/access-point.png",
+  "laptop-empresarial-i7-16gb": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/laptop-biz.jpg",
+  "ups-online-3kva-torre": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/ups-tower.jpg",
+  "rack-abierto-42u": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/rack-42u.jpg",
+  "switch-administrable-24p": "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/switch-rack.jpg",
 };
 
 function getProductImage(slug: string, categorySlug: string): string {
   if (PRODUCT_IMAGES[slug]) return PRODUCT_IMAGES[slug];
   const fallbacks: Record<string, string> = {
-    seguridad: "/manus-storage/cam-domo_6caf2a1b.jpg",
-    redes: "/manus-storage/switch-rack_99807981.jpg",
-    computo: "/manus-storage/laptop-biz_2d8ed067.jpg",
-    cableado: "/manus-storage/rack-42u_362067cf.jpg",
-    energia: "/manus-storage/ups-tower_cf48b2ce.jpg",
-    software: "/manus-storage/laptop-biz_2d8ed067.jpg",
-    servicios: "/manus-storage/switch-rack_99807981.jpg",
+    seguridad: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/cam-domo.jpg",
+    redes: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/switch-rack.jpg",
+    computo: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/laptop-biz.jpg",
+    cableado: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/rack-42u.jpg",
+    energia: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/ups-tower.jpg",
+    software: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/laptop-biz.jpg",
+    servicios: "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/switch-rack.jpg",
   };
-  return fallbacks[categorySlug] ?? "/manus-storage/cam-domo_6caf2a1b.jpg";
+  return fallbacks[categorySlug] ?? "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/store/cam-domo.jpg";
 }
 
 // ─── Product Card ─────────────────────────────────────────────────────────────

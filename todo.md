@@ -398,3 +398,15 @@
 - [x] Variables de entorno: ninguna expuesta en el bundle del cliente
 - [x] Errores del servidor: nunca exponer stack traces al cliente
 - [x] Headers de seguridad: Helmet activo (X-Content-Type-Options, X-Frame-Options, HSTS)
+
+## Fase 7 — Configuración Cloudflare R2 Storage
+
+- [x] Configurar variables de entorno R2 (R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PUBLIC_URL, R2_REGION)
+- [x] Verificar que server/storage.ts usa R2_PUBLIC_URL para generar URLs públicas
+- [x] Verificar que server/_core/storageProxy.ts sirve assets correctamente desde R2
+- [x] Subir logo IAMET al bucket R2 y actualizar URL en el código
+- [x] Subir imágenes de productos al bucket R2 y actualizar URLs en la BD
+- [x] Subir PDFs y recursos del Academy al bucket R2
+- [x] Verificar que el logo carga correctamente en el Navbar en producción
+- [x] Verificar que las imágenes de productos cargan en la Tienda
+- [x] Checkpoint y entrega

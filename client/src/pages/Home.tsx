@@ -409,7 +409,7 @@ export default function Home() {
             className="mb-8"
           >
             <img
-              src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+              src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png"
               alt="IAMET"
               className="h-14 w-auto object-contain"
               style={{ filter: "drop-shadow(0 2px 8px var(--color-iamet-accent-glow))" }}

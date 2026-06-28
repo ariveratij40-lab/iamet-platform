@@ -81,7 +81,7 @@ export default function Navbar() {
         >
           <Link href="/" onClick={closeMobile}>
             <img
-              src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+              src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png"
               alt="IAMET"
               className="h-8 w-auto object-contain"
             />
@@ -135,7 +135,7 @@ export default function Navbar() {
               >
                 <Link href="/" onClick={closeMobile}>
                   <img
-                    src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+                    src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png"
                     alt="IAMET"
                     className="h-8 w-auto object-contain"
                   />
@@ -318,7 +318,7 @@ export default function Navbar() {
               >
                 <Link href="/" onClick={() => { setExpanded(false); setActiveSubmenu(null); }}>
                   <img
-                    src="/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+                    src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png"
                     alt="IAMET"
                     className="h-9 w-auto object-contain hover:opacity-90 transition-opacity duration-200"
                   />

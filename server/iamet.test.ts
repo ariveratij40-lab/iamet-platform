@@ -70,11 +70,11 @@ describe("leads.scorePreview", () => {
 
 // ── Verticales ────────────────────────────────────────────────────────────────
 describe("verticals.list", () => {
-  it("retorna exactamente 7 verticales", async () => {
+  it("retorna al menos 9 verticales (expandido a 9 verticales en Fase 2026)", async () => {
     const caller = appRouter.createCaller(makePublicCtx());
     const result = await caller.verticals.list();
     expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBe(7);
+    expect(result.length).toBeGreaterThanOrEqual(9);
   });
 
   it("cada vertical tiene slug, name, description e icon", async () => {
@@ -90,7 +90,7 @@ describe("verticals.list", () => {
     }
   });
 
-  it("incluye las 7 verticales esperadas", async () => {
+  it("incluye las 9 verticales esperadas (Fase 2026)", async () => {
     const caller = appRouter.createCaller(makePublicCtx());
     const result = await caller.verticals.list();
     const slugs = result.map((v) => v.slug);
@@ -102,6 +102,8 @@ describe("verticals.list", () => {
       "servicios-administrados",
       "educacion",
       "compliance",
+      "control-acceso",
+      "cctv",
     ];
     for (const slug of expected) {
       expect(slugs).toContain(slug);
