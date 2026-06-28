@@ -15,6 +15,7 @@ import Tienda from "./pages/Tienda";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import TiendaVerificar from "./pages/TiendaVerificar";
 import AdminTienda from "./pages/AdminTienda";
+import AdminReuiones from "./pages/AdminReuiones";
 import TiendaPerfil from "./pages/TiendaPerfil";
 import TiendaLogin from "./pages/TiendaLogin";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
@@ -62,6 +63,7 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/monitor" component={AdminConsole} />
           <Route path="/admin/tienda" component={AdminTienda} />
+          <Route path="/admin/reuniones" component={AdminReuiones} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>

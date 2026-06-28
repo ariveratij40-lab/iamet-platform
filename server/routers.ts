@@ -44,11 +44,17 @@ import {
   getSavedCart,
   upsertSavedCart,
   getQuotesByUser,
+  getAvailableSlots,
+  getAvailableDates,
+  bookMeeting,
+  getMeetings,
+  cancelMeeting,
+  getMeetingByCancelToken,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
 import { buildSpecialistPrompt, detectSpecialist } from "./specialists";
-import { sendVerificationEmail, sendQuoteNotificationEmail } from "./email";
+import { sendVerificationEmail, sendQuoteNotificationEmail, sendMeetingConfirmationEmail, sendMeetingCancellationEmail } from "./email";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -359,7 +365,27 @@ export const appRouter = router({
           }
         }
 
-        return { reply: assistantContent, isInfraMode, specialistId: activeSpecialistId };
+        // Detect scheduling intent — trigger CalendarPicker in frontend
+        const schedulingKeywords = [
+          'agendar', 'agenda', 'reunión', 'reunion', 'cita', 'horario', 'disponibilidad',
+          'schedule', 'meeting', 'calendar', 'hablar con', 'contactar', 'visita técnica',
+          'demostración', 'demo', 'presentación', 'consulta', 'asesoría',
+        ];
+        const userMsgLower = input.message.toLowerCase();
+        const replyLower = assistantContent.toLowerCase();
+        const hasSchedulingIntent = schedulingKeywords.some(
+          (kw) => userMsgLower.includes(kw) || replyLower.includes(kw)
+        );
+        // Only trigger if the agent's reply mentions scheduling (proactive offer)
+        const agentOffersScheduling = [
+          'puedo agendar', 'agenda una reunión', 'agendar una reunión', 'selecciona una fecha',
+          'elige un horario', 'calendar', 'reserva tu', 'programa tu', 'agenda tu',
+          'haz clic', 'selecciona el día', 'disponibilidad de nuestros ingenieros',
+        ].some((phrase) => replyLower.includes(phrase));
+
+        const action = agentOffersScheduling ? 'schedule_meeting' : undefined;
+
+        return { reply: assistantContent, isInfraMode, specialistId: activeSpecialistId, action };
       }),
 
     getHistory: publicProcedure
@@ -832,5 +858,106 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   }),
   adminStoreV2: adminStoreRouter,
   storeAuth: newStoreAuthRouter,
+
+  // ─── Smart Calendar ──────────────────────────────────────────────────────────────────────────────
+  calendar: router({
+    getAvailableDates: publicProcedure
+      .input(z.object({ daysAhead: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        const dates = await getAvailableDates(input?.daysAhead ?? 14);
+        return { dates };
+      }),
+
+    getSlotsByDate: publicProcedure
+      .input(z.object({ date: z.string() }))
+      .query(async ({ input }) => {
+        const slots = await getAvailableSlots({ date: input.date });
+        return { slots };
+      }),
+
+    bookMeeting: publicProcedure
+      .input(z.object({
+        slotId: z.number(),
+        engineerId: z.number(),
+        clientName: z.string().min(2).max(100),
+        clientEmail: z.string().email(),
+        clientPhone: z.string().optional(),
+        company: z.string().optional(),
+        topic: z.string().min(5).max(500),
+        specialistId: z.string().optional(),
+        conversationId: z.string().optional(),
+        origin: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const meeting = await bookMeeting(input);
+        // Fetch slot details for email
+        const slots = await getAvailableSlots({ date: undefined });
+        const slot = slots.find((s) => s.id === input.slotId) ?? { date: '', startTime: '', endTime: '', engineerName: input.engineerId.toString(), engineerSpecialty: null };
+        const allSlots = await getAvailableSlots({});
+        const bookedSlot = allSlots.find((s) => s.id === input.slotId);
+        // Get engineer email from DB
+        const meetings = await getMeetings({ status: 'confirmed', limit: 1 });
+        const latestMeeting = meetings[0];
+        // Send confirmation email
+        await sendMeetingConfirmationEmail({
+          clientName: input.clientName,
+          clientEmail: input.clientEmail,
+          engineerName: latestMeeting?.engineerName ?? 'Nuestro Ingeniero',
+          engineerEmail: 'alvaro.rivera@iamet.mx',
+          date: latestMeeting?.date ?? '',
+          startTime: latestMeeting?.startTime ?? '',
+          endTime: latestMeeting?.endTime ?? '',
+          topic: input.topic,
+          cancelToken: meeting.cancelToken ?? '',
+          baseUrl: input.origin,
+        });
+        return { ok: true, meeting, cancelToken: meeting.cancelToken };
+      }),
+
+    cancelMeeting: publicProcedure
+      .input(z.object({ cancelToken: z.string() }))
+      .mutation(async ({ input }) => {
+        const meeting = await getMeetingByCancelToken(input.cancelToken);
+        if (!meeting) throw new TRPCError({ code: 'NOT_FOUND', message: 'Reunión no encontrada o ya cancelada.' });
+        const ok = await cancelMeeting(input.cancelToken);
+        if (ok) {
+          await sendMeetingCancellationEmail({
+            clientName: meeting.clientName,
+            clientEmail: meeting.clientEmail,
+            date: meeting.date,
+            startTime: meeting.startTime,
+            topic: meeting.topic,
+          });
+        }
+        return { ok };
+      }),
+  }),
+
+  // ─── Admin: Reuniones ────────────────────────────────────────────────────────────────────────────────────
+  adminCalendar: router({
+    getMeetings: adminProcedure
+      .input(z.object({ status: z.string().optional(), limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return getMeetings({ status: input?.status, limit: input?.limit });
+      }),
+
+    updateMeetingStatus: adminProcedure
+      .input(z.object({ id: z.number(), status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']) }))
+      .mutation(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB no disponible' });
+        const { sql } = await import('drizzle-orm');
+        await db.execute(sql.raw(`UPDATE meetings SET status = '${input.status}', updatedAt = NOW() WHERE id = ${input.id}`));
+        return { ok: true };
+      }),
+
+    getEngineers: adminProcedure.query(async () => {
+      const db = await import('./db').then(m => m.getDb());
+      if (!db) return [];
+      const { sql } = await import('drizzle-orm');
+      const result = await db.execute(sql.raw('SELECT * FROM engineers ORDER BY name ASC'));
+      return ((result as any)[0] ?? result as any) as any[];
+    }),
+  }),
 });
 export type AppRouter = typeof appRouter;

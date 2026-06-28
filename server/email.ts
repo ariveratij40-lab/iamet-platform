@@ -372,3 +372,184 @@ export async function sendQuoteNotificationEmail(params: {
     return { ok: false, error: msg };
   }
 }
+
+// ─── Email: Confirmación de Reunión ──────────────────────────────────────────
+
+function buildMeetingConfirmationHtml(params: {
+  clientName: string;
+  engineerName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  topic: string;
+  cancelToken: string;
+  cancelUrl: string;
+}): string {
+  const logoUrl = "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logo-iamet-2026.png";
+  const dateFormatted = new Date(params.date + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Reunión Confirmada — IAMET</title></head>
+<body style="margin:0;padding:0;background:#0a0f1a;font-family:'Inter',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0f1a;padding:40px 20px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#0d1b2a 0%,#1a2744 100%);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;border-bottom:1px solid #1e3a5f;">
+        <img src="${logoUrl}" alt="IAMET" style="height:48px;margin-bottom:16px;" />
+        <p style="color:#64b5f6;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0;">Evolución Tecnológica</p>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="background:#0d1b2a;padding:40px;">
+        <div style="background:#112240;border-radius:12px;padding:24px;border:1px solid #1e3a5f;margin-bottom:24px;text-align:center;">
+          <div style="width:64px;height:64px;background:linear-gradient(135deg,#1565c0,#0d47a1);border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;">📅</div>
+          <h1 style="color:#e3f2fd;font-size:24px;margin:0 0 8px;">¡Reunión Confirmada!</h1>
+          <p style="color:#90caf9;font-size:15px;margin:0;">Hola <strong>${params.clientName}</strong>, tu reunión ha sido agendada exitosamente.</p>
+        </div>
+        <!-- Detalles -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#112240;border-radius:12px;border:1px solid #1e3a5f;overflow:hidden;margin-bottom:24px;">
+          <tr><td style="padding:20px 24px;border-bottom:1px solid #1e3a5f;">
+            <p style="color:#64b5f6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 4px;">Ingeniero Asignado</p>
+            <p style="color:#e3f2fd;font-size:16px;font-weight:600;margin:0;">${params.engineerName}</p>
+          </td></tr>
+          <tr><td style="padding:20px 24px;border-bottom:1px solid #1e3a5f;">
+            <p style="color:#64b5f6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 4px;">Fecha</p>
+            <p style="color:#e3f2fd;font-size:16px;font-weight:600;margin:0;text-transform:capitalize;">${dateFormatted}</p>
+          </td></tr>
+          <tr><td style="padding:20px 24px;border-bottom:1px solid #1e3a5f;">
+            <p style="color:#64b5f6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 4px;">Horario</p>
+            <p style="color:#e3f2fd;font-size:16px;font-weight:600;margin:0;">${params.startTime} – ${params.endTime} hrs (Hora Ciudad de México)</p>
+          </td></tr>
+          <tr><td style="padding:20px 24px;">
+            <p style="color:#64b5f6;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 4px;">Tema</p>
+            <p style="color:#e3f2fd;font-size:16px;font-weight:600;margin:0;">${params.topic}</p>
+          </td></tr>
+        </table>
+        <!-- CTA Cancelar -->
+        <div style="text-align:center;margin-bottom:24px;">
+          <p style="color:#90caf9;font-size:14px;margin:0 0 16px;">¿Necesitas cancelar o reprogramar?</p>
+          <a href="${params.cancelUrl}" style="display:inline-block;background:transparent;border:1px solid #ef5350;color:#ef5350;padding:12px 28px;border-radius:8px;font-size:14px;text-decoration:none;font-weight:500;">Cancelar Reunión</a>
+        </div>
+        <p style="color:#546e7a;font-size:13px;text-align:center;margin:0;">Recibirás un recordatorio 24 horas antes de tu reunión.<br>Para cualquier duda escríbenos a <a href="mailto:contacto@iamet.mx" style="color:#64b5f6;">contacto@iamet.mx</a></p>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="background:#060d18;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border-top:1px solid #1e3a5f;">
+        <p style="color:#37474f;font-size:12px;margin:0;">IAMET Evolución Tecnológica · Monterrey, México · <a href="https://iamet.mx" style="color:#546e7a;">iamet.mx</a></p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+}
+
+function buildMeetingCancellationHtml(params: {
+  clientName: string;
+  date: string;
+  startTime: string;
+  topic: string;
+}): string {
+  const logoUrl = "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logo-iamet-2026.png";
+  const dateFormatted = new Date(params.date + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Reunión Cancelada — IAMET</title></head>
+<body style="margin:0;padding:0;background:#0a0f1a;font-family:'Inter',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0f1a;padding:40px 20px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <tr><td style="background:linear-gradient(135deg,#0d1b2a 0%,#1a2744 100%);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;border-bottom:1px solid #1e3a5f;">
+        <img src="${logoUrl}" alt="IAMET" style="height:48px;margin-bottom:16px;" />
+        <p style="color:#64b5f6;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0;">Evolución Tecnológica</p>
+      </td></tr>
+      <tr><td style="background:#0d1b2a;padding:40px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">❌</div>
+        <h1 style="color:#e3f2fd;font-size:22px;margin:0 0 12px;">Reunión Cancelada</h1>
+        <p style="color:#90caf9;font-size:15px;margin:0 0 24px;">Hola <strong>${params.clientName}</strong>, tu reunión del <strong style="text-transform:capitalize;">${dateFormatted}</strong> a las <strong>${params.startTime} hrs</strong> sobre <em>${params.topic}</em> ha sido cancelada.</p>
+        <p style="color:#90caf9;font-size:14px;margin:0 0 24px;">Si deseas reagendar, visita <a href="https://iamet.mx" style="color:#64b5f6;">iamet.mx</a> y habla con nuestro asistente IA.</p>
+        <p style="color:#546e7a;font-size:13px;margin:0;">Para cualquier duda escríbenos a <a href="mailto:contacto@iamet.mx" style="color:#64b5f6;">contacto@iamet.mx</a></p>
+      </td></tr>
+      <tr><td style="background:#060d18;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border-top:1px solid #1e3a5f;">
+        <p style="color:#37474f;font-size:12px;margin:0;">IAMET Evolución Tecnológica · Monterrey, México</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+}
+
+export async function sendMeetingConfirmationEmail(params: {
+  clientName: string;
+  clientEmail: string;
+  engineerName: string;
+  engineerEmail: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  topic: string;
+  cancelToken: string;
+  baseUrl?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  if (!ENV.resendApiKey) {
+    console.warn("[Email] RESEND_API_KEY no configurada — no se enviará confirmación de reunión");
+    return { ok: false, error: "RESEND_API_KEY no configurada" };
+  }
+  const cancelUrl = `${params.baseUrl ?? 'https://iamet.mx'}/cancelar-reunion?token=${params.cancelToken}`;
+  try {
+    const resend = getResend();
+    // Email al cliente
+    const { error: clientError } = await resend.emails.send({
+      from: "IAMET Evolución Tecnológica <noreply@iamet.mx>",
+      to: [params.clientEmail],
+      subject: `✅ Reunión confirmada: ${params.startTime} hrs del ${new Date(params.date + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}`,
+      html: buildMeetingConfirmationHtml({ ...params, cancelUrl }),
+    });
+    if (clientError) {
+      console.error("[Email] Error confirmación reunión (cliente):", clientError);
+      return { ok: false, error: clientError.message };
+    }
+    // Notificación al ingeniero
+    await resend.emails.send({
+      from: "IAMET Sistema <noreply@iamet.mx>",
+      to: [params.engineerEmail, "alvaro.rivera@iamet.mx"],
+      subject: `📅 Nueva reunión agendada: ${params.clientName} — ${params.date} ${params.startTime}`,
+      html: `<p>Nueva reunión agendada:</p><ul><li><b>Cliente:</b> ${params.clientName} (${params.clientEmail})</li><li><b>Fecha:</b> ${params.date} ${params.startTime}–${params.endTime}</li><li><b>Tema:</b> ${params.topic}</li></ul>`,
+    });
+    console.info("[Email] Confirmación de reunión enviada a:", params.clientEmail);
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[Email] Excepción confirmación reunión:", msg);
+    return { ok: false, error: msg };
+  }
+}
+
+export async function sendMeetingCancellationEmail(params: {
+  clientName: string;
+  clientEmail: string;
+  date: string;
+  startTime: string;
+  topic: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  if (!ENV.resendApiKey) {
+    console.warn("[Email] RESEND_API_KEY no configurada — no se enviará email de cancelación");
+    return { ok: false, error: "RESEND_API_KEY no configurada" };
+  }
+  try {
+    const resend = getResend();
+    const { error } = await resend.emails.send({
+      from: "IAMET Evolución Tecnológica <noreply@iamet.mx>",
+      to: [params.clientEmail],
+      subject: `Reunión cancelada — ${params.date} ${params.startTime} hrs`,
+      html: buildMeetingCancellationHtml(params),
+    });
+    if (error) return { ok: false, error: error.message };
+    console.info("[Email] Email de cancelación enviado a:", params.clientEmail);
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: msg };
+  }
+}

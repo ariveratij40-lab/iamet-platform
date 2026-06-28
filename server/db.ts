@@ -811,3 +811,254 @@ export async function getQuotesByUser(userId: number): Promise<(QuoteRequest & {
   }
   return result;
 }
+
+// ─── Calendario Inteligente ───────────────────────────────────────────────────
+
+export interface Engineer {
+  id: number;
+  name: string;
+  email: string;
+  specialty: string | null;
+  avatarUrl: string | null;
+  timezone: string;
+  active: boolean;
+  createdAt: Date;
+}
+
+export interface AvailabilitySlot {
+  id: number;
+  engineerId: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  isBooked: boolean;
+  createdAt: Date;
+}
+
+export interface Meeting {
+  id: number;
+  slotId: number;
+  engineerId: number;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string | null;
+  company: string | null;
+  topic: string;
+  specialistId: string | null;
+  conversationId: string | null;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  cancelToken: string | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function seedEngineers(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.execute(sql`SELECT COUNT(*) as cnt FROM engineers`);
+  const count = Number((existing as any)[0]?.[0]?.cnt ?? (existing as any)[0]?.cnt ?? 0);
+  if (count > 0) return;
+
+  const engineers = [
+    { name: 'Ing. Carlos Mendoza', email: 'carlos.mendoza@iamet.mx', specialty: 'Infraestructura y Cableado', timezone: 'America/Mexico_City', active: true },
+    { name: 'Ing. Ana Rodríguez', email: 'ana.rodriguez@iamet.mx', specialty: 'CCTV y Seguridad Electrónica', timezone: 'America/Mexico_City', active: true },
+    { name: 'Ing. Roberto Sánchez', email: 'roberto.sanchez@iamet.mx', specialty: 'Redes y Conectividad', timezone: 'America/Mexico_City', active: true },
+  ];
+  await db.execute(sql`
+    INSERT INTO engineers (name, email, specialty, timezone, active)
+    VALUES
+      ('Ing. Carlos Mendoza', 'carlos.mendoza@iamet.mx', 'Infraestructura y Cableado', 'America/Mexico_City', true),
+      ('Ing. Ana Rodríguez', 'ana.rodriguez@iamet.mx', 'CCTV y Seguridad Electrónica', 'America/Mexico_City', true),
+      ('Ing. Roberto Sánchez', 'roberto.sanchez@iamet.mx', 'Redes y Conectividad', 'America/Mexico_City', true)
+  `);
+}
+
+export async function seedAvailabilitySlots(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.execute(sql`SELECT COUNT(*) as cnt FROM availability_slots`);
+  const count = Number((existing as any)[0]?.[0]?.cnt ?? (existing as any)[0]?.[0]?.cnt ?? 0);
+  if (count > 0) return;
+
+  // Generate slots for the next 14 business days
+  const engineers = await db.execute(sql`SELECT id FROM engineers WHERE active = true`);
+  const engineerIds: number[] = ((engineers as any)[0] ?? engineers as any).map((e: any) => e.id);
+  if (engineerIds.length === 0) return;
+
+  const timeSlots = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+  const slotValues: string[] = [];
+
+  const today = new Date();
+  let daysAdded = 0;
+  let currentDate = new Date(today);
+  currentDate.setDate(currentDate.getDate() + 1); // Start tomorrow
+
+  while (daysAdded < 14) {
+    const dayOfWeek = currentDate.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekends
+      const dateStr = currentDate.toISOString().split('T')[0];
+      for (const engineerId of engineerIds) {
+        for (const startTime of timeSlots) {
+          const [h, m] = startTime.split(':').map(Number);
+          const endHour = h + 1;
+          const endTime = `${String(endHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+          slotValues.push(`(${engineerId}, '${dateStr}', '${startTime}', '${endTime}', false)`);
+        }
+      }
+      daysAdded++;
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  if (slotValues.length > 0) {
+    await db.execute(sql.raw(`INSERT INTO availability_slots (engineerId, date, startTime, endTime, isBooked) VALUES ${slotValues.join(', ')}`));
+  }
+}
+
+export async function getAvailableSlots(opts: { date?: string; specialistId?: string; daysAhead?: number } = {}): Promise<Array<AvailabilitySlot & { engineerName: string; engineerSpecialty: string | null }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const today = new Date().toISOString().split('T')[0];
+  const daysAhead = opts.daysAhead ?? 14;
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + daysAhead);
+  const futureDateStr = futureDate.toISOString().split('T')[0];
+
+  let query = `
+    SELECT s.*, e.name as engineerName, e.specialty as engineerSpecialty
+    FROM availability_slots s
+    JOIN engineers e ON s.engineerId = e.id
+    WHERE s.isBooked = false
+    AND e.active = true
+    AND s.date >= '${today}'
+    AND s.date <= '${futureDateStr}'
+  `;
+
+  if (opts.date) {
+    query += ` AND s.date = '${opts.date}'`;
+  }
+
+  query += ` ORDER BY s.date ASC, s.startTime ASC LIMIT 50`;
+
+  const result = await db.execute(sql.raw(query));
+  return ((result as any)[0] ?? result as any) as any[];
+}
+
+export async function getAvailableDates(daysAhead = 14): Promise<string[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const today = new Date().toISOString().split('T')[0];
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + daysAhead);
+  const futureDateStr = futureDate.toISOString().split('T')[0];
+
+  const result = await db.execute(sql.raw(`
+    SELECT DISTINCT s.date
+    FROM availability_slots s
+    JOIN engineers e ON s.engineerId = e.id
+    WHERE s.isBooked = false AND e.active = true
+    AND s.date >= '${today}' AND s.date <= '${futureDateStr}'
+    ORDER BY s.date ASC
+  `));
+  return ((result as any)[0] ?? result as any).map((r: any) => r.date);
+}
+
+export async function bookMeeting(data: {
+  slotId: number;
+  engineerId: number;
+  clientName: string;
+  clientEmail: string;
+  clientPhone?: string;
+  company?: string;
+  topic: string;
+  specialistId?: string;
+  conversationId?: string;
+}): Promise<Meeting> {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+
+  // Check slot is still available
+  const slotCheck = await db.execute(sql.raw(`SELECT * FROM availability_slots WHERE id = ${data.slotId} AND isBooked = false LIMIT 1`));
+  const slot = ((slotCheck as any)[0] ?? slotCheck as any)[0];
+  if (!slot) throw new Error('El horario seleccionado ya no está disponible');
+
+  const cancelToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+  // Mark slot as booked
+  await db.execute(sql.raw(`UPDATE availability_slots SET isBooked = true WHERE id = ${data.slotId}`));
+
+  // Insert meeting
+  await db.execute(sql.raw(`
+    INSERT INTO meetings (slotId, engineerId, clientName, clientEmail, clientPhone, company, topic, specialistId, conversationId, status, cancelToken)
+    VALUES (
+      ${data.slotId},
+      ${data.engineerId},
+      '${data.clientName.replace(/'/g, "''")}',
+      '${data.clientEmail.replace(/'/g, "''")}',
+      ${data.clientPhone ? `'${data.clientPhone.replace(/'/g, "''")}'` : 'NULL'},
+      ${data.company ? `'${data.company.replace(/'/g, "''")}'` : 'NULL'},
+      '${data.topic.replace(/'/g, "''")}',
+      ${data.specialistId ? `'${data.specialistId}'` : 'NULL'},
+      ${data.conversationId ? `'${data.conversationId}'` : 'NULL'},
+      'confirmed',
+      '${cancelToken}'
+    )
+  `));
+
+  const [created] = await db.execute(sql.raw(`SELECT * FROM meetings ORDER BY id DESC LIMIT 1`));
+  return ((created as any)[0] ?? created as any)[0] as Meeting;
+}
+
+export async function getMeetings(opts: { status?: string; limit?: number } = {}): Promise<Array<Meeting & { date: string; startTime: string; endTime: string; engineerName: string }>> {
+  const db = await getDb();
+  if (!db) return [];
+
+  let query = `
+    SELECT m.*, s.date, s.startTime, s.endTime, e.name as engineerName
+    FROM meetings m
+    JOIN availability_slots s ON m.slotId = s.id
+    JOIN engineers e ON m.engineerId = e.id
+  `;
+  if (opts.status) query += ` WHERE m.status = '${opts.status}'`;
+  query += ` ORDER BY s.date DESC, s.startTime DESC LIMIT ${opts.limit ?? 50}`;
+
+  const result = await db.execute(sql.raw(query));
+  return ((result as any)[0] ?? result as any) as any[];
+}
+
+export async function cancelMeeting(cancelToken: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.execute(sql.raw(`
+    UPDATE meetings SET status = 'cancelled', updatedAt = NOW()
+    WHERE cancelToken = '${cancelToken}' AND status = 'confirmed'
+  `));
+  const affectedRows = (result as any)[0]?.affectedRows ?? (result as any).affectedRows ?? 0;
+  if (affectedRows > 0) {
+    // Free up the slot
+    await db.execute(sql.raw(`
+      UPDATE availability_slots s
+      JOIN meetings m ON m.slotId = s.id
+      SET s.isBooked = false
+      WHERE m.cancelToken = '${cancelToken}'
+    `));
+    return true;
+  }
+  return false;
+}
+
+export async function getMeetingByCancelToken(cancelToken: string): Promise<(Meeting & { date: string; startTime: string; engineerName: string }) | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.execute(sql.raw(`
+    SELECT m.*, s.date, s.startTime, s.endTime, e.name as engineerName
+    FROM meetings m
+    JOIN availability_slots s ON m.slotId = s.id
+    JOIN engineers e ON m.engineerId = e.id
+    WHERE m.cancelToken = '${cancelToken}'
+    LIMIT 1
+  `));
+  return (((result as any)[0] ?? result as any)[0] ?? null) as any;
+}

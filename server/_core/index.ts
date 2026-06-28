@@ -11,6 +11,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic } from "./serveStatic";
+import { seedEngineers, seedAvailabilitySlots } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -204,6 +205,15 @@ async function startServer() {
 
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+  }
+
+  // ─── Seed Calendar Data ─────────────────────────────────────────────────────
+  try {
+    await seedEngineers();
+    await seedAvailabilitySlots();
+    console.log('[Calendar] Ingenieros y slots de disponibilidad inicializados');
+  } catch (e) {
+    console.warn('[Calendar] Seed omitido (tabla no existe aún o ya sembrado):', (e as Error).message);
   }
 
   server.listen(port, () => {

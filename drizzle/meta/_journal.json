@@ -15,6 +15,13 @@
       "when": 1782507895268,
       "tag": "0001_goofy_the_santerians",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782667932552,
+      "tag": "0002_early_texas_twister",
+      "breakpoints": true
     }
   ]
 }

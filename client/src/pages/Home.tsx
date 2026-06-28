@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, forwardRef, useImperativeHandle, useEffect } from "react";
 import { useVisitorTracking } from "@/hooks/useVisitorTracking";
 import LiveChatWidget from "@/components/LiveChatWidget";
+import { CalendarPicker } from "@/components/CalendarPicker";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Loader2, Sparkles, Mic, Paperclip, ChevronRight,
@@ -108,6 +109,7 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
     const [chatOpen, setChatOpen] = useState(false);
     const [lastFailedText, setLastFailedText] = useState<string | null>(null);
     const [lastFailedSpecialist, setLastFailedSpecialist] = useState<string | undefined>(undefined);
+    const [showCalendar, setShowCalendar] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -154,6 +156,10 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
           ...prev,
           { id: nanoid(), role: "assistant", content: res.reply },
         ]);
+        // If agent offers scheduling, show CalendarPicker
+        if ((res as any).action === 'schedule_meeting') {
+          setTimeout(() => setShowCalendar(true), 600);
+        }
       } catch (err: unknown) {
         // Log del error real para debugging
         const errorMsg = err instanceof Error ? err.message : String(err);
@@ -266,6 +272,31 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
                 </div>
               )}
               <div ref={messagesEndRef} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Smart Calendar — aparece cuando el agente ofrece agendar */}
+        <AnimatePresence>
+          {showCalendar && (
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.97 }}
+              transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+              className="mb-4"
+            >
+              <CalendarPicker
+                sessionId={conversationSessionId ?? undefined}
+                specialistId={selectedSpecialist ?? undefined}
+                onClose={() => setShowCalendar(false)}
+                onBooked={(cancelToken) => {
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: nanoid(), role: "assistant", content: `✅ ¡Tu reunión ha sido agendada exitosamente! Revisa tu correo para los detalles y el enlace de cancelación si lo necesitas.` },
+                  ]);
+                }}
+              />
             </motion.div>
           )}
         </AnimatePresence>

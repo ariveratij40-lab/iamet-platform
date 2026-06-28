@@ -323,3 +323,51 @@ export const storeUsers = pgTable("store_users", {
 });
 export type StoreUser = typeof storeUsers.$inferSelect;
 export type InsertStoreUser = typeof storeUsers.$inferInsert;
+
+// ─── Calendario Inteligente (SDR) ─────────────────────────────────────────────
+export const meetingStatusEnum = pgEnum("meeting_status", ["pending", "confirmed", "cancelled", "completed"]);
+
+export const engineers = pgTable("engineers", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  specialty: varchar("specialty", { length: 128 }),  // e.g. "Infraestructura, CCTV"
+  avatarUrl: text("avatarUrl"),
+  timezone: varchar("timezone", { length: 64 }).default("America/Mexico_City").notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Engineer = typeof engineers.$inferSelect;
+export type InsertEngineer = typeof engineers.$inferInsert;
+
+export const availabilitySlots = pgTable("availability_slots", {
+  id: serial("id").primaryKey(),
+  engineerId: integer("engineerId").notNull(),
+  date: varchar("date", { length: 10 }).notNull(),       // YYYY-MM-DD
+  startTime: varchar("startTime", { length: 5 }).notNull(), // HH:MM
+  endTime: varchar("endTime", { length: 5 }).notNull(),     // HH:MM
+  isBooked: boolean("isBooked").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AvailabilitySlot = typeof availabilitySlots.$inferSelect;
+export type InsertAvailabilitySlot = typeof availabilitySlots.$inferInsert;
+
+export const meetings = pgTable("meetings", {
+  id: serial("id").primaryKey(),
+  slotId: integer("slotId").notNull(),
+  engineerId: integer("engineerId").notNull(),
+  clientName: varchar("clientName", { length: 128 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }).notNull(),
+  clientPhone: varchar("clientPhone", { length: 32 }),
+  company: varchar("company", { length: 256 }),
+  topic: text("topic").notNull(),
+  specialistId: varchar("specialistId", { length: 64 }),  // ID del especialista IA que derivó
+  conversationId: varchar("conversationId", { length: 64 }), // sesión del agente
+  status: meetingStatusEnum("status").default("pending").notNull(),
+  cancelToken: varchar("cancelToken", { length: 128 }),  // token único para cancelar
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type Meeting = typeof meetings.$inferSelect;
+export type InsertMeeting = typeof meetings.$inferInsert;

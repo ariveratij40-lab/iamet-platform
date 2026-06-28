@@ -410,3 +410,50 @@
 - [x] Verificar que el logo carga correctamente en el Navbar en producción
 - [x] Verificar que las imágenes de productos cargan en la Tienda
 - [x] Checkpoint y entrega
+
+## Calendario Inteligente — Agente SDR
+
+### Base de Datos
+- [x] Tabla `engineers`: id, name, email, specialty, avatarUrl, timezone, active
+- [x] Tabla `availability_slots`: id, engineerId, date, startTime, endTime, isBooked
+- [x] Tabla `meetings`: id, slotId, engineerId, clientName, clientEmail, clientPhone, company, topic, specialistId, status (pending/confirmed/cancelled), notes, cancelToken, createdAt
+- [x] Migración SQL aplicada en BD
+
+### Backend (tRPC)
+- [x] `calendar.getAvailableDates(daysAhead)`: retorna fechas con slots disponibles en los próximos 14 días
+- [x] `calendar.getSlotsByDate(date)`: retorna slots disponibles por fecha con datos del ingeniero
+- [x] `calendar.bookMeeting(slotId, clientData, topic)`: reserva el slot, crea el meeting, marca slot como booked, envía emails
+- [x] `calendar.cancelMeeting(token)`: cancela reunión por token único
+- [x] `adminCalendar.getMeetings(status?, limit?)` (admin): lista todas las reuniones con filtros
+- [x] `adminCalendar.updateMeetingStatus(id, status)` (admin): confirmar/cancelar desde el panel
+- [x] Seed de disponibilidad: lunes a viernes 9-18h, slots de 1 hora, próximas 4 semanas (ejecutado en startup)
+
+### Agente IA — SDR Flow
+- [x] Detectar intención de agendar reunión en el mensaje del usuario (keywords: reunión, agendar, cita, hablar, ingeniero, demo, visita)
+- [x] Cuando el agente ofrece agendar: retorna `action: "schedule_meeting"` en la respuesta tRPC
+- [x] Frontend detecta `action: "schedule_meeting"` y muestra el componente CalendarPicker inline en el chat
+- [x] IAMET_BASE_PROMPT actualizado: el agente ofrece proactivamente agendar reunión cuando detecta interés
+- [x] Confirmar reserva desde el chat sin salir de la conversación
+
+### UI — CalendarPicker en el Chat
+- [x] Componente `CalendarPicker.tsx`: selector de fecha (próximos 14 días con slots disponibles)
+- [x] Al seleccionar fecha, mostrar slots de hora disponibles agrupados por ingeniero
+- [x] Formulario inline: nombre, email, teléfono, empresa, tema del proyecto
+- [x] Confirmación visual con resumen de la reunión agendada (paso 4 de 4)
+- [x] Botón "Volver" para navegar entre pasos
+- [x] Animación de entrada/salida con framer-motion en el chat
+
+### Panel Admin `/admin/reuniones`
+- [x] Página `/admin/reuniones` con lista de reuniones expandible por fila
+- [x] Filtros por estado (pendiente/confirmada/completada/cancelada)
+- [x] Tarjetas de métricas: total, confirmadas, pendientes, completadas, canceladas
+- [x] Botones de cambio de estado: Pendiente, Confirmada, Completada, Cancelada
+- [x] Badge de estado con colores (pendiente=amarillo, confirmada=azul, completada=verde, cancelada=rojo)
+- [x] Detalle expandible: fecha, hora, ingeniero, datos de contacto, tema, especialista IA
+- [x] Enlace en sidebar del DashboardLayout
+
+### Emails
+- [x] Email al cliente: confirmación con fecha, hora, ingeniero asignado, link de cancelación (sendMeetingConfirmationEmail)
+- [x] Email al ingeniero: notificación de nueva reunión con datos del cliente y tema
+- [x] Email al admin (alvaro.rivera@iamet.mx): resumen de nueva reunión agendada
+- [x] Email de cancelación al cliente (sendMeetingCancellationEmail)
