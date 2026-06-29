@@ -53,6 +53,9 @@ import {
   trackAnalyticsEvent,
   getAnalyticsSummary,
   getAttributionSummary,
+  adminGetFollowups,
+  adminCancelFollowup,
+  adminGetFollowupById,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -1004,6 +1007,91 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       }),
   }),
 
+  // ─── Admin: Seguimientos ─────────────────────────────────────────────────────────────────────────────────
+  adminFollowups: router({
+    list: adminProcedure
+      .input(z.object({
+        status: z.string().optional(),
+        vertical: z.string().optional(),
+        leadName: z.string().optional(),
+        limit: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return adminGetFollowups({ status: input?.status, limit: input?.limit ?? 200 });
+      }),
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return adminGetFollowupById(input.id);
+      }),
+    cancel: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const ok = await adminCancelFollowup(input.id);
+        return { ok };
+      }),
+    sendNow: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const followup = await adminGetFollowupById(input.id);
+        if (!followup) throw new TRPCError({ code: 'NOT_FOUND', message: 'Seguimiento no encontrado' });
+        if (!['pending', 'failed'].includes(followup.status)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Solo se pueden enviar seguimientos pendientes o fallidos' });
+        }
+        // Import Resend and send the email
+        const { getResend } = await import('./email');
+        const resend = getResend();
+        if (!resend) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Email no configurado' });
+        try {
+          await resend.emails.send({
+            from: 'IAMET <noreply@iamet.mx>',
+            to: followup.leadEmail,
+            subject: followup.emailSubject ?? `Seguimiento de IAMET — ${followup.type}`,
+            html: followup.emailBody ?? `<p>Hola ${followup.leadName}, te escribimos desde IAMET.</p>`,
+          });
+          // Mark as sent
+          const db = await import('./db').then(m => m.getDb());
+          if (db) {
+            const { sql } = await import('drizzle-orm');
+            await db.execute(sql.raw(`UPDATE lead_followups SET status = 'sent', sentAt = ${Date.now()} WHERE id = ${input.id}`));
+          }
+          return { ok: true };
+        } catch (e: any) {
+          // Mark as failed
+          const db = await import('./db').then(m => m.getDb());
+          if (db) {
+            const { sql } = await import('drizzle-orm');
+            await db.execute(sql.raw(`UPDATE lead_followups SET status = 'failed' WHERE id = ${input.id}`));
+          }
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: e?.message ?? 'Error al enviar email' });
+        }
+      }),
+    retry: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB no disponible' });
+        const { sql } = await import('drizzle-orm');
+        // Reset to pending so the next heartbeat picks it up
+        await db.execute(sql.raw(`UPDATE lead_followups SET status = 'pending', scheduledAt = ${Date.now()} WHERE id = ${input.id} AND status = 'failed'`));
+        return { ok: true };
+      }),
+    getStats: adminProcedure.query(async () => {
+      const db = await import('./db').then(m => m.getDb());
+      if (!db) return { pending: 0, sent: 0, failed: 0, skipped: 0, total: 0 };
+      const { sql } = await import('drizzle-orm');
+      const result = await db.execute(sql.raw(`SELECT status, COUNT(*) as cnt FROM lead_followups GROUP BY status`));
+      const rows = ((result as any)[0] ?? result) as any[];
+      const stats = { pending: 0, sent: 0, failed: 0, skipped: 0, total: 0 };
+      rows.forEach((r: any) => {
+        const s = r.status as keyof typeof stats;
+        const cnt = Number(r.cnt);
+        if (s in stats) stats[s] = cnt;
+        stats.total += cnt;
+      });
+      return stats;
+    }),
+  }),
   // ─── Admin: Reuniones ────────────────────────────────────────────────────────────────────────────────────
   adminCalendar: router({
     getMeetings: adminProcedure
@@ -1029,6 +1117,20 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       const result = await db.execute(sql.raw('SELECT * FROM engineers ORDER BY name ASC'));
       return ((result as any)[0] ?? result as any) as any[];
     }),
+
+    updateMeetingUrl: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        meetingUrl: z.string().url('URL inválida').or(z.literal('')),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB no disponible' });
+        const { sql } = await import('drizzle-orm');
+        const safeUrl = input.meetingUrl.replace(/'/g, "''");
+        await db.execute(sql.raw(`UPDATE meetings SET meetingUrl = '${safeUrl}', updatedAt = NOW() WHERE id = ${input.id}`));
+        return { ok: true, meetingUrl: input.meetingUrl };
+      }),
   }),
 
 });

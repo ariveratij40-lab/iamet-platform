@@ -546,3 +546,62 @@
 - [x] Endpoint `POST /api/scheduled/meeting-reminders` registrado en index.ts
 - [x] Heartbeat listo para configurar después del Deploy
 - [x] `scheduleMeetingReminders` llamado automáticamente en `calendar.bookMeeting`
+
+## Tareas Operativas Post-Sprint 3
+
+### Schedules (Heartbeats)
+- [x] Heartbeat `iamet-lead-followups`: cada hora — procesa emails de seguimiento pendientes
+- [x] Heartbeat `iamet-meeting-reminders`: cada 30 minutos — procesa recordatorios de reuniones
+
+### meetingUrl Editable
+- [x] Campo de texto `meetingUrl` editable en el detalle de cada reunión en /admin/reuniones
+- [x] tRPC `adminCalendar.updateMeetingUrl(meetingId, url)` para guardar el link
+- [x] El link se inyecta automáticamente en los emails de recordatorio 24h/2h/30min
+
+### Panel /admin/seguimientos
+- [x] Página `/admin/seguimientos` con cola de automatizaciones de leads
+- [x] Columnas: Lead, Secuencia, Estado, Programado, Enviado, Score IA, Acciones
+- [x] Fila expandible: auditoría completa de tiempos, datos del lead, asunto del email
+- [x] Botones: Ver correo (preview HTML), Enviar ahora, Cancelar, Reintentar fallidos
+- [x] Filtros: por estado, vertical y búsqueda de lead/empresa
+- [x] Indicador "Próximo envío en Xh Ym" para seguimientos pendientes
+- [x] Dialog de preview con email HTML generado por IA y botón "Enviar ahora" desde el preview
+- [x] tRPC `adminFollowups.list`, `getById`, `cancel`, `sendNow`, `retry`, `getStats`
+- [x] Enlace en sidebar del DashboardLayout (icono Mail)
+- [x] Auto-refresh cada 30 segundos
+
+## Sprint 4 — CRM Inteligente con IA
+
+### Lead Scoring Dinámico
+- [ ] Tabla `lead_scores`: id, leadId, score, factors (JSON), recommendation, updatedAt
+- [ ] Función `calculateLeadScore(leadId)`: calcula score con 12+ variables (industria, vertical, empresa, tamaño, cargo, tiempo en sitio, páginas vistas, conversaciones IA, fuente, campaña, historial de reuniones)
+- [ ] tRPC `leads.getScore(leadId)`: retorna score actual + desglose de factores
+- [ ] tRPC `leads.recalculateScore(leadId)`: fuerza recálculo del score
+- [ ] Score se recalcula automáticamente al: crear lead, crear conversación, agendar reunión, actualizar estado
+- [ ] Columna "Score" en tabla de leads del admin con badge de color (rojo/amarillo/verde)
+- [ ] Acción recomendada por IA según score: "Llamar hoy", "Enviar propuesta", "Nutrir con contenido"
+
+### Recomendaciones IA Post-Conversación
+- [ ] Tabla `ai_recommendations`: id, leadId, conversationId, vendorSuggestion, specialistSuggestion, products[], services[], crossSell[], reasoning, createdAt
+- [ ] Función `generateRecommendations(leadId, conversationId)`: invoca LLM con historial de conversación
+- [ ] LLM analiza: interés detectado, industria, tamaño, pain points → sugiere vendedor, especialista, productos, cross-sell
+- [ ] tRPC `leads.getRecommendations(leadId)`: retorna recomendaciones con razonamiento
+- [ ] Panel en detalle de lead: tarjeta "Recomendaciones IA" con chips de productos/servicios sugeridos
+- [ ] Recomendaciones se generan automáticamente al cerrar cada conversación
+
+### Timeline Comercial
+- [ ] Tabla `lead_timeline`: id, leadId, type (visit/chat/meeting/quote/email/status_change), title, description, metadata (JSON), createdAt
+- [ ] Función `addTimelineEvent(leadId, type, title, description, metadata)`: agrega evento a la timeline
+- [ ] Eventos registrados automáticamente: lead creado, conversación iniciada, reunión agendada, email de seguimiento enviado, cotización solicitada, estado cambiado, recordatorio enviado
+- [ ] tRPC `leads.getTimeline(leadId)`: retorna timeline completa ordenada por fecha
+- [ ] Panel "Timeline" en detalle de lead: línea de tiempo vertical con íconos por tipo de evento
+- [ ] Cada evento muestra: fecha, hora, tipo, descripción y metadata relevante
+
+### Briefing Diario IA
+- [ ] Tabla `daily_briefings`: id, date, content (JSON), generatedAt, deliveredAt
+- [ ] Función `generateDailyBriefing()`: invoca LLM con datos del día (reuniones, leads, seguimientos, campañas)
+- [ ] Briefing incluye: reuniones del día, leads con score >90, leads sin seguimiento, mejor campaña CPL
+- [ ] Heartbeat `daily-briefing`: cada día a las 7:00 AM hora México
+- [ ] Email de briefing al admin (alvaro.rivera@iamet.mx) con resumen ejecutivo
+- [ ] Panel `/admin/briefings`: historial de briefings diarios con vista expandible
+- [ ] Enlace en sidebar del DashboardLayout

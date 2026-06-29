@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Calendar, Clock, User, Mail, Phone, Building2, CheckCircle2, XCircle, RefreshCw, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Clock, User, Mail, Phone, Building2, CheckCircle2, XCircle, RefreshCw, Loader2, ChevronDown, ChevronUp, Link2, Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   pending: { label: "Pendiente", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30", icon: <Clock size={12} /> },
@@ -27,11 +28,21 @@ export default function AdminReuiones() {
   const [, navigate] = useLocation();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [editingUrl, setEditingUrl] = useState<Record<number, string>>({});
 
   const { data: meetings, isLoading, refetch } = trpc.adminCalendar.getMeetings.useQuery(
     { status: statusFilter === "all" ? undefined : statusFilter, limit: 100 },
     { enabled: !!user && user.role === "admin" }
   );
+
+  const updateMeetingUrl = trpc.adminCalendar.updateMeetingUrl.useMutation({
+    onSuccess: (_, vars) => {
+      toast.success("Link de reunión guardado");
+      refetch();
+      setEditingUrl(prev => { const n = { ...prev }; delete n[vars.id]; return n; });
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const updateStatus = trpc.adminCalendar.updateMeetingStatus.useMutation({
     onSuccess: () => {
@@ -220,6 +231,41 @@ export default function AdminReuiones() {
                             <p className="text-blue-300 text-sm">{meeting.specialistId}</p>
                           </div>
                         )}
+
+                        {/* meetingUrl editable */}
+                        <div className="col-span-2 md:col-span-3">
+                          <p className="text-slate-500 text-xs uppercase tracking-wide mb-2 flex items-center gap-1">
+                            <Link2 size={11} /> Link de Reunión Virtual
+                          </p>
+                          <div className="flex gap-2">
+                            <Input
+                              value={editingUrl[meeting.id] ?? meeting.meetingUrl ?? ""}
+                              onChange={(e) => setEditingUrl(prev => ({ ...prev, [meeting.id]: e.target.value }))}
+                              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                              className="flex-1 h-8 text-sm bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={updateMeetingUrl.isPending}
+                              onClick={() => updateMeetingUrl.mutate({ id: meeting.id, meetingUrl: editingUrl[meeting.id] ?? meeting.meetingUrl ?? "" })}
+                              className="h-8 px-3 border-blue-500/40 text-blue-300 hover:bg-blue-500/10"
+                            >
+                              <Save size={13} className="mr-1" /> Guardar
+                            </Button>
+                            {(meeting.meetingUrl || editingUrl[meeting.id]) && (
+                              <a
+                                href={editingUrl[meeting.id] ?? meeting.meetingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-3 h-8 rounded-md text-xs font-medium bg-green-500/10 text-green-300 border border-green-500/30 hover:bg-green-500/20 transition-colors"
+                              >
+                                <Link2 size={12} /> Abrir
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-slate-600 text-xs mt-1">Este link se incluirá automáticamente en los recordatorios de 24h, 2h y 30min.</p>
+                        </div>
                       </div>
 
                       {/* Status actions */}

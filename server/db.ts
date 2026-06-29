@@ -1290,3 +1290,117 @@ export async function getAttributionSummary(): Promise<{
     return empty;
   }
 }
+
+// ─── Admin Followups ───────────────────────────────────────────────────────────
+
+export interface FollowupWithLead {
+  id: number;
+  leadId: number;
+  leadName: string;
+  leadEmail: string;
+  company: string | null;
+  vertical: string | null;
+  leadScore: number;
+  type: string;
+  status: string;
+  scheduledAt: number;
+  sentAt: number | null;
+  emailSubject: string | null;
+  emailBody: string | null;
+  createdAt: number;
+}
+
+export async function adminGetFollowups(opts: { status?: string; limit?: number } = {}): Promise<FollowupWithLead[]> {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    const { sql } = await import('drizzle-orm');
+    const statusClause = opts.status && opts.status !== 'all' ? `AND lf.status = '${opts.status}'` : '';
+    const limit = opts.limit ?? 100;
+    const result = await db.execute(sql.raw(`
+      SELECT
+        lf.id, lf.leadId, lf.type, lf.status,
+        lf.scheduledAt, lf.sentAt, lf.emailSubject, lf.emailBody, lf.createdAt,
+        l.name as leadName, l.email as leadEmail, l.company, l.vertical,
+        COALESCE(l.score, 0) as leadScore
+      FROM lead_followups lf
+      LEFT JOIN leads l ON l.id = lf.leadId
+      WHERE 1=1 ${statusClause}
+      ORDER BY lf.scheduledAt ASC
+      LIMIT ${limit}
+    `));
+    const rows = ((result as any)[0] ?? result) as any[];
+    return rows.map((r: any) => ({
+      id: Number(r.id),
+      leadId: Number(r.leadId),
+      leadName: r.leadName ?? 'Desconocido',
+      leadEmail: r.leadEmail ?? '',
+      company: r.company ?? null,
+      vertical: r.vertical ?? null,
+      leadScore: Number(r.leadScore ?? 0),
+      type: r.type ?? '24h',
+      status: r.status ?? 'pending',
+      scheduledAt: Number(r.scheduledAt ?? 0),
+      sentAt: r.sentAt ? Number(r.sentAt) : null,
+      emailSubject: r.emailSubject ?? null,
+      emailBody: r.emailBody ?? null,
+      createdAt: Number(r.createdAt ?? 0),
+    }));
+  } catch (e) {
+    console.warn('[AdminFollowups] adminGetFollowups error:', e);
+    return [];
+  }
+}
+
+export async function adminCancelFollowup(followupId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    const { sql } = await import('drizzle-orm');
+    await db.execute(sql.raw(`UPDATE lead_followups SET status = 'skipped' WHERE id = ${followupId} AND status = 'pending'`));
+    return true;
+  } catch (e) {
+    console.warn('[AdminFollowups] adminCancelFollowup error:', e);
+    return false;
+  }
+}
+
+export async function adminGetFollowupById(followupId: number): Promise<FollowupWithLead | null> {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const { sql } = await import('drizzle-orm');
+    const result = await db.execute(sql.raw(`
+      SELECT
+        lf.id, lf.leadId, lf.type, lf.status,
+        lf.scheduledAt, lf.sentAt, lf.emailSubject, lf.emailBody, lf.createdAt,
+        l.name as leadName, l.email as leadEmail, l.company, l.vertical,
+        COALESCE(l.score, 0) as leadScore
+      FROM lead_followups lf
+      LEFT JOIN leads l ON l.id = lf.leadId
+      WHERE lf.id = ${followupId}
+      LIMIT 1
+    `));
+    const rows = ((result as any)[0] ?? result) as any[];
+    if (!rows.length) return null;
+    const r = rows[0];
+    return {
+      id: Number(r.id),
+      leadId: Number(r.leadId),
+      leadName: r.leadName ?? 'Desconocido',
+      leadEmail: r.leadEmail ?? '',
+      company: r.company ?? null,
+      vertical: r.vertical ?? null,
+      leadScore: Number(r.leadScore ?? 0),
+      type: r.type ?? '24h',
+      status: r.status ?? 'pending',
+      scheduledAt: Number(r.scheduledAt ?? 0),
+      sentAt: r.sentAt ? Number(r.sentAt) : null,
+      emailSubject: r.emailSubject ?? null,
+      emailBody: r.emailBody ?? null,
+      createdAt: Number(r.createdAt ?? 0),
+    };
+  } catch (e) {
+    return null;
+  }
+}
