@@ -608,26 +608,26 @@
 ## Sprint 4.5 — Automatización del CRM
 
 ### Triggers Internos
-- [ ] `leads.create`: llamar `calculateLeadScore(leadId)` + `addTimelineEvent(leadId, 'lead_created', ...)` + alerta Hot Lead si score >80
-- [ ] `calendar.bookMeeting`: llamar `addTimelineEvent(leadId, 'meeting_scheduled', ...)` + recalcular score
-- [ ] `adminCalendar.updateMeetingStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score
-- [ ] `processLeadFollowups`: llamar `addTimelineEvent(leadId, 'followup_sent', ...)` después de cada envío
-- [ ] `processMeetingReminders`: llamar `addTimelineEvent(leadId, 'reminder_sent', ...)` después de cada envío
-- [ ] `adminLeads.updateStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score
+- [x] `leads.create`: llamar `calculateLeadScore(leadId)` + `addTimelineEvent(leadId, 'lead_created', ...)` + alerta Hot Lead si score >80
+- [x] `calendar.bookMeeting`: llamar `addTimelineEvent(leadId, 'meeting_scheduled', ...)` + recalcular score
+- [x] `adminCalendar.updateMeetingStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score
+- [x] `processLeadFollowups`: llamar `addTimelineEvent(leadId, 'followup_sent', ...)` después de cada envío
+- [x] `processMeetingReminders`: llamar `addTimelineEvent(leadId, 'reminder_sent', ...)` después de cada envío
+- [x] `adminLeads.updateStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score
 
 ### Pipeline Editable en /admin/crm
-- [ ] Selector de estado inline en la lista de leads: new → contacted → qualified → proposal → won / lost
-- [ ] tRPC `crm.updateLeadStatus(leadId, status)`: actualiza estado + agrega evento a timeline + recalcula score
-- [ ] Badge de estado con colores: new=gris, contacted=azul, qualified=amarillo, proposal=naranja, won=verde, lost=rojo
-- [ ] Filtros por estado en la lista de leads del CRM
-- [ ] Contador de leads por estado en las tarjetas KPI
+- [x] Selector de estado inline en la lista de leads: new → contacted → qualified → proposal → won / lost
+- [x] tRPC `crm.updateLeadStatus(leadId, status)`: actualiza estado + agrega evento a timeline + recalcula score
+- [x] Badge de estado con colores: new=gris, contacted=azul, qualified=amarillo, proposal=naranja, won=verde, lost=rojo
+- [x] Filtros por estado en la lista de leads del CRM
+- [x] Contador de leads por estado en las tarjetas KPI
 
 ### Alertas Hot Lead (score >80)
-- [ ] Función `checkAndAlertHotLead(leadId, score)`: si score ≥ 80, enviar notificación al owner + email al admin
-- [ ] Notificación con título: "🔥 Lead Hot: [empresa] — [score]/100"
-- [ ] Email al admin con: nombre, empresa, score, acción recomendada, link al CRM
-- [ ] Alerta se dispara en: leads.create, recalculateScore, updateLeadStatus
-- [ ] No enviar alerta duplicada si ya se envió en las últimas 24h para el mismo lead
+- [x] Función `checkAndAlertHotLead(leadId, score)`: si score ≥ 80, enviar notificación al owner + email al admin
+- [x] Notificación con título: "🔥 Lead Hot: [empresa] — [score]/100"
+- [x] Email al admin con: nombre, empresa, score, acción recomendada, link al CRM
+- [x] Alerta se dispara en: leads.create, recalculateScore, updateLeadStatus
+- [x] No enviar alerta duplicada si ya se envió en las últimas 24h para el mismo lead
 
 ## Sprint 4.5 — Completado ✅
 
@@ -640,3 +640,57 @@
 - [x] Colores por estado: new=gris, contacted=azul, qualified=amarillo, proposal=naranja, won=verde, lost=rojo
 - [x] Filtros por estado en la lista de leads del CRM (incluye Perdidos)
 - [x] TypeScript: 0 errores | Tests: 23/23 pasados
+
+## Sprint 5 — Agente Comercial Autónomo (Tool Orchestration)
+
+### Capa de Herramientas (server/agent-tools.ts)
+- [x] `searchKnowledge(query)`: busca en base de conocimiento IAMET + Panduit
+- [x] `searchProducts(query, category?)`: busca productos en catálogo con precios de referencia
+- [x] `recommendSolutions(needs, industry, size)`: genera arquitectura de solución con productos específicos
+- [x] `createLead(data)`: crea lead en BD con todos los campos de precalificación
+- [x] `updateLead(leadId, data)`: actualiza datos del lead (industria, tamaño, presupuesto, urgencia)
+- [x] `calculateLeadScore(leadId)`: recalcula score y retorna resultado
+- [x] `assignSalesperson(leadId, criteria)`: asigna vendedor según vertical e industria
+- [x] `assignEngineer(leadId, criteria)`: asigna ingeniero según especialidad requerida
+- [x] `bookMeeting(leadId, date, engineerId)`: agenda reunión y retorna confirmación
+- [x] `sendEmail(to, subject, body, type)`: envía email usando Resend
+- [x] `sendBrochure(leadId, vertical)`: envía brochure PDF del vertical por email
+- [x] `generateProposal(leadId, items)`: genera estimación preliminar de proyecto con montos MXN
+- [x] `reactivateLead(leadId, reason)`: reactiva lead frío con mensaje personalizado
+- [x] `createTask(leadId, title, dueDate, assignee)`: crea tarea de seguimiento
+- [x] `notifyOwner(title, content)`: notifica al owner con alerta de acción comercial
+
+### Orquestador LLM (server/agent-orchestrator.ts)
+- [x] Función `runAgentLoop(sessionId, userMessage, history)`: loop de razonamiento con tool_choice
+- [x] Definición OpenAI-compatible de las 15 herramientas para el LLM (JSON Schema)
+- [x] Parsing de tool_calls en la respuesta del LLM
+- [x] Ejecución de herramientas y retorno de resultados al LLM
+- [x] Máximo 5 iteraciones por turno para evitar loops infinitos
+- [x] Respuesta final al usuario después de ejecutar herramientas
+
+### Memoria Comercial (server/agent-memory.ts)
+- [x] Tabla `agent_memory`: id, sessionId, leadId, key, value (JSON), createdAt, updatedAt (implementada via metadata JSON en conversations)
+- [x] Función `getMemory(sessionId)`: recupera contexto acumulado de la sesión
+- [x] Función `updateMemory(sessionId, key, value)`: actualiza campo de memoria
+- [x] Función `buildMemoryContext(sessionId)`: construye string de contexto para el system prompt
+- [x] Campos de memoria: industry, companySize, branches, budget, urgency, decisionMaker, competitors, needs, currentSystems, timeline
+- [x] Herramienta `updateLeadMemory(sessionId, fields)` para que el agente actualice la memoria (via updateMemoryFromConversation post-turno)
+
+### System Prompt del Agente SDR
+- [x] Actualizar IAMET_BASE_PROMPT en routers.ts para modo SDR con tool orchestration (buildSDRSystemPrompt en agent-orchestrator.ts)
+- [x] Instrucciones de precalificación: preguntar industria, tamaño, sucursales, presupuesto, urgencia
+- [x] Instrucciones de descubrimiento: preguntar sobre sistemas actuales, competidores, decisores
+- [x] Instrucciones de recomendación: construir arquitectura completa con productos específicos
+- [x] Instrucciones de cotización: generar estimación preliminar antes de escalar al ingeniero
+- [x] Instrucciones de agenda: ofrecer reunión cuando el lead esté calificado (score ≥ 50)
+
+### Conexión en routers.ts
+- [x] Reemplazar sendMessage para usar `runAgentLoop` del orquestador
+- [x] Pasar historial de conversación al orquestador
+- [x] Retornar `toolsUsed[]` en la respuesta para mostrar en UI
+
+### UI del Chat (Home.tsx / AIChatBox)
+- [x] Mostrar indicador de "Agente ejecutando acción..." cuando hay tool calls en progreso
+- [x] Mostrar chips de acciones ejecutadas: "📅 Reunión agendada", "📧 Email enviado", "📊 Score calculado"
+- [x] Mostrar tarjeta de propuesta preliminar cuando el agente genera `generateProposal`
+- [x] Mostrar tarjeta de confirmación de reunión cuando el agente ejecuta `bookMeeting`

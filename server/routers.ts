@@ -65,6 +65,7 @@ import { scheduleMeetingReminders } from "./reminders";
 import { scheduleLeadFollowups } from "./followups";
 import { calculateLeadScore as calcScore, getLeadScore } from "./scoring";
 import { addTimelineEvent } from "./timeline";
+import { runAgentLoop } from "./agent-orchestrator";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -357,35 +358,29 @@ export const appRouter = router({
           content: input.message,
         });
 
-        // Get conversation history
+        // Get conversation history for context
         const history = await getMessagesByConversation(conversation.id);
 
-        // Build system prompt: use specialist if provided, else auto-detect
-        const specialistId = input.specialistId ?? detectSpecialist(history);
-        const systemPrompt = specialistId
-          ? buildSpecialistPrompt(specialistId)
-          : buildSystemPrompt(history);
-        const llmMessages = [
-          { role: "system" as const, content: systemPrompt },
-          ...history.slice(-12).map((m) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })),
-        ];
-
-        // Call LLM
-        let response: any;
+        // ─── Sprint 5: Agente SDR con Tool Orchestration ────────────────────
+        let agentResult: Awaited<ReturnType<typeof runAgentLoop>>;
         try {
-          response = await invokeLLM({ messages: llmMessages });
+          agentResult = await runAgentLoop(
+            input.sessionId,
+            input.message,
+            history.slice(-10).map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            })),
+            conversation.leadId ?? undefined
+          );
         } catch (llmErr: unknown) {
           const llmErrMsg = llmErr instanceof Error ? llmErr.message : String(llmErr);
-          console.error(`[Agent] LLM call failed session=${input.sessionId} specialist=${specialistId ?? 'none'} error=${llmErrMsg}`);
+          console.error(`[Agent] Orchestrator failed session=${input.sessionId} error=${llmErrMsg}`);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error al contactar el modelo de IA: ${llmErrMsg}` });
         }
-        const rawContent = response?.choices?.[0]?.message?.content;
-        const assistantContent =
-          typeof rawContent === "string" ? rawContent : "Disculpa, ocurrió un error. ¿Puedes repetir tu pregunta?";
-        console.log(`[Agent] LLM OK session=${input.sessionId} specialist=${specialistId ?? 'none'} elapsed=${Date.now()-t0}ms replyLen=${assistantContent.length}`);
+
+        const assistantContent = agentResult.reply;
+        console.log(`[Agent] SDR OK session=${input.sessionId} tools=${agentResult.toolsUsed.length} elapsed=${Date.now()-t0}ms replyLen=${assistantContent.length}`);
 
         // Save assistant message
         await addMessage({
@@ -396,9 +391,9 @@ export const appRouter = router({
 
         // Detect if infrastructure topic is active for frontend indicator
         const isInfraMode = detectInfrastructureTopic(history);
-        const activeSpecialistId = specialistId ?? detectSpecialist([...history, { role: 'assistant', content: assistantContent }]);
+        const activeSpecialistId = input.specialistId ?? detectSpecialist([...history, { role: 'assistant', content: assistantContent }]);
 
-        // Update conversation metadata
+        // Update conversation metadata (score + intent) — non-critical
         const messageCount = history.length + 2;
         if (messageCount >= 4) {
           const scoreMessages = [
@@ -406,7 +401,9 @@ export const appRouter = router({
               role: "system" as const,
               content: `Analiza la conversación y responde SOLO con un JSON: {"score": número del 0 al 100, "intent": "string describiendo la necesidad principal", "vertical": "slug de la vertical más relevante de: infraestructura|seguridad|rfid|software-ia|servicios-administrados|educacion|compliance"}`,
             },
-            ...llmMessages.slice(1),
+            ...history.slice(-6).map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+            { role: "user" as const, content: input.message },
+            { role: "assistant" as const, content: assistantContent },
           ];
           try {
             const scoreResp = await invokeLLM({ messages: scoreMessages });
@@ -423,27 +420,15 @@ export const appRouter = router({
           }
         }
 
-        // Detect scheduling intent — trigger CalendarPicker in frontend
-        const schedulingKeywords = [
-          'agendar', 'agenda', 'reunión', 'reunion', 'cita', 'horario', 'disponibilidad',
-          'schedule', 'meeting', 'calendar', 'hablar con', 'contactar', 'visita técnica',
-          'demostración', 'demo', 'presentación', 'consulta', 'asesoría',
-        ];
-        const userMsgLower = input.message.toLowerCase();
-        const replyLower = assistantContent.toLowerCase();
-        const hasSchedulingIntent = schedulingKeywords.some(
-          (kw) => userMsgLower.includes(kw) || replyLower.includes(kw)
-        );
-        // Only trigger if the agent's reply mentions scheduling (proactive offer)
-        const agentOffersScheduling = [
-          'puedo agendar', 'agenda una reunión', 'agendar una reunión', 'selecciona una fecha',
-          'elige un horario', 'calendar', 'reserva tu', 'programa tu', 'agenda tu',
-          'haz clic', 'selecciona el día', 'disponibilidad de nuestros ingenieros',
-        ].some((phrase) => replyLower.includes(phrase));
-
-        const action = agentOffersScheduling ? 'schedule_meeting' : undefined;
-
-        return { reply: assistantContent, isInfraMode, specialistId: activeSpecialistId, action };
+        return {
+          reply: assistantContent,
+          isInfraMode,
+          specialistId: activeSpecialistId,
+          action: agentResult.action,
+          toolsUsed: agentResult.toolsUsed,
+          proposalData: agentResult.proposalData,
+          meetingData: agentResult.meetingData,
+        };
       }),
 
     getHistory: publicProcedure

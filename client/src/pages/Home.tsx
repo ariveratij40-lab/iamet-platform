@@ -18,12 +18,21 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
+interface ToolUsed {
+  name: string;
+  success: boolean;
+  summary: string;
+}
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   id: string;
   isError?: boolean;
   retryText?: string;
+  toolsUsed?: ToolUsed[];
+  proposalData?: any;
+  meetingData?: any;
 }
 
 interface AgentPromptHandle {
@@ -154,11 +163,22 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
         setLastFailedSpecialist(undefined);
         setMessages((prev) => [
           ...prev,
-          { id: nanoid(), role: "assistant", content: res.reply },
+          {
+            id: nanoid(),
+            role: "assistant",
+            content: res.reply,
+            toolsUsed: (res as any).toolsUsed ?? [],
+            proposalData: (res as any).proposalData,
+            meetingData: (res as any).meetingData,
+          },
         ]);
-        // If agent offers scheduling, show CalendarPicker
+        // If agent offers scheduling or booked a meeting, show CalendarPicker
         if ((res as any).action === 'schedule_meeting') {
-          setTimeout(() => setShowCalendar(true), 600);
+          if ((res as any).meetingData) {
+            // Meeting already booked by agent — no need for calendar picker
+          } else {
+            setTimeout(() => setShowCalendar(true), 600);
+          }
         }
       } catch (err: unknown) {
         // Log del error real para debugging
@@ -235,7 +255,82 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
                         : { background: "var(--color-iamet-surface)", color: "var(--color-iamet-text-muted)", borderTopLeftRadius: "4px", border: "1px solid var(--color-iamet-border-subtle)" }
                     }
                   >
-                    {msg.role === "assistant" && msg.isError ? (
+                    {/* Tool action chips */}
+                  {msg.role === "assistant" && msg.toolsUsed && msg.toolsUsed.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {msg.toolsUsed.map((tool, i) => {
+                        const toolIcons: Record<string, string> = {
+                          searchKnowledge: "🔍",
+                          searchProducts: "📦",
+                          recommendSolutions: "🏗️",
+                          createLead: "👤",
+                          updateLead: "✏️",
+                          calculateLeadScore: "📊",
+                          assignSalesperson: "🤝",
+                          assignEngineer: "⚙️",
+                          bookMeeting: "📅",
+                          sendEmail: "📧",
+                          sendBrochure: "📄",
+                          generateProposal: "💰",
+                          reactivateLead: "🔄",
+                          createTask: "✅",
+                          notifyOwner: "🔔",
+                        };
+                        const icon = toolIcons[tool.name] ?? "⚡";
+                        return (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                            style={{
+                              background: tool.success ? "oklch(0.25 0.08 160 / 0.4)" : "oklch(0.25 0.08 20 / 0.4)",
+                              color: tool.success ? "oklch(0.75 0.15 160)" : "oklch(0.75 0.12 20)",
+                              border: `1px solid ${tool.success ? "oklch(0.4 0.12 160 / 0.3)" : "oklch(0.4 0.1 20 / 0.3)"}`,
+                            }}
+                            title={tool.summary}
+                          >
+                            {icon} {tool.name.replace(/([A-Z])/g, " $1").trim()}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {/* Proposal card */}
+                  {msg.role === "assistant" && msg.proposalData && (
+                    <div
+                      className="mt-2 rounded-xl p-3 text-xs"
+                      style={{ background: "oklch(0.18 0.04 250 / 0.5)", border: "1px solid oklch(0.35 0.1 250 / 0.4)" }}
+                    >
+                      <div className="font-semibold mb-1.5" style={{ color: "oklch(0.8 0.15 250)" }}>💰 Estimación Preliminar</div>
+                      <div className="space-y-1">
+                        {msg.proposalData.items?.map((item: any, i: number) => (
+                          <div key={i} className="flex justify-between gap-2" style={{ color: "oklch(0.7 0.05 250)" }}>
+                            <span>{item.description} ×{item.quantity}</span>
+                            <span className="font-mono">${(item.quantity * item.unitPrice).toLocaleString("es-MX")} MXN</span>
+                          </div>
+                        ))}
+                        <div className="border-t pt-1 mt-1 flex justify-between font-semibold" style={{ borderColor: "oklch(0.35 0.1 250 / 0.3)", color: "oklch(0.85 0.15 250)" }}>
+                          <span>Total con IVA</span>
+                          <span className="font-mono">${msg.proposalData.total?.toLocaleString("es-MX")} MXN</span>
+                        </div>
+                      </div>
+                      <div className="mt-1.5 text-xs" style={{ color: "oklch(0.55 0.05 250)" }}>{msg.proposalData.disclaimer}</div>
+                    </div>
+                  )}
+                  {/* Meeting confirmation card */}
+                  {msg.role === "assistant" && msg.meetingData && (
+                    <div
+                      className="mt-2 rounded-xl p-3 text-xs"
+                      style={{ background: "oklch(0.18 0.04 160 / 0.5)", border: "1px solid oklch(0.35 0.12 160 / 0.4)" }}
+                    >
+                      <div className="font-semibold mb-1.5" style={{ color: "oklch(0.8 0.15 160)" }}>📅 Reunión Agendada</div>
+                      <div className="space-y-0.5" style={{ color: "oklch(0.7 0.05 160)" }}>
+                        <div>📆 <strong>Fecha:</strong> {msg.meetingData.date}</div>
+                        <div>🕐 <strong>Hora:</strong> {msg.meetingData.startTime} — {msg.meetingData.endTime}</div>
+                        <div>👤 <strong>Ingeniero:</strong> {msg.meetingData.engineerName}</div>
+                      </div>
+                    </div>
+                  )}
+                  {msg.role === "assistant" && msg.isError ? (
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
                           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "oklch(0.65 0.15 20)" }} />
