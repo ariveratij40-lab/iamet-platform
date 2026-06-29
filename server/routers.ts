@@ -50,6 +50,8 @@ import {
   getMeetings,
   cancelMeeting,
   getMeetingByCancelToken,
+  trackAnalyticsEvent,
+  getAnalyticsSummary,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
@@ -535,6 +537,24 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   // ─── Analytics (Admin) ─────────────────────────────────────────────────────
   analytics: router({
     dashboard: adminProcedure.query(() => getAnalytics()),
+    // Landing Factory — tracking de eventos de conversión
+    trackEvent: publicProcedure
+      .input(z.object({
+        event: z.string(),
+        vertical: z.string().optional(),
+        sessionId: z.string().optional(),
+        utmSource: z.string().optional(),
+        utmMedium: z.string().optional(),
+        utmCampaign: z.string().optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await trackAnalyticsEvent(input);
+        return { ok: true };
+      }),
+    getSummary: adminProcedure.query(async () => {
+      return getAnalyticsSummary();
+    }),
   }),
 
   // ─── Visitor Tracking (público) ──────────────────────────────────────────────
@@ -967,5 +987,6 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       return ((result as any)[0] ?? result as any) as any[];
     }),
   }),
+
 });
 export type AppRouter = typeof appRouter;

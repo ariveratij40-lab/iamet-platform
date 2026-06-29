@@ -373,3 +373,18 @@ export const meetings = pgTable("meetings", {
 });
 export type Meeting = typeof meetings.$inferSelect;
 export type InsertMeeting = typeof meetings.$inferInsert;
+
+// ─── Analytics de Conversión (Landing Factory) ────────────────────────────────
+export const analyticsEvents = pgTable("analytics_events", {
+  id: serial("id").primaryKey(),
+  event: varchar("event", { length: 64 }).notNull(),
+  vertical: varchar("vertical", { length: 64 }),
+  sessionId: varchar("sessionId", { length: 128 }),
+  utmSource: varchar("utmSource", { length: 128 }),
+  utmMedium: varchar("utmMedium", { length: 128 }),
+  utmCampaign: varchar("utmCampaign", { length: 128 }),
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;

@@ -23,6 +23,7 @@ import Contact from "./pages/Contact";
 import Industrias from "./pages/Industrias";
 import Soluciones from "./pages/Soluciones";
 import CancelarReunion from "./pages/CancelarReunion";
+import LandingPage from "./pages/LandingPage";
 import Navbar from "./components/Navbar";
 import { useIsMobile } from "./hooks/useMobile";
 
@@ -60,6 +61,8 @@ function Router() {
           <Route path="/tienda/nueva-contrasena" component={TiendaNuevaContrasena} />
           <Route path="/tienda/perfil" component={TiendaPerfil} />
           <Route path="/tienda/:slug" component={ProductoDetalle} />
+          {/* Landing Factory — 14 verticales enriquecidas */}
+          <Route path="/landing/:vertical" component={LandingPage} />
           {/* Cancelar reunión — ruta pública */}
           <Route path="/cancelar-reunion" component={CancelarReunion} />
           {/* Admin */}

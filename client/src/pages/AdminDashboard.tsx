@@ -117,6 +117,11 @@ export default function AdminDashboard() {
     { enabled: isAuthenticated }
   );
 
+  const { data: conversionSummary } = trpc.analytics.getSummary.useQuery(
+    undefined,
+    { enabled: isAuthenticated && activeTab === "analytics" }
+  );
+
   const updateLeadStatus = trpc.leads.updateStatus.useMutation({
     onSuccess: () => trpc.useUtils().leads.list.invalidate(),
   });
@@ -425,44 +430,133 @@ export default function AdminDashboard() {
           </motion.div>
         )}
 
-        {/* ── Analytics Tab ────────────────────────────────────────────────── */}
+        {/* ── Analytics Tab (Dashboard Comercial) ──────────────────────────── */}
         {activeTab === "analytics" && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            {/* Leads by Vertical */}
-            <div className="neumorphic rounded-2xl p-6 space-y-4">
-              <h3 className="font-display font-700 text-[var(--color-iamet-text)]">Leads por vertical</h3>
-              {analytics?.byVertical && analytics.byVertical.length > 0 ? (
-                <div className="space-y-3">
-                  {analytics.byVertical.map(({ verticalSlug: vertical, count }: { verticalSlug: string | null; count: number }) => {
-                    const VIcon = VERTICAL_ICONS[vertical ?? ""] ?? Server;
-                    const pct = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0;
-                    return (
-                      <div key={vertical} className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <VIcon className="w-3.5 h-3.5 text-[var(--color-iamet-accent)]" />
-                            <span className="text-xs text-[var(--color-iamet-text-muted)] capitalize">{(vertical ?? "sin vertical").replace("-", " ")}</span>
+
+            {/* KPIs de Conversión */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { icon: Calendar, label: "Reuniones Agendadas", value: conversionSummary?.meetingsBooked ?? 0, color: "oklch(0.68 0.18 160)" },
+                { icon: Users, label: "Leads Generados", value: conversionSummary?.leadsGenerated ?? 0, color: "oklch(0.65 0.20 240)" },
+                { icon: MessageSquare, label: "Sesiones de Chat", value: conversionSummary?.chatSessions ?? 0, color: "oklch(0.70 0.22 280)" },
+                { icon: BarChart2, label: "Total de Eventos", value: conversionSummary?.totalEvents ?? 0, color: "oklch(0.75 0.18 75)" },
+              ].map(({ icon: Icon, label, value, color }) => (
+                <div key={label} className="neumorphic rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
+                      <Icon className="w-4.5 h-4.5" style={{ color }} />
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-[var(--color-iamet-text-subtle)]" />
+                  </div>
+                  <div>
+                    <p className="font-display text-2xl font-800 text-[var(--color-iamet-text)]">{value}</p>
+                    <p className="text-xs text-[var(--color-iamet-text-muted)] mt-0.5">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Eventos por Tipo + Interacción por Vertical */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="neumorphic rounded-2xl p-6 space-y-4">
+                <h3 className="font-display font-700 text-[var(--color-iamet-text)]">Eventos por tipo</h3>
+                {conversionSummary?.eventsByType && conversionSummary.eventsByType.length > 0 ? (
+                  <div className="space-y-3">
+                    {conversionSummary.eventsByType.map(({ event, count }) => {
+                      const maxCount = Math.max(...conversionSummary.eventsByType.map((e) => e.count), 1);
+                      const pct = Math.round((count / maxCount) * 100);
+                      const color = event.includes("meeting") ? "oklch(0.68 0.18 160)" :
+                                    event.includes("lead") ? "oklch(0.65 0.20 240)" :
+                                    event.includes("chat") ? "oklch(0.70 0.22 280)" : "oklch(0.75 0.18 75)";
+                      return (
+                        <div key={event} className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-[var(--color-iamet-text-muted)]">{event.replace(/_/g, " ")}</span>
+                            <span className="text-xs font-semibold text-[var(--color-iamet-text)]">{count}</span>
                           </div>
-                          <span className="text-xs font-semibold text-[var(--color-iamet-text)]">{count}</span>
+                          <div className="h-1.5 bg-[var(--color-iamet-bg-tertiary)] rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                              className="h-full rounded-full"
+                              style={{ backgroundColor: color }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-1.5 bg-[var(--color-iamet-bg-tertiary)] rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                            className="h-full rounded-full bg-gradient-to-r from-[var(--color-iamet-accent)] to-[var(--color-iamet-cyan)]"
-                          />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[var(--color-iamet-text-subtle)]">Sin eventos aún. Los eventos se registran cuando los visitantes interactúan con las landing pages.</p>
+                )}
+              </div>
+
+              <div className="neumorphic rounded-2xl p-6 space-y-4">
+                <h3 className="font-display font-700 text-[var(--color-iamet-text)]">Interacción por vertical</h3>
+                {conversionSummary?.eventsByVertical && conversionSummary.eventsByVertical.length > 0 ? (
+                  <div className="space-y-3">
+                    {conversionSummary.eventsByVertical.map(({ vertical, count }) => {
+                      const VIcon = VERTICAL_ICONS[vertical ?? ""] ?? Server;
+                      const maxCount = Math.max(...conversionSummary.eventsByVertical.map((e) => e.count), 1);
+                      const pct = Math.round((count / maxCount) * 100);
+                      return (
+                        <div key={vertical} className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <VIcon className="w-3.5 h-3.5 text-[var(--color-iamet-accent)]" />
+                              <span className="text-xs text-[var(--color-iamet-text-muted)] capitalize">{(vertical ?? "sin vertical").replace(/-/g, " ")}</span>
+                            </div>
+                            <span className="text-xs font-semibold text-[var(--color-iamet-text)]">{count}</span>
+                          </div>
+                          <div className="h-1.5 bg-[var(--color-iamet-bg-tertiary)] rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                              className="h-full rounded-full bg-gradient-to-r from-[var(--color-iamet-accent)] to-[var(--color-iamet-cyan)]"
+                            />
+                          </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[var(--color-iamet-text-subtle)]">Sin datos de verticales aún.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Actividad Reciente */}
+            <div className="neumorphic rounded-2xl p-6 space-y-4">
+              <h3 className="font-display font-700 text-[var(--color-iamet-text)]">Actividad reciente</h3>
+              {conversionSummary?.recentEvents && conversionSummary.recentEvents.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {conversionSummary.recentEvents.map((ev, i) => {
+                    const color = ev.event.includes("meeting") ? "oklch(0.68 0.18 160)" :
+                                  ev.event.includes("lead") ? "oklch(0.65 0.20 240)" :
+                                  ev.event.includes("chat") ? "oklch(0.70 0.22 280)" : "oklch(0.75 0.18 75)";
+                    return (
+                      <div key={i} className="flex items-center gap-3 py-2 border-b border-[var(--color-iamet-border)] last:border-0">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-xs text-[var(--color-iamet-text)] flex-1">{ev.event.replace(/_/g, " ")}</span>
+                        {ev.vertical && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-iamet-bg-tertiary)] text-[var(--color-iamet-text-subtle)]">{ev.vertical}</span>
+                        )}
+                        <span className="text-[10px] text-[var(--color-iamet-text-subtle)] flex-shrink-0">
+                          {new Date(ev.createdAt).toLocaleString("es-MX", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--color-iamet-text-subtle)]">Sin datos suficientes aún.</p>
+                <p className="text-sm text-[var(--color-iamet-text-subtle)]">Sin actividad reciente.</p>
               )}
             </div>
 
-            {/* Score Distribution */}
+            {/* Score Distribution (heredado) */}
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { label: "Hot Leads", range: "Score 70–100", count: leads.filter((l) => (l.score ?? 0) >= 70).length, color: "oklch(0.68 0.18 160)", icon: CheckCircle2 },

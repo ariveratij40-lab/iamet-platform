@@ -482,3 +482,33 @@
 - [x] 20 objetos en R2: logos, services, store (verificado con S3 SDK)
 - [x] imageUrl de los 25 productos de la tienda actualizada con URLs directas de R2
 - [x] Seed de productos actualizado para incluir imageUrl de R2 en futuros reseeds
+
+## Sprint 2 — Adquisición de Clientes
+
+### Landing Factory (Motor Reutilizable)
+- [x] Archivo `client/src/data/landings.ts` con 14 configuraciones de verticales (hero, pain points, beneficios, casos de uso, CTA)
+- [x] Componente `LandingPage.tsx` reutilizable con secciones: Hero, Pain Points, Beneficios, Especialista IA inline, CTA de reunión
+- [x] Ruta dinámica `/landing/:vertical` en App.tsx
+- [x] Verticales: cableado, cctv, control-acceso, rfid, data-center, redes, wifi-industrial, ia-empresarial, software, servicios-administrados, audio-voceo, salas-juntas, automatizacion, fabricantes
+
+### Especialista IA Contextual
+- [x] Parámetro `vertical` en `sendMessage` del agente: selecciona system prompt especializado
+- [x] 14 system prompts especializados en specialists.ts (uno por vertical)
+- [x] Frontend: al entrar desde `/landing/:vertical`, el agente inicia con contexto de esa vertical
+- [x] Mensaje de bienvenida personalizado por vertical en el chat
+
+### Analítica GA4 + GTM
+- [x] Script de GTM en `client/index.html` (dataLayer init + gtag)
+- [x] Hook `useAnalytics.ts`: trackEvent envia a dataLayer + backend (fire-and-forget, no bloquea UI)
+- [x] Tabla `analytics_events` en BD: id, event, vertical, sessionId, utmSource, utmMedium, utmCampaign, metadata, createdAt
+- [x] Eventos instrumentados en LandingPage: vertical_viewed, chat_started, meeting_intent, meeting_booked, lead_captured, cta_clicked
+- [x] tRPC `analytics.trackEvent` (public) para persistir eventos
+- [x] tRPC `analytics.getSummary` (admin) para el Dashboard Comercial
+
+### Dashboard Comercial
+- [x] Tab "Analítica" en AdminDashboard actualizado con KPIs de conversión
+- [x] Tarjetas: Reuniones Agendadas, Leads Generados, Sesiones de Chat, Total de Eventos
+- [x] Barras animadas: Eventos por tipo (meeting_booked, lead_captured, chat_started...)
+- [x] Barras animadas: Interacción por vertical (qué landing genera más engagement)
+- [x] Tabla de actividad reciente: últimos 50 eventos con timestamp, tipo y vertical
+- [x] Score Distribution heredado (Hot/Warm/Cold leads)

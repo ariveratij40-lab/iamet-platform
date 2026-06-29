@@ -1061,3 +1061,92 @@ export async function getMeetingByCancelToken(cancelToken: string): Promise<(Mee
   `));
   return (((result as any)[0] ?? result as any)[0] ?? null) as any;
 }
+
+
+// ─── Analytics de Conversión ─────────────────────────────────────────────────
+
+export interface AnalyticsEventInput {
+  event: string;
+  vertical?: string | null;
+  sessionId?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export async function trackAnalyticsEvent(input: AnalyticsEventInput): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    const meta = input.metadata ? JSON.stringify(input.metadata) : null;
+    await db.execute(sql.raw(`
+      INSERT INTO analytics_events (event, vertical, sessionId, utmSource, utmMedium, utmCampaign, metadata)
+      VALUES (
+        '${(input.event ?? '').replace(/'/g, "''")}',
+        ${input.vertical ? `'${input.vertical.replace(/'/g, "''")}'` : 'NULL'},
+        ${input.sessionId ? `'${input.sessionId.replace(/'/g, "''")}'` : 'NULL'},
+        ${input.utmSource ? `'${input.utmSource.replace(/'/g, "''")}'` : 'NULL'},
+        ${input.utmMedium ? `'${input.utmMedium.replace(/'/g, "''")}'` : 'NULL'},
+        ${input.utmCampaign ? `'${input.utmCampaign.replace(/'/g, "''")}'` : 'NULL'},
+        ${meta ? `'${meta.replace(/'/g, "''")}'` : 'NULL'}
+      )
+    `));
+  } catch {
+    // Analytics tracking is non-critical — never throw
+  }
+}
+
+export async function getAnalyticsSummary(): Promise<{
+  totalEvents: number;
+  eventsByType: Array<{ event: string; count: number }>;
+  eventsByVertical: Array<{ vertical: string; count: number }>;
+  recentEvents: Array<{ event: string; vertical: string | null; createdAt: string }>;
+  meetingsBooked: number;
+  leadsGenerated: number;
+  chatSessions: number;
+}> {
+  const db = await getDb();
+  if (!db) return {
+    totalEvents: 0, eventsByType: [], eventsByVertical: [],
+    recentEvents: [], meetingsBooked: 0, leadsGenerated: 0, chatSessions: 0,
+  };
+
+  try {
+    const [totalRes, byTypeRes, byVerticalRes, recentRes] = await Promise.all([
+      db.execute(sql.raw(`SELECT COUNT(*) as total FROM analytics_events`)),
+      db.execute(sql.raw(`SELECT event, COUNT(*) as count FROM analytics_events GROUP BY event ORDER BY count DESC LIMIT 20`)),
+      db.execute(sql.raw(`SELECT vertical, COUNT(*) as count FROM analytics_events WHERE vertical IS NOT NULL GROUP BY vertical ORDER BY count DESC`)),
+      db.execute(sql.raw(`SELECT event, vertical, createdAt FROM analytics_events ORDER BY createdAt DESC LIMIT 50`)),
+    ]);
+
+    const extractRows = (res: unknown) => {
+      const r = res as any;
+      return Array.isArray(r[0]) ? r[0] : (Array.isArray(r) ? r : []);
+    };
+
+    const totalRow = extractRows(totalRes)[0] ?? {};
+    const byType = extractRows(byTypeRes);
+    const byVertical = extractRows(byVerticalRes);
+    const recent = extractRows(recentRes);
+
+    const meetingsBooked = byType.find((r: any) => r.event === 'meeting_booked')?.count ?? 0;
+    const leadsGenerated = byType.find((r: any) => r.event === 'lead_captured')?.count ?? 0;
+    const chatSessions = byType.find((r: any) => r.event === 'chat_started')?.count ?? 0;
+
+    return {
+      totalEvents: Number(totalRow.total ?? 0),
+      eventsByType: byType.map((r: any) => ({ event: r.event, count: Number(r.count) })),
+      eventsByVertical: byVertical.map((r: any) => ({ vertical: r.vertical, count: Number(r.count) })),
+      recentEvents: recent.map((r: any) => ({ event: r.event, vertical: r.vertical, createdAt: String(r.createdAt) })),
+      meetingsBooked: Number(meetingsBooked),
+      leadsGenerated: Number(leadsGenerated),
+      chatSessions: Number(chatSessions),
+    };
+  } catch {
+    return {
+      totalEvents: 0, eventsByType: [], eventsByVertical: [],
+      recentEvents: [], meetingsBooked: 0, leadsGenerated: 0, chatSessions: 0,
+    };
+  }
+}
