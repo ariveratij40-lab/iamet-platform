@@ -38,8 +38,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
   const [score, setScore] = useState<number | null>(null);
 
   const createLead = trpc.leads.create.useMutation({
-    onSuccess: (data) => {
-      setScore(data.score);
+    onSuccess: () => {
       setSubmitted(true);
       onSuccess?.();
     },

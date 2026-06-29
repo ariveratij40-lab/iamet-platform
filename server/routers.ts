@@ -63,6 +63,8 @@ import { buildSpecialistPrompt, detectSpecialist } from "./specialists";
 import { sendVerificationEmail, sendQuoteNotificationEmail, sendMeetingConfirmationEmail, sendMeetingCancellationEmail } from "./email";
 import { scheduleMeetingReminders } from "./reminders";
 import { scheduleLeadFollowups } from "./followups";
+import { calculateLeadScore as calcScore, getLeadScore } from "./scoring";
+import { addTimelineEvent } from "./timeline";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -245,13 +247,30 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const leadId = await createLead(input);
-        // Notify owner
-        const { score } = calculateLeadScore(input);
-        await notifyOwner({
-          title: `🎯 Nuevo Lead IAMET — Score: ${score}/100`,
-          content: `**Empresa:** ${input.company}\n**Contacto:** ${input.contactName}\n**Email:** ${input.email}\n**Vertical:** ${input.verticalSlug ?? "No especificada"}\n**Fuente:** ${input.source}\n**Score:** ${score}/100`,
-        }).catch(() => {});
-        return { id: leadId, score };
+        // Trigger: timeline + scoring + followups (fire-and-forget)
+        Promise.all([
+          addTimelineEvent(leadId, 'lead_created', 'Lead creado',
+            `${input.contactName} de ${input.company ?? 'empresa desconocida'} se registró como lead`,
+            { source: input.source, vertical: input.verticalSlug, email: input.email }
+          ),
+          calcScore(leadId).then(async (result) => {
+            // Alert if Hot Lead (score >= 80)
+            if (result.score >= 80) {
+              await notifyOwner({
+                title: `🔥 Lead Hot: ${input.company ?? input.contactName} — ${result.score}/100`,
+                content: `**Empresa:** ${input.company}\n**Contacto:** ${input.contactName}\n**Score:** ${result.score}/100\n**Acción:** ${result.recommendation}\n**Vertical:** ${input.verticalSlug ?? 'No especificada'}\n**Fuente:** ${input.source}`,
+              }).catch(() => {});
+            } else {
+              await notifyOwner({
+                title: `🎯 Nuevo Lead IAMET — Score: ${result.score}/100`,
+                content: `**Empresa:** ${input.company}\n**Contacto:** ${input.contactName}\n**Email:** ${input.email}\n**Vertical:** ${input.verticalSlug ?? 'No especificada'}\n**Fuente:** ${input.source}\n**Score:** ${result.score}/100`,
+              }).catch(() => {});
+            }
+            return result;
+          }),
+          scheduleLeadFollowups(leadId).catch(() => {}),
+        ]).catch(() => {});
+        return { id: leadId };
       }),
 
     list: adminProcedure
@@ -266,7 +285,25 @@ export const appRouter = router({
 
     updateStatus: adminProcedure
       .input(z.object({ id: z.number(), status: z.string(), notes: z.string().optional() }))
-      .mutation(({ input }) => updateLeadStatus(input.id, input.status, input.notes)),
+      .mutation(async ({ input }) => {
+        await updateLeadStatus(input.id, input.status, input.notes);
+        // Trigger: timeline + recalculate score (fire-and-forget)
+        Promise.all([
+          addTimelineEvent(input.id, 'status_changed', 'Estado actualizado',
+            `Estado del lead cambiado a: ${input.status}${input.notes ? ` — ${input.notes}` : ''}`,
+            { newStatus: input.status }
+          ),
+          calcScore(input.id).then(async (result) => {
+            if (result.score >= 80) {
+              await notifyOwner({
+                title: `🔥 Lead Hot: Score ${result.score}/100`,
+                content: `**Lead ID:** ${input.id}\n**Nuevo estado:** ${input.status}\n**Score:** ${result.score}/100\n**Acción:** ${result.recommendation}`,
+              }).catch(() => {});
+            }
+          }),
+        ]).catch(() => {});
+        return { ok: true };
+      }),
 
     scorePreview: publicProcedure
       .input(
@@ -977,6 +1014,29 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
             console.warn('[Reminders] Error scheduling reminders:', e);
           }
         }
+        // Trigger: timeline + score recalculation for the lead (fire-and-forget)
+        // Try to find a lead by email to link the meeting to the timeline
+        Promise.resolve().then(async () => {
+          try {
+            const { getDb } = await import('./db');
+            const { sql } = await import('drizzle-orm');
+            const db = await getDb();
+            if (!db) return;
+            const emailSafe = input.clientEmail.replace(/'/g, "''");
+            const rows = await db.execute(sql.raw(`SELECT id FROM leads WHERE email = '${emailSafe}' ORDER BY createdAt DESC LIMIT 1`));
+            const rowArr = (rows as any)[0] ?? rows as any;
+            const leadId = Array.isArray(rowArr) ? rowArr[0]?.id : (rowArr as any)?.id;
+            if (leadId) {
+              await addTimelineEvent(leadId, 'meeting_scheduled', 'Reunión agendada',
+                `Reunión agendada con ingeniero IAMET — ${input.topic}`,
+                { meetingId: meeting.id, engineerId: input.engineerId, topic: input.topic }
+              );
+              await calcScore(leadId);
+            }
+          } catch (e) {
+            // silent
+          }
+        }).catch(() => {});
         return { ok: true, meeting, cancelToken: meeting.cancelToken };
       }),
 
@@ -1169,6 +1229,37 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         const arr = Array.isArray(rows) ? rows : (rows?.rows ?? []);
         return arr[0] ?? null;
       }),
+    updateLeadStatus: adminProcedure
+      .input(z.object({
+        leadId: z.number(),
+        status: z.enum(['new', 'contacted', 'qualified', 'proposal', 'won', 'lost']),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB no disponible' });
+        const { sql } = await import('drizzle-orm');
+        const notesSafe = input.notes ? input.notes.replace(/'/g, "''") : null;
+        const notesClause = notesSafe ? `, notes = '${notesSafe}'` : '';
+        await db.execute(sql.raw(`UPDATE leads SET status = '${input.status}'${notesClause}, updatedAt = NOW() WHERE id = ${input.leadId}`));
+        // Trigger: timeline + recalculate score (fire-and-forget)
+        Promise.all([
+          addTimelineEvent(input.leadId, 'status_changed', 'Estado del lead actualizado',
+            `Pipeline: ${input.status}${input.notes ? ` — ${input.notes}` : ''}`,
+            { newStatus: input.status }
+          ),
+          calcScore(input.leadId).then(async (result) => {
+            if (result.score >= 80) {
+              await notifyOwner({
+                title: `🔥 Lead Hot: Score ${result.score}/100`,
+                content: `**Lead ID:** ${input.leadId}\n**Nuevo estado:** ${input.status}\n**Score:** ${result.score}/100\n**Acción:** ${result.recommendation}`,
+              }).catch(() => {});
+            }
+          }),
+        ]).catch(() => {});
+        return { ok: true };
+      }),
+
     getLeadsList: adminProcedure
       .input(z.object({ limit: z.number().optional(), status: z.string().optional() }).optional())
       .query(async ({ input }) => {
@@ -1204,6 +1295,27 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB no disponible' });
         const { sql } = await import('drizzle-orm');
         await db.execute(sql.raw(`UPDATE meetings SET status = '${input.status}', updatedAt = NOW() WHERE id = ${input.id}`));
+        // Trigger: timeline for linked lead (fire-and-forget)
+        Promise.resolve().then(async () => {
+          try {
+            const rows = await db!.execute(sql.raw(`SELECT clientEmail FROM meetings WHERE id = ${input.id} LIMIT 1`));
+            const rowArr = (rows as any)[0] ?? rows as any;
+            const email = Array.isArray(rowArr) ? rowArr[0]?.clientEmail : (rowArr as any)?.clientEmail;
+            if (email) {
+              const emailSafe = (email as string).replace(/'/g, "''");
+              const leadRows = await db!.execute(sql.raw(`SELECT id FROM leads WHERE email = '${emailSafe}' ORDER BY createdAt DESC LIMIT 1`));
+              const leadArr = (leadRows as any)[0] ?? leadRows as any;
+              const leadId = Array.isArray(leadArr) ? leadArr[0]?.id : (leadArr as any)?.id;
+              if (leadId) {
+                await addTimelineEvent(leadId, 'status_changed', 'Estado de reunión actualizado',
+                  `Reunión #${input.id} marcada como: ${input.status}`,
+                  { meetingId: input.id, newStatus: input.status }
+                );
+                await calcScore(leadId);
+              }
+            }
+          } catch (e) { /* silent */ }
+        }).catch(() => {});
         return { ok: true };
       }),
 

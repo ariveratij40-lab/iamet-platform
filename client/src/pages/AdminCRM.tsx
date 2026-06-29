@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Users, TrendingUp, Sparkles, Clock, RefreshCw,
@@ -14,6 +21,23 @@ import {
   MessageCircle, Send, Bell, FileText, UserPlus, Eye,
   Link as LinkIcon, Zap
 } from "lucide-react";
+import { toast } from "sonner";
+
+// ── Pipeline Status Config ────────────────────────────────────────────────────
+const PIPELINE_STATUSES = [
+  { value: "new",        label: "Nuevo",       color: "bg-slate-500/20 text-slate-300 border-slate-500/30" },
+  { value: "contacted",  label: "Contactado",  color: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
+  { value: "qualified",  label: "Calificado",  color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" },
+  { value: "proposal",   label: "Propuesta",   color: "bg-orange-500/20 text-orange-300 border-orange-500/30" },
+  { value: "won",        label: "Ganado",      color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" },
+  { value: "lost",       label: "Perdido",     color: "bg-red-500/20 text-red-300 border-red-500/30" },
+] as const;
+
+type PipelineStatus = typeof PIPELINE_STATUSES[number]["value"];
+
+function getPipelineConfig(status: string) {
+  return PIPELINE_STATUSES.find(s => s.value === status) ?? PIPELINE_STATUSES[0];
+}
 
 // ── Score Badge ──────────────────────────────────────────────────────────────
 function ScoreBadge({ score }: { score: number | null | undefined }) {
@@ -23,6 +47,76 @@ function ScoreBadge({ score }: { score: number | null | undefined }) {
   if (s >= 60) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">⚡ {s}</span>;
   if (s >= 40) return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">💧 {s}</span>;
   return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30">❄️ {s}</span>;
+}
+
+// ── Pipeline Status Selector ─────────────────────────────────────────────────
+function PipelineSelector({
+  leadId,
+  currentStatus,
+  onUpdated,
+}: {
+  leadId: number;
+  currentStatus: string;
+  onUpdated: () => void;
+}) {
+  const utils = trpc.useUtils();
+  const updateStatus = trpc.crm.updateLeadStatus.useMutation({
+    onMutate: async ({ leadId: id, status }) => {
+      // Optimistic update: cancel outgoing refetches
+      await utils.crm.getLeadsList.cancel();
+      const prev = utils.crm.getLeadsList.getData();
+      utils.crm.getLeadsList.setData(undefined, (old: any[] | undefined) =>
+        old?.map((l: any) => l.id === id ? { ...l, status } : l)
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) utils.crm.getLeadsList.setData(undefined, ctx.prev);
+      toast.error("No se pudo actualizar el estado del pipeline");
+    },
+    onSuccess: (_data, vars) => {
+      const cfg = getPipelineConfig(vars.status);
+      toast.success(`Pipeline actualizado: ${cfg.label}`);
+      onUpdated();
+    },
+    onSettled: () => {
+      utils.crm.getLeadsList.invalidate();
+    },
+  });
+
+  const cfg = getPipelineConfig(currentStatus);
+
+  return (
+    <div
+      className="w-32 flex-shrink-0"
+      onClick={(e) => e.stopPropagation()} // prevent row click from opening modal
+    >
+      <Select
+        value={currentStatus}
+        onValueChange={(val) =>
+          updateStatus.mutate({ leadId, status: val as PipelineStatus })
+        }
+        disabled={updateStatus.isPending}
+      >
+        <SelectTrigger
+          className={`h-7 text-xs px-2 py-0 border rounded-full ${cfg.color} bg-transparent focus:ring-0 focus:ring-offset-0`}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-slate-800 border-slate-700 text-slate-200">
+          {PIPELINE_STATUSES.map((s) => (
+            <SelectItem
+              key={s.value}
+              value={s.value}
+              className={`text-xs cursor-pointer focus:bg-slate-700 ${s.color}`}
+            >
+              {s.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 // ── Timeline Icon ────────────────────────────────────────────────────────────
@@ -338,15 +432,6 @@ export default function AdminCRM() {
     onSuccess: () => refetch(),
   });
 
-  const statusColors: Record<string, string> = {
-    new: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    contacted: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    qualified: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-    proposal: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    won: "bg-teal-500/20 text-teal-300 border-teal-500/30",
-    lost: "bg-red-500/20 text-red-300 border-red-500/30",
-  };
-
   const hotLeads = leads?.filter((l: any) => Number(l.score) >= 70) ?? [];
   const totalLeads = leads?.length ?? 0;
 
@@ -360,7 +445,7 @@ export default function AdminCRM() {
               <TrendingUp className="w-6 h-6 text-cyan-400" />
               CRM Inteligente
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Lead scoring, timeline y recomendaciones IA</p>
+            <p className="text-slate-400 text-sm mt-1">Lead scoring, pipeline y recomendaciones IA</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -404,7 +489,7 @@ export default function AdminCRM() {
           ))}
         </div>
 
-        {/* Filters */}
+        {/* Pipeline Filter Tabs */}
         <div className="flex gap-2 flex-wrap">
           {[
             { label: "Todos", value: undefined },
@@ -413,6 +498,7 @@ export default function AdminCRM() {
             { label: "Calificados", value: "qualified" },
             { label: "Propuesta", value: "proposal" },
             { label: "Ganados", value: "won" },
+            { label: "Perdidos", value: "lost" },
           ].map(({ label, value }) => (
             <button
               key={label}
@@ -431,8 +517,9 @@ export default function AdminCRM() {
         {/* Leads Table */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300">
+            <CardTitle className="text-sm font-medium text-slate-300 flex items-center gap-2">
               {isLoading ? "Cargando..." : `${leads?.length ?? 0} leads`}
+              <span className="text-xs text-slate-500 font-normal">· Cambia el pipeline directamente desde la fila</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -462,11 +549,6 @@ export default function AdminCRM() {
                         <span className="text-sm font-medium text-slate-200 truncate">
                           {lead.company}
                         </span>
-                        {lead.status && (
-                          <Badge className={`text-xs ${statusColors[lead.status] || "bg-slate-500/20 text-slate-300"}`}>
-                            {lead.status}
-                          </Badge>
-                        )}
                       </div>
                       <div className="text-xs text-slate-400 truncate">
                         {lead.contact_name || lead.name} · {lead.email}
@@ -480,7 +562,7 @@ export default function AdminCRM() {
                       </span>
                     </div>
 
-                    {/* Action */}
+                    {/* Action label */}
                     {lead.action_label && (
                       <div className="hidden lg:block w-32 flex-shrink-0">
                         <span className="text-xs text-cyan-400 truncate block">{lead.action_label}</span>
@@ -493,6 +575,13 @@ export default function AdminCRM() {
                         <span className="text-xs text-slate-500 truncate block">{lead.utm_source}</span>
                       </div>
                     )}
+
+                    {/* ── Pipeline Status Selector (inline) ── */}
+                    <PipelineSelector
+                      leadId={lead.id}
+                      currentStatus={lead.status || "new"}
+                      onUpdated={refetch}
+                    />
 
                     <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
                   </div>

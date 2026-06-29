@@ -604,3 +604,39 @@
 - [x] tRPC `crm.getBriefings(limit)` y `crm.generateBriefing()`
 - [x] Modal de briefings en AdminCRM con los últimos 3 briefings y botón "Generar ahora"
 - [x] Enlace en sidebar del DashboardLayout (icono TrendingUp en /admin/crm)
+
+## Sprint 4.5 — Automatización del CRM
+
+### Triggers Internos
+- [ ] `leads.create`: llamar `calculateLeadScore(leadId)` + `addTimelineEvent(leadId, 'lead_created', ...)` + alerta Hot Lead si score >80
+- [ ] `calendar.bookMeeting`: llamar `addTimelineEvent(leadId, 'meeting_scheduled', ...)` + recalcular score
+- [ ] `adminCalendar.updateMeetingStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score
+- [ ] `processLeadFollowups`: llamar `addTimelineEvent(leadId, 'followup_sent', ...)` después de cada envío
+- [ ] `processMeetingReminders`: llamar `addTimelineEvent(leadId, 'reminder_sent', ...)` después de cada envío
+- [ ] `adminLeads.updateStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score
+
+### Pipeline Editable en /admin/crm
+- [ ] Selector de estado inline en la lista de leads: new → contacted → qualified → proposal → won / lost
+- [ ] tRPC `crm.updateLeadStatus(leadId, status)`: actualiza estado + agrega evento a timeline + recalcula score
+- [ ] Badge de estado con colores: new=gris, contacted=azul, qualified=amarillo, proposal=naranja, won=verde, lost=rojo
+- [ ] Filtros por estado en la lista de leads del CRM
+- [ ] Contador de leads por estado en las tarjetas KPI
+
+### Alertas Hot Lead (score >80)
+- [ ] Función `checkAndAlertHotLead(leadId, score)`: si score ≥ 80, enviar notificación al owner + email al admin
+- [ ] Notificación con título: "🔥 Lead Hot: [empresa] — [score]/100"
+- [ ] Email al admin con: nombre, empresa, score, acción recomendada, link al CRM
+- [ ] Alerta se dispara en: leads.create, recalculateScore, updateLeadStatus
+- [ ] No enviar alerta duplicada si ya se envió en las últimas 24h para el mismo lead
+
+## Sprint 4.5 — Completado ✅
+
+- [x] `leads.create`: llamar `calculateLeadScore(leadId)` + `addTimelineEvent(leadId, 'lead_created', ...)` + alerta Hot Lead si score ≥ 80 + `scheduleLeadFollowups`
+- [x] `leads.updateStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score + alerta Hot Lead
+- [x] `calendar.bookMeeting`: llamar `addTimelineEvent(leadId, 'meeting_scheduled', ...)` + recalcular score para lead vinculado
+- [x] `adminCalendar.updateMeetingStatus`: llamar `addTimelineEvent(leadId, 'status_changed', ...)` + recalcular score para lead vinculado
+- [x] tRPC `crm.updateLeadStatus(leadId, status, notes?)`: actualiza estado pipeline + timeline + recalcula score + alerta Hot Lead si score ≥ 80
+- [x] Selector de estado inline (dropdown) en cada fila de lead en AdminCRM — con actualización optimista
+- [x] Colores por estado: new=gris, contacted=azul, qualified=amarillo, proposal=naranja, won=verde, lost=rojo
+- [x] Filtros por estado en la lista de leads del CRM (incluye Perdidos)
+- [x] TypeScript: 0 errores | Tests: 23/23 pasados
