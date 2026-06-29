@@ -335,6 +335,8 @@ export const engineers = pgTable("engineers", {
   avatarUrl: text("avatarUrl"),
   timezone: varchar("timezone", { length: 64 }).default("America/Mexico_City").notNull(),
   active: boolean("active").default(true).notNull(),
+  certifications: text("certifications"),  // e.g. "Panduit NetKey, TIA-568, BICSI"
+  languages: varchar("languages", { length: 256 }).default("Español"),  // e.g. "Español, Inglés"
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type Engineer = typeof engineers.$inferSelect;

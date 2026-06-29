@@ -914,6 +914,14 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         return { ok: true, meeting, cancelToken: meeting.cancelToken };
       }),
 
+    getMeetingByToken: publicProcedure
+      .input(z.object({ cancelToken: z.string() }))
+      .query(async ({ input }) => {
+        if (!input.cancelToken) return { meeting: null };
+        const meeting = await getMeetingByCancelToken(input.cancelToken);
+        return { meeting };
+      }),
+
     cancelMeeting: publicProcedure
       .input(z.object({ cancelToken: z.string() }))
       .mutation(async ({ input }) => {

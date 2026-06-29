@@ -457,3 +457,28 @@
 - [x] Email al ingeniero: notificación de nueva reunión con datos del cliente y tema
 - [x] Email al admin (alvaro.rivera@iamet.mx): resumen de nueva reunión agendada
 - [x] Email de cancelación al cliente (sendMeetingCancellationEmail)
+
+## Sprint 1 — Conversión
+
+### Flujo de Cancelación
+- [x] Página `/cancelar-reunion?token=xxx`: muestra detalles de la reunión y botón de confirmar cancelación
+- [x] tRPC `calendar.getMeetingByToken(token)`: consulta detalles antes de cancelar
+- [x] tRPC `calendar.cancelMeeting(token)`: cancela reunión, libera slot (isBooked=false), envía email
+- [x] Email de cancelación al cliente con confirmación
+- [x] Ruta `/cancelar-reunion` registrada en App.tsx
+- [x] Estado de error si el token es inválido o ya fue cancelado
+- [x] Flujo de 4 estados: loading → confirm → cancelling → success/error
+
+### Ingenieros Reales
+- [x] Columnas `certifications` y `languages` agregadas a tabla engineers (migración SQL aplicada)
+- [x] Seed actualizado con 5 perfiles reales: Álvaro Rivera, Marco Reyes, Luis Hernández, Diego Castillo, Sofía Morales
+- [x] Ingenieros insertados en BD con especialidad, certificaciones e idiomas
+- [x] Slots de disponibilidad regenerados para los 5 ingenieros
+
+### Cloudflare R2
+- [x] Diagnóstico: R2 funciona correctamente (HTTP 200 en todos los assets)
+- [x] Variables R2_* correctamente configuradas en el entorno
+- [x] Bucket público accesible en https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev
+- [x] 20 objetos en R2: logos, services, store (verificado con S3 SDK)
+- [x] imageUrl de los 25 productos de la tienda actualizada con URLs directas de R2
+- [x] Seed de productos actualizado para incluir imageUrl de R2 en futuros reseeds
