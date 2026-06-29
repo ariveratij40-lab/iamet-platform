@@ -573,35 +573,34 @@
 ## Sprint 4 — CRM Inteligente con IA
 
 ### Lead Scoring Dinámico
-- [ ] Tabla `lead_scores`: id, leadId, score, factors (JSON), recommendation, updatedAt
-- [ ] Función `calculateLeadScore(leadId)`: calcula score con 12+ variables (industria, vertical, empresa, tamaño, cargo, tiempo en sitio, páginas vistas, conversaciones IA, fuente, campaña, historial de reuniones)
-- [ ] tRPC `leads.getScore(leadId)`: retorna score actual + desglose de factores
-- [ ] tRPC `leads.recalculateScore(leadId)`: fuerza recálculo del score
-- [ ] Score se recalcula automáticamente al: crear lead, crear conversación, agendar reunión, actualizar estado
-- [ ] Columna "Score" en tabla de leads del admin con badge de color (rojo/amarillo/verde)
-- [ ] Acción recomendada por IA según score: "Llamar hoy", "Enviar propuesta", "Nutrir con contenido"
+- [x] Tabla `lead_scores`: id, leadId, score, factors (JSON), recommendation, updatedAt
+- [x] `server/scoring.ts`: motor de scoring con múltiples variables (industria, vertical, empresa, tamaño, cargo, conversaciones IA, reuniones, fuente UTM, historial)
+- [x] `calculateLeadScore(leadId)`: calcula y guarda el score en BD
+- [x] tRPC `crm.getLeadScore(leadId)` y `crm.recalculateScore(leadId)`
+- [x] Etiquetas: Hot (80+), Warm (60-79), Cool (40-59), Cold (<40)
+- [x] Acción recomendada: "Llamar hoy", "Enviar propuesta", "Nutrir con contenido", "Reactivar"
+- [x] Score visible en AdminCRM con badge de color
 
 ### Recomendaciones IA Post-Conversación
-- [ ] Tabla `ai_recommendations`: id, leadId, conversationId, vendorSuggestion, specialistSuggestion, products[], services[], crossSell[], reasoning, createdAt
-- [ ] Función `generateRecommendations(leadId, conversationId)`: invoca LLM con historial de conversación
-- [ ] LLM analiza: interés detectado, industria, tamaño, pain points → sugiere vendedor, especialista, productos, cross-sell
-- [ ] tRPC `leads.getRecommendations(leadId)`: retorna recomendaciones con razonamiento
-- [ ] Panel en detalle de lead: tarjeta "Recomendaciones IA" con chips de productos/servicios sugeridos
-- [ ] Recomendaciones se generan automáticamente al cerrar cada conversación
+- [x] Tabla `ai_recommendations`: id, leadId, conversationId, vendorSuggestion, specialistSuggestion, products (JSON), crossSell (JSON), documents (JSON), reasoning, createdAt
+- [x] `server/recommendations.ts`: genera recomendaciones con LLM después de cada conversación
+- [x] LLM analiza: interés detectado, industria, tamaño, pain points → sugiere vendedor, especialista, productos, cross-sell
+- [x] tRPC `crm.generateRecommendation(leadId, conversationId)` y `crm.getRecommendation(leadId)`
+- [x] Tab "Recomendaciones" en modal de detalle del lead en AdminCRM
 
 ### Timeline Comercial
-- [ ] Tabla `lead_timeline`: id, leadId, type (visit/chat/meeting/quote/email/status_change), title, description, metadata (JSON), createdAt
-- [ ] Función `addTimelineEvent(leadId, type, title, description, metadata)`: agrega evento a la timeline
-- [ ] Eventos registrados automáticamente: lead creado, conversación iniciada, reunión agendada, email de seguimiento enviado, cotización solicitada, estado cambiado, recordatorio enviado
-- [ ] tRPC `leads.getTimeline(leadId)`: retorna timeline completa ordenada por fecha
-- [ ] Panel "Timeline" en detalle de lead: línea de tiempo vertical con íconos por tipo de evento
-- [ ] Cada evento muestra: fecha, hora, tipo, descripción y metadata relevante
+- [x] Tabla `lead_timeline`: id, leadId, type, title, description, metadata (JSON), createdAt
+- [x] `server/timeline.ts`: funciones para agregar y consultar eventos de la timeline
+- [x] 13 tipos de evento: lead_created, page_visit, conversation_started, meeting_scheduled, email_sent, followup_sent, reminder_sent, quote_requested, status_changed, score_updated, recommendation_generated, attribution_captured
+- [x] tRPC `crm.getTimeline(leadId)` y `crm.addTimelineEvent(leadId, type, title, description)`
+- [x] Tab "Timeline" en modal de detalle del lead en AdminCRM con línea de tiempo vertical
 
 ### Briefing Diario IA
-- [ ] Tabla `daily_briefings`: id, date, content (JSON), generatedAt, deliveredAt
-- [ ] Función `generateDailyBriefing()`: invoca LLM con datos del día (reuniones, leads, seguimientos, campañas)
-- [ ] Briefing incluye: reuniones del día, leads con score >90, leads sin seguimiento, mejor campaña CPL
-- [ ] Heartbeat `daily-briefing`: cada día a las 7:00 AM hora México
-- [ ] Email de briefing al admin (alvaro.rivera@iamet.mx) con resumen ejecutivo
-- [ ] Panel `/admin/briefings`: historial de briefings diarios con vista expandible
-- [ ] Enlace en sidebar del DashboardLayout
+- [x] Tabla `daily_briefings`: id, date, summary, hotLeads (JSON), meetingsToday (JSON), alerts (JSON), recommendations (JSON), campaignInsights (JSON), createdAt
+- [x] `server/briefing.ts`: genera el briefing con LLM usando datos del día
+- [x] Contenido: reuniones del día, leads calientes, leads sin seguimiento, insights de campañas
+- [x] Heartbeat `iamet-daily-briefing`: ejecuta cada mañana a las 7am CST (13:00 UTC)
+- [x] Endpoint `POST /api/scheduled/daily-briefing` registrado en index.ts
+- [x] tRPC `crm.getBriefings(limit)` y `crm.generateBriefing()`
+- [x] Modal de briefings en AdminCRM con los últimos 3 briefings y botón "Generar ahora"
+- [x] Enlace en sidebar del DashboardLayout (icono TrendingUp en /admin/crm)

@@ -17,6 +17,7 @@ import TiendaVerificar from "./pages/TiendaVerificar";
 import AdminTienda from "./pages/AdminTienda";
 import AdminReuiones from "./pages/AdminReuiones";
 import AdminSeguimientos from "./pages/AdminSeguimientos";
+import AdminCRM from "./pages/AdminCRM";
 import TiendaPerfil from "./pages/TiendaPerfil";
 import TiendaLogin from "./pages/TiendaLogin";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
@@ -72,6 +73,7 @@ function Router() {
           <Route path="/admin/tienda" component={AdminTienda} />
           <Route path="/admin/reuniones" component={AdminReuiones} />
           <Route path="/admin/seguimientos" component={AdminSeguimientos} />
+          <Route path="/admin/crm" component={AdminCRM} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>

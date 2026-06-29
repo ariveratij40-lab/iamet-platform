@@ -1092,6 +1092,103 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       return stats;
     }),
   }),
+  // ─── Sprint 4: CRM Inteligente ────────────────────────────────────────────────────────────────────────
+  crm: router({
+    getLeadScore: adminProcedure
+      .input(z.object({ leadId: z.number() }))
+      .query(async ({ input }) => {
+        const { calculateLeadScore } = await import('./scoring');
+        return calculateLeadScore(input.leadId);
+      }),
+    recalculateScore: adminProcedure
+      .input(z.object({ leadId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { calculateLeadScore } = await import('./scoring');
+        return calculateLeadScore(input.leadId);
+      }),
+    getRecommendation: adminProcedure
+      .input(z.object({ leadId: z.number() }))
+      .query(async ({ input }) => {
+        const { getLatestRecommendation } = await import('./recommendations');
+        return getLatestRecommendation(input.leadId);
+      }),
+    generateRecommendation: adminProcedure
+      .input(z.object({ leadId: z.number(), conversationId: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { generateRecommendations } = await import('./recommendations');
+        return generateRecommendations(input.leadId, input.conversationId);
+      }),
+    getTimeline: adminProcedure
+      .input(z.object({ leadId: z.number() }))
+      .query(async ({ input }) => {
+        const { getLeadTimeline } = await import('./timeline');
+        return getLeadTimeline(input.leadId);
+      }),
+    addTimelineEvent: adminProcedure
+      .input(z.object({
+        leadId: z.number(),
+        type: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { addTimelineEvent } = await import('./timeline');
+        await addTimelineEvent(input.leadId, input.type as any, input.title, input.description, input.metadata as any);
+        return { ok: true };
+      }),
+    getBriefings: adminProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        const { getLatestBriefings } = await import('./briefing');
+        return getLatestBriefings(input?.limit ?? 7);
+      }),
+    generateBriefing: adminProcedure
+      .mutation(async () => {
+        const { generateDailyBriefing } = await import('./briefing');
+        return generateDailyBriefing();
+      }),
+    getLeadDetail: adminProcedure
+      .input(z.object({ leadId: z.number() }))
+      .query(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) return null;
+        const { sql } = await import('drizzle-orm');
+        const rows = await db.execute(sql.raw(
+          `SELECT l.*,
+            COUNT(DISTINCT c.id) as conversation_count,
+            COUNT(DISTINCT m.id) as meeting_count,
+            COUNT(DISTINCT f.id) as followup_count
+           FROM leads l
+           LEFT JOIN conversations c ON c.lead_id = l.id
+           LEFT JOIN meetings m ON m.client_email = l.email
+           LEFT JOIN lead_followups f ON f.lead_id = l.id
+           WHERE l.id = ${input.leadId}
+           GROUP BY l.id`
+        )) as any;
+        const arr = Array.isArray(rows) ? rows : (rows?.rows ?? []);
+        return arr[0] ?? null;
+      }),
+    getLeadsList: adminProcedure
+      .input(z.object({ limit: z.number().optional(), status: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) return [];
+        const { sql } = await import('drizzle-orm');
+        const limit = input?.limit ?? 50;
+        const statusFilter = input?.status ? `AND l.status = '${input.status}'` : '';
+        const rows = await db.execute(sql.raw(
+          `SELECT l.*, ls.score, ls.action_label, ls.recommendation
+           FROM leads l
+           LEFT JOIN lead_scores ls ON ls.lead_id = l.id
+           WHERE 1=1 ${statusFilter}
+           ORDER BY COALESCE(ls.score, 0) DESC, l.created_at DESC
+           LIMIT ${limit}`
+        )) as any;
+        const arr = Array.isArray(rows) ? rows : (rows?.rows ?? []);
+        return arr;
+      }),
+  }),
   // ─── Admin: Reuniones ────────────────────────────────────────────────────────────────────────────────────
   adminCalendar: router({
     getMeetings: adminProcedure

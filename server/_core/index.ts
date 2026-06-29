@@ -14,6 +14,7 @@ import { serveStatic } from "./serveStatic";
 import { seedEngineers, seedAvailabilitySlots } from "../db";
 import { processLeadFollowups } from "../followups";
 import { processMeetingReminders } from "../reminders";
+import { generateDailyBriefing } from "../briefing";
 import { sdk } from "./sdk";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -176,6 +177,19 @@ async function startServer() {
       const user = await sdk.authenticateRequest(req);
       if (!user.isCron) return res.status(403).json({ error: "cron-only" });
       const result = await processMeetingReminders();
+      res.json({ ok: true, ...result });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: msg, timestamp: Date.now() });
+    }
+  });
+
+  // ─── Heartbeat: Briefing diario IA (cada mañana a las 7am) ──────────────
+  app.post("/api/scheduled/daily-briefing", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron) return res.status(403).json({ error: "cron-only" });
+      const result = await generateDailyBriefing();
       res.json({ ok: true, ...result });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
