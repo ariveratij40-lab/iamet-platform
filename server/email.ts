@@ -4,7 +4,7 @@ import { ENV } from "./_core/env";
 // ─── Cliente Resend ───────────────────────────────────────────────────────────
 let _resend: Resend | null = null;
 
-function getResend(): Resend {
+export function getResend(): Resend {
   if (!_resend) {
     _resend = new Resend(ENV.resendApiKey);
   }

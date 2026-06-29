@@ -122,6 +122,11 @@ export default function AdminDashboard() {
     { enabled: isAuthenticated && activeTab === "analytics" }
   );
 
+  const { data: attributionSummary } = trpc.analytics.getAttributionSummary.useQuery(
+    undefined,
+    { enabled: isAuthenticated && activeTab === "analytics" }
+  );
+
   const updateLeadStatus = trpc.leads.updateStatus.useMutation({
     onSuccess: () => trpc.useUtils().leads.list.invalidate(),
   });
@@ -554,6 +559,117 @@ export default function AdminDashboard() {
               ) : (
                 <p className="text-sm text-[var(--color-iamet-text-subtle)]">Sin actividad reciente.</p>
               )}
+            </div>
+
+            {/* Attribution — Fuente, Campaña, Medium */}
+            <div className="neumorphic rounded-2xl p-6 space-y-5">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display font-700 text-[var(--color-iamet-text)]">Attribution de Leads</h3>
+                <span className="text-[10px] px-2 py-1 rounded-full bg-[var(--color-iamet-bg-tertiary)] text-[var(--color-iamet-text-subtle)]">UTM + Click IDs</span>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Por Fuente */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-[var(--color-iamet-text-muted)] uppercase tracking-wider">Por Fuente</p>
+                  {attributionSummary?.bySource && attributionSummary.bySource.length > 0 ? (
+                    attributionSummary.bySource.map(({ source, leads: l, meetings: m }) => (
+                      <div key={source} className="flex items-center justify-between py-1.5 border-b border-[var(--color-iamet-border)] last:border-0">
+                        <span className="text-xs text-[var(--color-iamet-text-muted)] capitalize">{source || 'direct'}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">{l} leads</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">{m} meet</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[var(--color-iamet-text-subtle)]">Sin datos de fuente aún. Se registran cuando los leads incluyen UTM params.</p>
+                  )}
+                </div>
+                {/* Por Campaña */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-[var(--color-iamet-text-muted)] uppercase tracking-wider">Por Campaña</p>
+                  {attributionSummary?.byCampaign && attributionSummary.byCampaign.length > 0 ? (
+                    attributionSummary.byCampaign.map(({ campaign, leads: l, meetings: m }) => (
+                      <div key={campaign} className="flex items-center justify-between py-1.5 border-b border-[var(--color-iamet-border)] last:border-0">
+                        <span className="text-xs text-[var(--color-iamet-text-muted)] truncate max-w-[120px]">{campaign}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">{l} leads</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400">{m} meet</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[var(--color-iamet-text-subtle)]">Sin campañas registradas aún.</p>
+                  )}
+                </div>
+                {/* Top Keywords */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-[var(--color-iamet-text-muted)] uppercase tracking-wider">Top Keywords (utm_term)</p>
+                  {attributionSummary?.topKeywords && attributionSummary.topKeywords.length > 0 ? (
+                    attributionSummary.topKeywords.map(({ keyword, count }) => (
+                      <div key={keyword} className="flex items-center justify-between py-1.5 border-b border-[var(--color-iamet-border)] last:border-0">
+                        <span className="text-xs text-[var(--color-iamet-text-muted)] truncate max-w-[140px]">{keyword}</span>
+                        <span className="text-xs font-semibold text-[var(--color-iamet-text)]">{count}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-[var(--color-iamet-text-subtle)]">Sin keywords registradas. Se capturan desde utm_term en la URL.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Pipeline de Seguimiento Automático */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="neumorphic rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'oklch(0.65 0.20 240 / 0.15)' }}>
+                    <Users className="w-4 h-4" style={{ color: 'oklch(0.65 0.20 240)' }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--color-iamet-text)]">Seguimiento de Leads</p>
+                    <p className="text-[10px] text-[var(--color-iamet-text-subtle)]">Emails automáticos post no-show</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Pendientes', value: attributionSummary?.followupStats?.pending ?? 0, color: 'oklch(0.75 0.18 75)' },
+                    { label: 'Enviados', value: attributionSummary?.followupStats?.sent ?? 0, color: 'oklch(0.68 0.18 160)' },
+                    { label: 'Fallidos', value: attributionSummary?.followupStats?.failed ?? 0, color: 'oklch(0.62 0.22 25)' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="text-center p-2 rounded-xl bg-[var(--color-iamet-bg-tertiary)]">
+                      <p className="font-display text-xl font-800 text-[var(--color-iamet-text)]">{value}</p>
+                      <p className="text-[10px] text-[var(--color-iamet-text-subtle)]">{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-[var(--color-iamet-text-subtle)]">Total: {attributionSummary?.followupStats?.total ?? 0} seguimientos programados</p>
+              </div>
+
+              <div className="neumorphic rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'oklch(0.68 0.18 160 / 0.15)' }}>
+                    <Calendar className="w-4 h-4" style={{ color: 'oklch(0.68 0.18 160)' }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--color-iamet-text)]">Recordatorios de Reuniones</p>
+                    <p className="text-[10px] text-[var(--color-iamet-text-subtle)]">24h / 2h / 30min antes</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Pendientes', value: attributionSummary?.reminderStats?.pending ?? 0, color: 'oklch(0.75 0.18 75)' },
+                    { label: 'Enviados', value: attributionSummary?.reminderStats?.sent ?? 0, color: 'oklch(0.68 0.18 160)' },
+                    { label: 'Fallidos', value: attributionSummary?.reminderStats?.failed ?? 0, color: 'oklch(0.62 0.22 25)' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="text-center p-2 rounded-xl bg-[var(--color-iamet-bg-tertiary)]">
+                      <p className="font-display text-xl font-800 text-[var(--color-iamet-text)]">{value}</p>
+                      <p className="text-[10px] text-[var(--color-iamet-text-subtle)]">{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-[var(--color-iamet-text-subtle)]">Total: {attributionSummary?.reminderStats?.total ?? 0} recordatorios programados</p>
+              </div>
             </div>
 
             {/* Score Distribution (heredado) */}

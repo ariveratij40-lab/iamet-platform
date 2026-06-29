@@ -974,6 +974,18 @@ export async function bookMeeting(data: {
   topic: string;
   specialistId?: string;
   conversationId?: string;
+  // Attribution
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  gclid?: string;
+  fbclid?: string;
+  msclkid?: string;
+  referrer?: string;
+  landingUrl?: string;
+  sessionId?: string;
 }): Promise<Meeting> {
   const db = await getDb();
   if (!db) throw new Error('DB not available');
@@ -985,24 +997,36 @@ export async function bookMeeting(data: {
 
   const cancelToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
+  // Helper to escape SQL strings safely
+  const esc = (v?: string | null) => v ? `'${v.replace(/'/g, "''")}'` : 'NULL';
+
   // Mark slot as booked
   await db.execute(sql.raw(`UPDATE availability_slots SET isBooked = true WHERE id = ${data.slotId}`));
 
-  // Insert meeting
+  // Insert meeting with attribution
   await db.execute(sql.raw(`
-    INSERT INTO meetings (slotId, engineerId, clientName, clientEmail, clientPhone, company, topic, specialistId, conversationId, status, cancelToken)
+    INSERT INTO meetings (
+      slotId, engineerId, clientName, clientEmail, clientPhone, company, topic,
+      specialistId, conversationId, status, cancelToken,
+      utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+      gclid, fbclid, msclkid, referrer, landing_url, session_id
+    )
     VALUES (
       ${data.slotId},
       ${data.engineerId},
-      '${data.clientName.replace(/'/g, "''")}',
-      '${data.clientEmail.replace(/'/g, "''")}',
-      ${data.clientPhone ? `'${data.clientPhone.replace(/'/g, "''")}'` : 'NULL'},
-      ${data.company ? `'${data.company.replace(/'/g, "''")}'` : 'NULL'},
-      '${data.topic.replace(/'/g, "''")}',
-      ${data.specialistId ? `'${data.specialistId}'` : 'NULL'},
-      ${data.conversationId ? `'${data.conversationId}'` : 'NULL'},
+      ${esc(data.clientName)},
+      ${esc(data.clientEmail)},
+      ${esc(data.clientPhone)},
+      ${esc(data.company)},
+      ${esc(data.topic)},
+      ${esc(data.specialistId)},
+      ${esc(data.conversationId)},
       'confirmed',
-      '${cancelToken}'
+      ${esc(cancelToken)},
+      ${esc(data.utmSource)}, ${esc(data.utmMedium)}, ${esc(data.utmCampaign)},
+      ${esc(data.utmTerm)}, ${esc(data.utmContent)},
+      ${esc(data.gclid)}, ${esc(data.fbclid)}, ${esc(data.msclkid)},
+      ${esc(data.referrer)}, ${esc(data.landingUrl)}, ${esc(data.sessionId)}
     )
   `));
 
@@ -1148,5 +1172,121 @@ export async function getAnalyticsSummary(): Promise<{
       totalEvents: 0, eventsByType: [], eventsByVertical: [],
       recentEvents: [], meetingsBooked: 0, leadsGenerated: 0, chatSessions: 0,
     };
+  }
+}
+
+// ─── Attribution Summary para Dashboard Comercial ────────────────────────────
+
+export async function getAttributionSummary(): Promise<{
+  bySource: Array<{ source: string; leads: number; meetings: number }>;
+  byCampaign: Array<{ campaign: string; leads: number; meetings: number }>;
+  byMedium: Array<{ medium: string; leads: number; meetings: number }>;
+  topKeywords: Array<{ keyword: string; count: number }>;
+  followupStats: { pending: number; sent: number; failed: number; total: number };
+  reminderStats: { pending: number; sent: number; failed: number; total: number };
+}> {
+  const db = await getDb();
+  const empty = {
+    bySource: [], byCampaign: [], byMedium: [], topKeywords: [],
+    followupStats: { pending: 0, sent: 0, failed: 0, total: 0 },
+    reminderStats: { pending: 0, sent: 0, failed: 0, total: 0 },
+  };
+  if (!db) return empty;
+
+  try {
+    const extractRows = (res: unknown) => {
+      const r = res as any;
+      return Array.isArray(r[0]) ? r[0] : (Array.isArray(r) ? r : []);
+    };
+
+    const [srcLeads, srcMeetings, campLeads, campMeetings, medLeads, medMeetings, keywords, followups, reminders] = await Promise.all([
+      // Leads by source
+      db.execute(sql.raw(`SELECT utmSource as source, COUNT(*) as cnt FROM leads WHERE utmSource IS NOT NULL AND utmSource != '' GROUP BY utmSource ORDER BY cnt DESC LIMIT 10`)),
+      // Meetings by source
+      db.execute(sql.raw(`SELECT utmSource as source, COUNT(*) as cnt FROM meetings WHERE utmSource IS NOT NULL AND utmSource != '' GROUP BY utmSource ORDER BY cnt DESC LIMIT 10`)),
+      // Leads by campaign
+      db.execute(sql.raw(`SELECT utmCampaign as campaign, COUNT(*) as cnt FROM leads WHERE utmCampaign IS NOT NULL AND utmCampaign != '' GROUP BY utmCampaign ORDER BY cnt DESC LIMIT 10`)),
+      // Meetings by campaign
+      db.execute(sql.raw(`SELECT utmCampaign as campaign, COUNT(*) as cnt FROM meetings WHERE utmCampaign IS NOT NULL AND utmCampaign != '' GROUP BY utmCampaign ORDER BY cnt DESC LIMIT 10`)),
+      // Leads by medium
+      db.execute(sql.raw(`SELECT utmMedium as medium, COUNT(*) as cnt FROM leads WHERE utmMedium IS NOT NULL AND utmMedium != '' GROUP BY utmMedium ORDER BY cnt DESC LIMIT 10`)),
+      // Meetings by medium
+      db.execute(sql.raw(`SELECT utmMedium as medium, COUNT(*) as cnt FROM meetings WHERE utmMedium IS NOT NULL AND utmMedium != '' GROUP BY utmMedium ORDER BY cnt DESC LIMIT 10`)),
+      // Top keywords
+      db.execute(sql.raw(`SELECT utmTerm as keyword, COUNT(*) as cnt FROM leads WHERE utmTerm IS NOT NULL AND utmTerm != '' GROUP BY utmTerm ORDER BY cnt DESC LIMIT 10`)),
+      // Followup stats
+      db.execute(sql.raw(`SELECT status, COUNT(*) as cnt FROM lead_followups GROUP BY status`)),
+      // Reminder stats
+      db.execute(sql.raw(`SELECT status, COUNT(*) as cnt FROM meeting_reminders GROUP BY status`)),
+    ]);
+
+    // Build source map (merge leads + meetings)
+    const sourceMap = new Map<string, { leads: number; meetings: number }>();
+    for (const r of extractRows(srcLeads)) {
+      const k = r.source ?? 'direct';
+      if (!sourceMap.has(k)) sourceMap.set(k, { leads: 0, meetings: 0 });
+      sourceMap.get(k)!.leads += Number(r.cnt);
+    }
+    for (const r of extractRows(srcMeetings)) {
+      const k = r.source ?? 'direct';
+      if (!sourceMap.has(k)) sourceMap.set(k, { leads: 0, meetings: 0 });
+      sourceMap.get(k)!.meetings += Number(r.cnt);
+    }
+
+    // Build campaign map
+    const campMap = new Map<string, { leads: number; meetings: number }>();
+    for (const r of extractRows(campLeads)) {
+      const k = r.campaign ?? '';
+      if (!campMap.has(k)) campMap.set(k, { leads: 0, meetings: 0 });
+      campMap.get(k)!.leads += Number(r.cnt);
+    }
+    for (const r of extractRows(campMeetings)) {
+      const k = r.campaign ?? '';
+      if (!campMap.has(k)) campMap.set(k, { leads: 0, meetings: 0 });
+      campMap.get(k)!.meetings += Number(r.cnt);
+    }
+
+    // Build medium map
+    const medMap = new Map<string, { leads: number; meetings: number }>();
+    for (const r of extractRows(medLeads)) {
+      const k = r.medium ?? '';
+      if (!medMap.has(k)) medMap.set(k, { leads: 0, meetings: 0 });
+      medMap.get(k)!.leads += Number(r.cnt);
+    }
+    for (const r of extractRows(medMeetings)) {
+      const k = r.medium ?? '';
+      if (!medMap.has(k)) medMap.set(k, { leads: 0, meetings: 0 });
+      medMap.get(k)!.meetings += Number(r.cnt);
+    }
+
+    // Followup stats
+    const followupRows = extractRows(followups);
+    const followupStats = {
+      pending: Number(followupRows.find((r: any) => r.status === 'pending')?.cnt ?? 0),
+      sent: Number(followupRows.find((r: any) => r.status === 'sent')?.cnt ?? 0),
+      failed: Number(followupRows.find((r: any) => r.status === 'failed')?.cnt ?? 0),
+      total: followupRows.reduce((acc: number, r: any) => acc + Number(r.cnt), 0),
+    };
+
+    // Reminder stats
+    const reminderRows = extractRows(reminders);
+    const reminderStats = {
+      pending: Number(reminderRows.find((r: any) => r.status === 'pending')?.cnt ?? 0),
+      sent: Number(reminderRows.find((r: any) => r.status === 'sent')?.cnt ?? 0),
+      failed: Number(reminderRows.find((r: any) => r.status === 'failed')?.cnt ?? 0),
+      total: reminderRows.reduce((acc: number, r: any) => acc + Number(r.cnt), 0),
+    };
+
+    return {
+      bySource: Array.from(sourceMap.entries()).map(([source, v]) => ({ source, ...v })),
+      byCampaign: Array.from(campMap.entries()).map(([campaign, v]) => ({ campaign, ...v })),
+      byMedium: Array.from(medMap.entries()).map(([medium, v]) => ({ medium, ...v })),
+      topKeywords: extractRows(keywords).map((r: any) => ({ keyword: r.keyword, count: Number(r.cnt) })),
+      followupStats,
+      reminderStats,
+    };
+  } catch (e) {
+    console.warn('[Analytics] getAttributionSummary error:', e);
+    return empty;
   }
 }

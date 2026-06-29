@@ -72,6 +72,19 @@ export const leads = pgTable("leads", {
   scoreBreakdown: json("scoreBreakdown"),
   status: leadStatusEnum("status").default("new").notNull(),
   notes: text("notes"),
+  // Attribution
+  utmSource: varchar("utm_source", { length: 255 }),
+  utmMedium: varchar("utm_medium", { length: 255 }),
+  utmCampaign: varchar("utm_campaign", { length: 255 }),
+  utmTerm: varchar("utm_term", { length: 255 }),
+  utmContent: varchar("utm_content", { length: 255 }),
+  gclid: varchar("gclid", { length: 255 }),
+  fbclid: varchar("fbclid", { length: 255 }),
+  msclkid: varchar("msclkid", { length: 255 }),
+  referrer: text("referrer"),
+  landingUrl: text("landing_url"),
+  firstPage: varchar("first_page", { length: 500 }),
+  sessionId: varchar("session_id", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
@@ -368,6 +381,19 @@ export const meetings = pgTable("meetings", {
   status: meetingStatusEnum("status").default("pending").notNull(),
   cancelToken: varchar("cancelToken", { length: 128 }),  // token único para cancelar
   notes: text("notes"),
+  meetingUrl: varchar("meeting_url", { length: 500 }),  // Google Meet / Teams link
+  // Attribution
+  utmSource: varchar("utm_source", { length: 255 }),
+  utmMedium: varchar("utm_medium", { length: 255 }),
+  utmCampaign: varchar("utm_campaign", { length: 255 }),
+  utmTerm: varchar("utm_term", { length: 255 }),
+  utmContent: varchar("utm_content", { length: 255 }),
+  gclid: varchar("gclid", { length: 255 }),
+  fbclid: varchar("fbclid", { length: 255 }),
+  msclkid: varchar("msclkid", { length: 255 }),
+  referrer: text("referrer"),
+  landingUrl: text("landing_url"),
+  sessionId: varchar("session_id", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

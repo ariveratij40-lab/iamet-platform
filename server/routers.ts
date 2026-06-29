@@ -52,11 +52,14 @@ import {
   getMeetingByCancelToken,
   trackAnalyticsEvent,
   getAnalyticsSummary,
+  getAttributionSummary,
 } from "./db";
 import { nanoid } from "nanoid";
 import { detectInfrastructureTopic, buildSystemPrompt } from "./panduit-utils";
 import { buildSpecialistPrompt, detectSpecialist } from "./specialists";
 import { sendVerificationEmail, sendQuoteNotificationEmail, sendMeetingConfirmationEmail, sendMeetingCancellationEmail } from "./email";
+import { scheduleMeetingReminders } from "./reminders";
+import { scheduleLeadFollowups } from "./followups";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -222,6 +225,19 @@ export const appRouter = router({
           problemDescription: z.string().optional(),
           verticalSlug: z.string().optional(),
           source: z.enum(["form", "agent", "advisor", "academy"]).default("form"),
+          // Attribution
+          utmSource: z.string().optional(),
+          utmMedium: z.string().optional(),
+          utmCampaign: z.string().optional(),
+          utmTerm: z.string().optional(),
+          utmContent: z.string().optional(),
+          gclid: z.string().optional(),
+          fbclid: z.string().optional(),
+          msclkid: z.string().optional(),
+          referrer: z.string().optional(),
+          landingUrl: z.string().optional(),
+          firstPage: z.string().optional(),
+          sessionId: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -554,6 +570,9 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       }),
     getSummary: adminProcedure.query(async () => {
       return getAnalyticsSummary();
+    }),
+    getAttributionSummary: adminProcedure.query(async () => {
+      return getAttributionSummary();
     }),
   }),
 
@@ -907,6 +926,18 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         specialistId: z.string().optional(),
         conversationId: z.string().optional(),
         origin: z.string().optional(),
+        // Attribution
+        utmSource: z.string().optional(),
+        utmMedium: z.string().optional(),
+        utmCampaign: z.string().optional(),
+        utmTerm: z.string().optional(),
+        utmContent: z.string().optional(),
+        gclid: z.string().optional(),
+        fbclid: z.string().optional(),
+        msclkid: z.string().optional(),
+        referrer: z.string().optional(),
+        landingUrl: z.string().optional(),
+        sessionId: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const meeting = await bookMeeting(input);
@@ -931,6 +962,18 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
           cancelToken: meeting.cancelToken ?? '',
           baseUrl: input.origin,
         });
+        // Schedule smart reminders (24h, 2h, 30min before meeting)
+        if (latestMeeting?.date && latestMeeting?.startTime) {
+          try {
+            const [year, month, day] = latestMeeting.date.split('-').map(Number);
+            const [hour, minute] = latestMeeting.startTime.split(':').map(Number);
+            // Mexico City is UTC-6 (CDT) or UTC-7 (CST); use UTC-6 as approximation
+            const meetingDatetime = new Date(Date.UTC(year, month - 1, day, hour + 6, minute));
+            await scheduleMeetingReminders(meeting.id, meetingDatetime);
+          } catch (e) {
+            console.warn('[Reminders] Error scheduling reminders:', e);
+          }
+        }
         return { ok: true, meeting, cancelToken: meeting.cancelToken };
       }),
 

@@ -512,3 +512,37 @@
 - [x] Barras animadas: Interacción por vertical (qué landing genera más engagement)
 - [x] Tabla de actividad reciente: últimos 50 eventos con timestamp, tipo y vertical
 - [x] Score Distribution heredado (Hot/Warm/Cold leads)
+
+## Sprint 3 — Inteligencia Comercial
+
+### Attribution Completa
+- [x] 10 campos en tabla `leads`: utmTerm, utmContent, gclid, fbclid, msclkid, referrer, landingUrl, firstPage, sessionId + utmSource/Medium/Campaign
+- [x] 12 campos en tabla `meetings`: mismos UTM + meetingUrl, firstPage, sessionId
+- [x] Hook `useAttribution.ts`: captura UTM + click IDs + referrer + landing_url + first_page al cargar la app, persiste en sessionStorage
+- [x] tRPC procedures actualizados: leads.create y calendar.bookMeeting aceptan attribution
+- [x] Schema Drizzle actualizado con los nuevos campos
+- [x] Dashboard Comercial: tabla por fuente, campaña y top keywords (utm_term)
+
+### Seguimiento Automático de Leads (IA Comercial)
+- [x] Tabla `lead_followups`: id, leadId, type (24h/48h/72h/7d), status (pending/sent/failed/skipped), scheduledAt, sentAt, emailSubject, emailBody
+- [x] `server/followups.ts`: motor de seguimiento con IA (invokeLLM genera email personalizado)
+- [x] `scheduleLeadFollowups(leadId)`: programa la secuencia de 4 emails al crear un lead
+- [x] `processLeadFollowups()`: handler del heartbeat que envía los emails pendientes
+- [x] Secuencia: 24h (check-in), 48h (caso de uso), 72h (urgencia), 7d (reactivación)
+- [x] Email generado por IA: personalizado con nombre, empresa, vertical, pain points
+- [x] Endpoint `POST /api/scheduled/lead-followups` registrado en index.ts
+- [x] Heartbeat listo para configurar después del Deploy
+
+### Recordatorios Inteligentes Multi-Canal
+- [x] Tabla `meeting_reminders`: id, meetingId, reminderType (24h/2h/30min), recipient (client/engineer/vendor), scheduledAt, sentAt, status
+- [x] `server/reminders.ts`: motor de recordatorios con emails HTML (3 colores según urgencia)
+- [x] `scheduleMeetingReminders(meetingId, datetime)`: programa hasta 9 recordatorios al confirmar una reunión
+- [x] `processMeetingReminders()`: handler del heartbeat que envía recordatorios pendientes
+- [x] Recordatorio 24h: email a cliente + ingeniero + vendedor
+- [x] Recordatorio 2h: email a cliente + ingeniero
+- [x] Recordatorio 30min: email a cliente con link directo
+- [x] Links en emails: Google Meet, Microsoft Teams, Google Calendar (.ics adjunto)
+- [x] Campo `meetingUrl` en tabla `meetings` para guardar el link de la reunión virtual
+- [x] Endpoint `POST /api/scheduled/meeting-reminders` registrado en index.ts
+- [x] Heartbeat listo para configurar después del Deploy
+- [x] `scheduleMeetingReminders` llamado automáticamente en `calendar.bookMeeting`

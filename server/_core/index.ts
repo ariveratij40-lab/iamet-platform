@@ -12,6 +12,9 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic } from "./serveStatic";
 import { seedEngineers, seedAvailabilitySlots } from "../db";
+import { processLeadFollowups } from "../followups";
+import { processMeetingReminders } from "../reminders";
+import { sdk } from "./sdk";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -152,6 +155,32 @@ async function startServer() {
   // ─── Health check (sin rate limiting — usado por Docker healthcheck) ──────
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, ts: Date.now() });
+  });
+
+  // ─── Heartbeat: Seguimiento automático de leads (cada hora) ──────────────
+  app.post("/api/scheduled/lead-followups", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron) return res.status(403).json({ error: "cron-only" });
+      const result = await processLeadFollowups();
+      res.json({ ok: true, ...result });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: msg, timestamp: Date.now() });
+    }
+  });
+
+  // ─── Heartbeat: Recordatorios de reuniones (cada 30 minutos) ─────────────
+  app.post("/api/scheduled/meeting-reminders", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron) return res.status(403).json({ error: "cron-only" });
+      const result = await processMeetingReminders();
+      res.json({ ok: true, ...result });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: msg, timestamp: Date.now() });
+    }
   });
 
   // ─── Rate limiting en tRPC API ────────────────────────────────────────────
