@@ -7,6 +7,7 @@ import {
   Server, Brain, FileCheck, Globe, ShoppingCart,
   Sun, Moon, Languages, Activity, Menu, X,
   KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Network,
+  BarChart3, Bot, Database, Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -253,6 +254,30 @@ export default function Navbar() {
                       <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
                         <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
                         <span className="text-sm font-medium">{t.nav.dashboard}</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/intelligence" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <BarChart3 className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Inteligencia</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/agent" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Bot className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Agente SDR</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/knowledge" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Database className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Conocimiento</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/briefing" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Newspaper className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Briefing IA</span>
                       </button>
                     </Link>
                   </>
@@ -631,6 +656,43 @@ export default function Navbar() {
                   </AnimatePresence>
                 </button>
               </Link>
+              {/* Sprint 6: Módulos de Inteligencia */}
+              {[{ href: "/admin/intelligence", icon: BarChart3, label: "Inteligencia" },
+                { href: "/admin/agent", icon: Bot, label: "Agente SDR" },
+                { href: "/admin/knowledge", icon: Database, label: "Conocimiento" },
+                { href: "/admin/briefing", icon: Newspaper, label: "Briefing IA" },
+              ].map(({ href, icon: Icon, label }) => (
+                <Link key={href} href={href} onClick={() => setExpanded(false)}>
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-150"
+                    style={{ color: "var(--color-iamet-text-muted)" }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLElement).style.background = "var(--color-iamet-bg-tertiary)";
+                      (e.currentTarget as HTMLElement).style.color = "var(--color-iamet-accent)";
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLElement).style.background = "transparent";
+                      (e.currentTarget as HTMLElement).style.color = "var(--color-iamet-text-muted)";
+                    }}
+                    title={!expanded ? label : undefined}
+                  >
+                    <Icon style={{ width: 18, height: 18 }} className="flex-shrink-0" />
+                    <AnimatePresence>
+                      {expanded && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -8 }}
+                          transition={{ duration: 0.18 }}
+                          className="text-sm font-medium whitespace-nowrap"
+                        >
+                          {label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </button>
+                </Link>
+              ))}
             </>
           ) : (
             <a href={getLoginUrl()}>

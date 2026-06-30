@@ -18,6 +18,10 @@ import AdminTienda from "./pages/AdminTienda";
 import AdminReuiones from "./pages/AdminReuiones";
 import AdminSeguimientos from "./pages/AdminSeguimientos";
 import AdminCRM from "./pages/AdminCRM";
+import AdminIntelligence from "./pages/AdminIntelligence";
+import AdminAgent from "./pages/AdminAgent";
+import AdminKnowledge from "./pages/AdminKnowledge";
+import AdminBriefing from "./pages/AdminBriefing";
 import TiendaPerfil from "./pages/TiendaPerfil";
 import TiendaLogin from "./pages/TiendaLogin";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
@@ -74,6 +78,10 @@ function Router() {
           <Route path="/admin/reuniones" component={AdminReuiones} />
           <Route path="/admin/seguimientos" component={AdminSeguimientos} />
           <Route path="/admin/crm" component={AdminCRM} />
+          <Route path="/admin/intelligence" component={AdminIntelligence} />
+          <Route path="/admin/agent" component={AdminAgent} />
+          <Route path="/admin/knowledge" component={AdminKnowledge} />
+          <Route path="/admin/briefing" component={AdminBriefing} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
