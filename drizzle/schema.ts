@@ -414,3 +414,144 @@ export const analyticsEvents = pgTable("analytics_events", {
 });
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
+// ─── Sprint 6: Agent Traces (Observabilidad del Agente) ───────────────────────
+export const agentTraces = pgTable("agent_traces", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversationId"),
+  sessionId: varchar("sessionId", { length: 64 }),
+  iterationNum: integer("iterationNum").default(1).notNull(),
+  toolName: varchar("toolName", { length: 64 }).notNull(),
+  params: json("params"),
+  result: json("result"),
+  durationMs: integer("durationMs"),
+  success: boolean("success").default(true).notNull(),
+  error: text("error"),
+  promptTokens: integer("promptTokens"),
+  completionTokens: integer("completionTokens"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AgentTrace = typeof agentTraces.$inferSelect;
+export type InsertAgentTrace = typeof agentTraces.$inferInsert;
+
+// ─── Sprint 6: Enterprise RAG — Knowledge Base ────────────────────────────────
+export const knowledgeCollections = pgTable("knowledge_collections", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  description: text("description"),
+  color: varchar("color", { length: 32 }),
+  icon: varchar("icon", { length: 64 }),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type KnowledgeCollection = typeof knowledgeCollections.$inferSelect;
+
+export const knowledgeDocStatusEnum = pgEnum("knowledge_doc_status", ["pending", "processing", "ready", "error"]);
+
+export const knowledgeDocuments = pgTable("knowledge_documents", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collectionId"),
+  title: varchar("title", { length: 256 }).notNull(),
+  category: varchar("category", { length: 128 }),
+  manufacturer: varchar("manufacturer", { length: 128 }),
+  product: varchar("product", { length: 256 }),
+  version: varchar("version", { length: 64 }),
+  author: varchar("author", { length: 128 }),
+  source: varchar("source", { length: 512 }),
+  fileType: varchar("fileType", { length: 32 }),
+  fileKey: text("fileKey"),
+  fileUrl: text("fileUrl"),
+  fileSizeBytes: integer("fileSizeBytes"),
+  status: knowledgeDocStatusEnum("status").default("pending").notNull(),
+  summary: text("summary"),
+  keywords: json("keywords"),
+  tags: json("tags"),
+  chunkCount: integer("chunkCount").default(0).notNull(),
+  processedAt: timestamp("processedAt"),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type KnowledgeDocument = typeof knowledgeDocuments.$inferSelect;
+export type InsertKnowledgeDocument = typeof knowledgeDocuments.$inferInsert;
+
+export const knowledgeChunks = pgTable("knowledge_chunks", {
+  id: serial("id").primaryKey(),
+  documentId: integer("documentId").notNull(),
+  chunkIndex: integer("chunkIndex").notNull(),
+  content: text("content").notNull(),
+  embedding: json("embedding"),  // vector stored as JSON array
+  tokenCount: integer("tokenCount"),
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type KnowledgeChunk = typeof knowledgeChunks.$inferSelect;
+export type InsertKnowledgeChunk = typeof knowledgeChunks.$inferInsert;
+
+export const knowledgeFeedback = pgTable("knowledge_feedback", {
+  id: serial("id").primaryKey(),
+  chunkId: integer("chunkId").notNull(),
+  sessionId: varchar("sessionId", { length: 64 }),
+  query: text("query"),
+  helpful: boolean("helpful"),
+  comment: text("comment"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type KnowledgeFeedback = typeof knowledgeFeedback.$inferSelect;
+
+// ─── Sprint 6: Commercial Learnings (Aprendizaje Comercial) ──────────────────
+export const commercialOutcomeEnum = pgEnum("commercial_outcome", ["won", "lost"]);
+
+export const commercialLearnings = pgTable("commercial_learnings", {
+  id: serial("id").primaryKey(),
+  leadId: integer("leadId"),
+  outcome: commercialOutcomeEnum("outcome").notNull(),
+  industry: varchar("industry", { length: 128 }),
+  employees: varchar("employees", { length: 64 }),
+  vertical: varchar("vertical", { length: 64 }),
+  problem: text("problem"),
+  pain: text("pain"),
+  budget: varchar("budget", { length: 128 }),
+  competitor: varchar("competitor", { length: 256 }),
+  productsSold: json("productsSold"),
+  closingDays: integer("closingDays"),
+  lossReason: text("lossReason"),
+  successReason: text("successReason"),
+  decisionMaker: varchar("decisionMaker", { length: 128 }),
+  channel: varchar("channel", { length: 64 }),
+  campaign: varchar("campaign", { length: 128 }),
+  source: varchar("source", { length: 64 }),
+  extractedAt: timestamp("extractedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type CommercialLearning = typeof commercialLearnings.$inferSelect;
+export type InsertCommercialLearning = typeof commercialLearnings.$inferInsert;
+
+// ─── Sprint 6: Daily Briefings (Briefing Ejecutivo IA) ───────────────────────
+export const dailyBriefings = pgTable("daily_briefings", {
+  id: serial("id").primaryKey(),
+  date: varchar("date", { length: 10 }).notNull().unique(),  // YYYY-MM-DD
+  content: json("content").notNull(),
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+  scheduleCronTaskUid: varchar("scheduleCronTaskUid", { length: 65 }),
+});
+export type DailyBriefing = typeof dailyBriefings.$inferSelect;
+export type InsertDailyBriefing = typeof dailyBriefings.$inferInsert;
+
+// ─── Sprint 6: Channel ROI ────────────────────────────────────────────────────
+export const channelRoi = pgTable("channel_roi", {
+  id: serial("id").primaryKey(),
+  channel: varchar("channel", { length: 64 }).notNull(),  // google_ads, linkedin, facebook, referral, organic, email, utm
+  period: varchar("period", { length: 7 }).notNull(),     // YYYY-MM
+  spend: real("spend").default(0),
+  leads: integer("leads").default(0),
+  meetings: integer("meetings").default(0),
+  opportunities: integer("opportunities").default(0),
+  won: integer("won").default(0),
+  revenue: real("revenue").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type ChannelRoi = typeof channelRoi.$inferSelect;
+export type InsertChannelRoi = typeof channelRoi.$inferInsert;

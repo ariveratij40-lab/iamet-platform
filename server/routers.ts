@@ -66,6 +66,8 @@ import { scheduleLeadFollowups } from "./followups";
 import { calculateLeadScore as calcScore, getLeadScore } from "./scoring";
 import { addTimelineEvent } from "./timeline";
 import { runAgentLoop } from "./agent-orchestrator";
+import { getForecast, getFunnel, getChannelROI, getVerticals as getIntelVerticals, getSalespersons, getAgentStats, getTrends } from "./intelligence";
+import { listDocuments, getDocument, deleteDocument, ingestDocument, getCollections, createCollection } from "./knowledge";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1327,5 +1329,148 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       }),
   }),
 
+  // ─── Sprint 6: Centro de Inteligencia Comercial ────────────────────────────────
+  intelligence: router({
+    getForecast: adminProcedure.query(() => getForecast()),
+    getFunnel: adminProcedure.query(() => getFunnel()),
+    getChannelROI: adminProcedure.query(() => getChannelROI()),
+    getVerticals: adminProcedure.query(() => getIntelVerticals()),
+    getSalespersons: adminProcedure.query(() => getSalespersons()),
+    getAgentStats: adminProcedure.query(() => getAgentStats()),
+    getTrends: adminProcedure.query(() => getTrends()),
+  }),
+
+  // ─── Sprint 6: Enterprise RAG — Base de Conocimiento ─────────────────────────
+  knowledge: router({
+    getCollections: adminProcedure.query(() => getCollections()),
+    createCollection: adminProcedure
+      .input(z.object({
+        name: z.string().min(2),
+        slug: z.string().min(2),
+        description: z.string().optional(),
+        color: z.string().optional(),
+        icon: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await createCollection(input);
+        return { ok: true };
+      }),
+    listDocuments: adminProcedure
+      .input(z.object({ collectionId: z.number().optional(), status: z.string().optional() }))
+      .query(async ({ input }) => listDocuments(input.collectionId, input.status)),
+    getDocument: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => getDocument(input.id)),
+    deleteDocument: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteDocument(input.id);
+        return { ok: true };
+      }),
+    uploadDocument: adminProcedure
+      .input(z.object({
+        title: z.string().min(2),
+        category: z.string().optional(),
+        manufacturer: z.string().optional(),
+        product: z.string().optional(),
+        version: z.string().optional(),
+        author: z.string().optional(),
+        source: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        collectionId: z.number().optional(),
+        fileType: z.string(),
+        fileName: z.string(),
+        fileBase64: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const fileBuffer = Buffer.from(input.fileBase64, 'base64');
+        const result = await ingestDocument({
+          title: input.title,
+          category: input.category,
+          manufacturer: input.manufacturer,
+          product: input.product,
+          version: input.version,
+          author: input.author,
+          source: input.source,
+          tags: input.tags,
+          collectionId: input.collectionId,
+          fileType: input.fileType,
+          fileBuffer,
+          fileName: input.fileName,
+        });
+        return result;
+      }),
+  }),
+
+  // ─── Sprint 6: Observabilidad del Agente ─────────────────────────────────────
+  agentObs: router({
+    getConversations: adminProcedure
+      .input(z.object({ limit: z.number().optional(), offset: z.number().optional() }))
+      .query(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) return { conversations: [], total: 0 };
+        const { sql } = await import('drizzle-orm');
+        const limit = input.limit ?? 50;
+        const offset = input.offset ?? 0;
+        const rows = await db.execute(sql.raw(`
+          SELECT c.id, c.sessionId, c.leadId, c.createdAt, c.updatedAt,
+            COUNT(DISTINCT m.id) as messageCount,
+            COUNT(DISTINCT at.id) as toolCallCount
+          FROM conversations c
+          LEFT JOIN messages m ON m.conversationId = c.id
+          LEFT JOIN agent_traces at ON at.conversationId = c.id
+          GROUP BY c.id
+          ORDER BY c.updatedAt DESC
+          LIMIT ${limit} OFFSET ${offset}
+        `)) as any;
+        const arr = Array.isArray(rows) ? rows : ((rows as any)?.rows ?? []);
+        const countRows = await db.execute(sql.raw('SELECT COUNT(*) as total FROM conversations')) as any;
+        const countArr = Array.isArray(countRows) ? countRows : ((countRows as any)?.rows ?? []);
+        return { conversations: arr, total: Number(countArr[0]?.total ?? 0) };
+      }),
+    getConversationDetail: adminProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) return { messages: [], traces: [] };
+        const { sql } = await import('drizzle-orm');
+        const messages = await db.execute(sql.raw(`SELECT * FROM messages WHERE conversationId = ${input.conversationId} ORDER BY createdAt ASC`)) as any;
+        const traces = await db.execute(sql.raw(`SELECT * FROM agent_traces WHERE conversationId = ${input.conversationId} ORDER BY createdAt ASC`)) as any;
+        return {
+          messages: Array.isArray(messages) ? messages : ((messages as any)?.rows ?? []),
+          traces: Array.isArray(traces) ? traces : ((traces as any)?.rows ?? []),
+        };
+      }),
+    getStats: adminProcedure.query(async () => {
+      const db = await import('./db').then(m => m.getDb());
+      if (!db) return { stats: {}, topTools: [] };
+      const { sql } = await import('drizzle-orm');
+      const statsRows = await db.execute(sql.raw(`
+        SELECT
+          COUNT(DISTINCT conversationId) as totalConversations,
+          COUNT(*) as totalToolCalls,
+          SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successfulCalls,
+          AVG(durationMs) as avgDurationMs
+        FROM agent_traces
+        WHERE createdAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      `)) as any;
+      const topTools = await db.execute(sql.raw(`
+        SELECT toolName, COUNT(*) as cnt, AVG(durationMs) as avgMs
+        FROM agent_traces
+        GROUP BY toolName
+        ORDER BY cnt DESC
+        LIMIT 10
+      `)) as any;
+      const statsArr = Array.isArray(statsRows) ? statsRows : ((statsRows as any)?.rows ?? []);
+      return {
+        stats: statsArr[0] ?? {},
+        topTools: Array.isArray(topTools) ? topTools : ((topTools as any)?.rows ?? []),
+      };
+    }),
+  }),
+
 });
 export type AppRouter = typeof appRouter;
+
+// NOTE: The above line closes the appRouter. The following exports extend it via a separate router file.
+// These are appended here for Sprint 6 modules.

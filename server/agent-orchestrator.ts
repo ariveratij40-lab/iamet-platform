@@ -11,6 +11,7 @@
 import { invokeLLM } from "./_core/llm";
 import { TOOL_REGISTRY } from "./agent-tools";
 import { getMemoryContext, updateMemoryFromConversation } from "./agent-memory";
+import { saveTrace } from "./agent-traces";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -470,11 +471,24 @@ export async function runAgentLoop(
       console.log(`[Orchestrator] Executing tool: ${toolName}`, JSON.stringify(toolArgs).slice(0, 200));
 
       let toolResult: any;
+      const traceStart = Date.now();
       try {
         toolResult = await toolFn(...Object.values(toolArgs));
       } catch (e) {
         toolResult = { success: false, error: String(e) };
       }
+      const traceDuration = Date.now() - traceStart;
+      // Fire-and-forget trace save
+      saveTrace({
+        sessionId,
+        iterationNum: iterations,
+        toolName,
+        params: toolArgs,
+        result: toolResult,
+        durationMs: traceDuration,
+        success: toolResult.success !== false,
+        error: toolResult.error,
+      }).catch(() => {});
 
       // Track tool usage
       toolsUsed.push({

@@ -58,18 +58,23 @@ PREGUNTAS DE DISCOVERY CLAVE:
 
 export async function searchKnowledge(query: string): Promise<ToolResult> {
   try {
+    // Usar RAG real (documentos subidos + base estática de fallback)
+    const { buildRAGContext } = await import('./rag');
+    const ragContext = await buildRAGContext(query, 4);
+
+    const systemContent = ragContext
+      ? `Eres un experto en tecnología IAMET. Responde la siguiente consulta basándote en el contexto proporcionado y tu conocimiento de IAMET.\n\n${ragContext}\n\nSé conciso y específico. Máximo 3 párrafos.`
+      : `Eres un experto en tecnología IAMET. Responde la siguiente consulta basándote SOLO en esta base de conocimiento:\n\n${IAMET_KNOWLEDGE_BASE}\n\nSé conciso y específico. Máximo 3 párrafos.`;
+
     const response = await invokeLLM({
       messages: [
-        {
-          role: "system",
-          content: `Eres un experto en tecnología IAMET. Responde la siguiente consulta basándote SOLO en esta base de conocimiento:\n\n${IAMET_KNOWLEDGE_BASE}\n\nSé conciso y específico. Máximo 3 párrafos.`,
-        },
+        { role: "system", content: systemContent },
         { role: "user", content: query },
       ],
     });
     const rawAnswer = response?.choices?.[0]?.message?.content;
     const answer = typeof rawAnswer === 'string' ? rawAnswer : '';
-    return { success: true, data: { answer } };
+    return { success: true, data: { answer, ragUsed: !!ragContext } };
   } catch (e) {
     return { success: false, error: String(e) };
   }

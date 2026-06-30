@@ -694,3 +694,71 @@
 - [x] Mostrar chips de acciones ejecutadas: "📅 Reunión agendada", "📧 Email enviado", "📊 Score calculado"
 - [x] Mostrar tarjeta de propuesta preliminar cuando el agente genera `generateProposal`
 - [x] Mostrar tarjeta de confirmación de reunión cuando el agente ejecuta `bookMeeting`
+
+## Sprint 6 — Centro de Inteligencia Comercial + Enterprise RAG
+
+### Módulo 1: Centro de Inteligencia Comercial (/admin/intelligence)
+- [ ] server/intelligence.ts: helpers de forecast, embudo, ROI por canal, verticales, vendedores, especialistas IA, tendencias
+- [ ] tRPC router intelligence.*: getForcast, getFunnel, getChannelROI, getVerticals, getSalespersons, getAgentStats, getTrends
+- [ ] Página AdminIntelligence.tsx: dashboard ejecutivo con 7 secciones
+- [ ] Tarjeta Forecast: Pipeline Total, ponderado, ventas esperadas, probabilidad de meta, forecast 30/90 días
+- [ ] Tarjeta Embudo Comercial: visitantes → conversaciones → leads → calificados → reuniones → propuestas → negociaciones → ganadas → perdidas
+- [ ] Tarjeta ROI por Canal: Google Ads, LinkedIn, Facebook, Referidos, Orgánico, Email, UTM — costo por lead/reunión/oportunidad/proyecto
+- [ ] Tarjeta Verticales: top verticales, conversión, ticket promedio, tiempo de cierre, pipeline por vertical
+- [ ] Tarjeta Vendedores: leads asignados, reuniones, cotizaciones, ventas, conversión, pipeline, tiempo de respuesta
+- [ ] Tarjeta Especialistas IA: conversaciones, leads generados, herramientas ejecutadas, tiempo promedio, conversión, score promedio
+- [ ] Tarjeta Tendencias: leads/día, reuniones, propuestas, ventas, heatmap por hora y día
+
+### Módulo 2: Observabilidad del Agente (/admin/agent)
+- [ ] Tabla agent_traces: id, conversationId, sessionId, toolName, params (json), result (json), durationMs, success, error, iterationNum, createdAt
+- [ ] server/agent-traces.ts: helpers para guardar y consultar trazas de tool calls
+- [ ] Actualizar agent-orchestrator.ts para guardar trazas en agent_traces en cada tool call
+- [ ] tRPC router agentObs.*: getConversations (con métricas), getConversationDetail (con tool calls), getStats
+- [ ] Página AdminAgent.tsx: lista de conversaciones con métricas (tokens, costo, duración, lead, reunión, propuesta, score)
+- [ ] Vista detalle de conversación: secuencia completa de tool calls con hora, parámetros, resultado, duración, estado
+- [ ] Mostrar memoria utilizada, contexto enviado al modelo, número de iteraciones, latencia por herramienta, costo estimado
+
+### Módulo 3: Enterprise RAG — Base de Conocimiento
+- [ ] Tablas: knowledge_collections, knowledge_documents, knowledge_chunks, knowledge_embeddings (simulado con JSON), knowledge_sources, knowledge_tags, knowledge_versions, knowledge_feedback
+- [ ] Migración SQL para todas las tablas de knowledge_*
+- [ ] server/knowledge.ts: helpers CRUD para documentos, chunks, colecciones
+- [ ] Importadores: PDF (pdf-parse), Word (mammoth), Excel (xlsx), PowerPoint (pptx), Markdown, Texto, CSV
+- [ ] Procesamiento automático: extraer texto → limpiar → generar chunks → generar embeddings (via LLM) → indexar → resumen IA → palabras clave → categorías
+- [ ] Página AdminKnowledge.tsx (/admin/knowledge): upload de documentos con metadatos (título, categoría, fabricante, producto, versión, fecha, autor, fuente, etiquetas)
+- [ ] tRPC router knowledge.*: upload, list, getDetail, delete, reprocess, search
+
+### Módulo 4: Motor RAG — Búsqueda Híbrida
+- [ ] server/rag.ts: búsqueda híbrida (vector search simulado + keyword search + re-ranking via LLM)
+- [ ] Función ragSearch(query, topK): retorna chunks relevantes con score y fuente
+- [ ] Actualizar searchKnowledge en agent-tools.ts para usar ragSearch en lugar de base estática
+- [ ] El agente cita documentos internamente para fundamentar respuestas
+
+### Módulo 5: Aprendizaje Comercial
+- [ ] Tabla commercial_learnings: id, leadId, outcome (won/lost), industry, employees, vertical, problem, pain, budget, competitor, productsSold, closingTime, lossReason, successReason, decisionMaker, channel, campaign, source, createdAt
+- [ ] Trigger en crm.updateLeadStatus: cuando status = won/lost, llamar extractCommercialLearning(leadId)
+- [ ] server/commercial-learning.ts: función extractCommercialLearning usa LLM para extraer datos estructurados de la conversación del lead
+- [ ] tRPC router learning.*: getInsights, getTopPatterns, getLossReasons, getSuccessFactors
+
+### Módulo 6: Inteligencia Predictiva
+- [ ] server/predictive.ts: modelos de probabilidad de cierre, tiempo esperado, valor esperado, riesgo, siguiente mejor acción, prioridad
+- [ ] Función predictLead(leadId): retorna { closeProbability, expectedDays, expectedValue, risk, nextBestAction, priority }
+- [ ] Actualizar calculateLeadScore para incluir predicción
+- [ ] tRPC router predictive.*: predictLead, getRecommendations, getTopOpportunities
+- [ ] Mostrar recomendaciones en AdminCRM: "Asignar a ingeniero especializado", "Incrementar presupuesto Google Ads"
+
+### Módulo 7: Briefing Ejecutivo IA
+- [ ] Tabla daily_briefings: id, date, content (json), generatedAt, taskUid (varchar 65)
+- [ ] server/briefing.ts: actualizar/crear función generateDailyBriefing() con datos reales del Sprint 6
+- [ ] Handler /api/scheduled/daily-briefing: genera briefing, guarda en BD, notifica al owner
+- [ ] Heartbeat diario 07:00 AM (14:00 UTC) via manus-heartbeat CLI
+- [ ] Página AdminBriefing.tsx (/admin/briefing): muestra el briefing del día con secciones: nuevos leads, leads hot, reuniones del día, seguimientos, pipeline, forecast, riesgos, alertas, campañas, recomendaciones, top oportunidades, top vendedores, top verticales
+
+### Módulo 8: Conexión RAG al Agente SDR
+- [ ] searchKnowledge en agent-tools.ts usa ragSearch() real en lugar de base de conocimiento estática
+- [ ] El agente incluye fuentes de documentos en respuestas cuando usa RAG
+
+### Calidad Sprint 6
+- [ ] 0 errores TypeScript
+- [ ] Tests para intelligence.ts, knowledge.ts, rag.ts, commercial-learning.ts, predictive.ts
+- [ ] Todos los tests anteriores continúan pasando
+- [ ] Checkpoint Git generado
