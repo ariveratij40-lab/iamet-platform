@@ -762,3 +762,74 @@
 - [x] Tests para intelligence.ts, knowledge.ts, rag.ts, commercial-learning.ts, predictive.ts
 - [x] Todos los tests anteriores continúan pasando
 - [x] Checkpoint Git generado
+
+## Sprint 7 — Operación Comercial Real
+
+### Módulo 1: Carga Masiva RAG (/admin/knowledge/batch)
+- [x] tRPC procedure `knowledge.batchUpload`: acepta array de archivos base64 con metadatos, procesa en secuencia, retorna progreso
+- [x] tRPC procedure `knowledge.getBatchStatus(batchId)`: retorna estado de cada archivo (pending/processing/done/error)
+- [x] Tabla `knowledge_batch_jobs`: id, status, totalFiles, processedFiles, errors, createdAt, completedAt
+- [x] Página AdminKnowledgeBatch.tsx (/admin/knowledge/batch): drag & drop múltiple, barra de progreso por archivo, log en tiempo real
+- [x] Soporte para ZIP con múltiples documentos (extrae y procesa cada archivo internamente)
+- [x] Categorías predefinidas: Panduit, HID, Genetec, APC, Cisco, Zebra, Hikvision, Avigilon, Casos de Éxito, Propuestas
+
+### Módulo 2: Plantillas de Campañas con UTMs (/admin/campaigns)
+- [x] Tabla `utm_campaigns`: id, name, source, medium, campaign, term, content, url, shortUrl, clicks, leads, conversions, revenue, createdAt
+- [x] tRPC procedure `campaigns.create`: genera URL con UTM + shortlink
+- [x] tRPC procedure `campaigns.list`: lista campañas con métricas
+- [x] tRPC procedure `campaigns.getStats(campaignId)`: retorna clicks, leads, conversiones, CPL, ROI
+- [x] Captura automática de UTMs en leads.create (leer de sessionStorage en frontend)
+- [x] Página AdminCampaigns.tsx (/admin/campaigns): tabla de campañas, generador de URLs, métricas por campaña
+- [x] Plantillas predefinidas: Google Ads, LinkedIn, Meta, Email, Referidos
+- [x] Gráfica de conversión por canal (barras)
+
+### Módulo 3: Simulador de Lead Completo (/admin/simulator)
+- [x] tRPC procedure `simulator.runScenario(scenario)`: ejecuta flujo completo de un lead ficticio
+- [x] Escenarios predefinidos: "Lead frío PYME", "Lead caliente Enterprise", "Lead perdido", "Lead reactivado"
+- [x] El simulador ejecuta: crear lead → conversación IA → score → asignar vendedor → agendar reunión → enviar propuesta → cambiar estado
+- [x] Retorna log paso a paso con tiempo, acción, resultado y score en cada etapa
+- [x] Página AdminSimulator.tsx (/admin/simulator): selector de escenario, botón "Ejecutar", log animado en tiempo real
+- [x] Opción "Limpiar datos del simulador" para eliminar leads/conversaciones de prueba
+- [x] Exportar log del simulador como PDF
+
+### Módulo 4: QA del Agente — Escenarios de Prueba (/admin/agent/qa)
+- [x] Tabla `agent_qa_tests`: id, name, scenario, userMessage, expectedIntent, expectedTools, actualTools, passed, score, createdAt
+- [x] tRPC procedure `agentQA.runTest(testId)`: ejecuta el mensaje de prueba contra el agente y compara con expected
+- [x] tRPC procedure `agentQA.runSuite`: ejecuta todos los tests y retorna resumen de pass/fail
+- [x] tRPC procedure `agentQA.listTests`: lista tests con último resultado
+- [x] Tests predefinidos: "Saludo inicial", "Pregunta de precio", "Solicitud de reunión", "Consulta técnica CCTV", "Lead calificado", "Lead no calificado"
+- [x] Página AdminAgentQA.tsx (/admin/agent/qa): lista de tests, botón "Ejecutar suite", resultado por test con diff de herramientas esperadas vs reales
+- [x] Score de calidad del agente: % de tests pasados en la última ejecución
+
+### Módulo 5: Monitor de Errores y Health (/admin/health)
+- [x] Tabla `system_health_logs`: id, service, status (ok/warn/error), latencyMs, message, checkedAt
+- [x] tRPC procedure `health.getStatus`: verifica DB, LLM, RAG, email, storage, heartbeats en paralelo
+- [x] tRPC procedure `health.getLogs(service?, limit)`: retorna historial de checks
+- [x] tRPC procedure `health.getErrorSummary`: agrupa errores por servicio en las últimas 24h
+- [x] Heartbeat de health check cada 5 minutos (manus-heartbeat)
+- [x] Página AdminHealth.tsx (/admin/health): semáforos por servicio, latencia, uptime %, últimos errores, log de eventos
+- [x] Alerta al owner si algún servicio falla más de 3 veces en 15 minutos
+
+### Módulo 6: Roles y Permisos Avanzados
+- [x] Extender enum `role` en tabla `users`: admin | manager | viewer | agent (SDR)
+- [x] Migración SQL para actualizar el enum
+- [x] Middleware `requireRole(roles[])` en tRPC para verificar roles permitidos
+- [x] Tabla `role_permissions`: role, resource, action (read/write/delete)
+- [x] tRPC procedure `admin.listUsers`: lista usuarios con rol
+- [x] tRPC procedure `admin.updateUserRole(userId, role)`: cambia rol de usuario
+- [x] Página AdminUsers.tsx (/admin/users): tabla de usuarios, selector de rol inline
+- [x] Proteger rutas sensibles: /admin/intelligence (manager+), /admin/knowledge (manager+), /admin/health (admin only)
+
+### Módulo 7: Exportación de Reportes Ejecutivos PDF
+- [x] tRPC procedure `reports.generateExecutive(period)`: genera reporte ejecutivo del período (semana/mes/trimestre)
+- [x] Contenido del reporte: portada IAMET, resumen ejecutivo, métricas clave, embudo, top leads, top verticales, ROI por canal, forecast, recomendaciones
+- [x] Usar jsPDF en el cliente para generar el PDF con estilo IAMET (azul oscuro + cian)
+- [x] tRPC procedure `reports.generateLeadReport(leadId)`: ficha completa de un lead con timeline, score, conversaciones, propuestas
+- [x] Botón "Exportar PDF" en AdminIntelligence.tsx (reporte mensual)
+- [x] Botón "Exportar ficha" en AdminCRM.tsx por cada lead
+
+### Calidad Sprint 7
+- [x] 0 errores TypeScript
+- [x] Tests para simulator, campaigns, health, agentQA
+- [x] Todos los tests anteriores continúan pasando (43+)
+- [x] Checkpoint Git generado

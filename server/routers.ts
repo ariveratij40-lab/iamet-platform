@@ -68,6 +68,11 @@ import { addTimelineEvent } from "./timeline";
 import { runAgentLoop } from "./agent-orchestrator";
 import { getForecast, getFunnel, getChannelROI, getVerticals as getIntelVerticals, getSalespersons, getAgentStats, getTrends } from "./intelligence";
 import { listDocuments, getDocument, deleteDocument, ingestDocument, getCollections, createCollection } from "./knowledge";
+import { createBatchJob, getBatchJob, runBatchImport, runZipBatchImport, PREDEFINED_CATEGORIES } from "./batch-knowledge";
+import { createCampaign, listCampaigns, CAMPAIGN_TEMPLATES } from "./campaigns";
+import { runSimulation, cleanupSimulationData, getScenarioList } from "./simulator";
+import { runQASuite, runQATest, getLatestQAResults, QA_TESTS } from "./agent-qa";
+import { runHealthCheck, getHealthHistory, getErrorSummary } from "./health-monitor";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1467,6 +1472,120 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
         topTools: Array.isArray(topTools) ? topTools : ((topTools as any)?.rows ?? []),
       };
     }),
+  }),
+
+  // ─── Sprint 7: Batch RAG ────────────────────────────────────────────────────
+  batchKnowledge: router({
+    startBatch: adminProcedure
+      .input(z.object({
+        files: z.array(z.object({
+          filename: z.string(),
+          mimeType: z.string(),
+          base64Content: z.string(),
+          metadata: z.object({
+            title: z.string().optional(),
+            category: z.string().optional(),
+            manufacturer: z.string().optional(),
+            product: z.string().optional(),
+            version: z.string().optional(),
+            author: z.string().optional(),
+            tags: z.array(z.string()).optional(),
+          }),
+        })),
+        isZip: z.boolean().optional(),
+        defaultCategory: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { nanoid } = await import('nanoid');
+        const batchId = nanoid();
+        const job = createBatchJob(batchId, input.files.length);
+        // Run async — don't await
+        if (input.isZip && input.files.length === 1) {
+          runZipBatchImport(batchId, input.files[0].base64Content, input.defaultCategory ?? 'general').catch(() => {});
+        } else {
+          runBatchImport(batchId, input.files).catch(() => {});
+        }
+        return { batchId, totalFiles: job.totalFiles };
+      }),
+    getBatchStatus: adminProcedure
+      .input(z.object({ batchId: z.string() }))
+      .query(async ({ input }) => {
+        const job = getBatchJob(input.batchId);
+        if (!job) return null;
+        return job;
+      }),
+    getCategories: adminProcedure.query(() => PREDEFINED_CATEGORIES),
+  }),
+
+  // ─── Sprint 7: Campaigns UTM ────────────────────────────────────────────────
+  campaigns: router({
+    create: adminProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        source: z.string().min(1),
+        medium: z.string().min(1),
+        campaign: z.string().min(1),
+        term: z.string().optional(),
+        content: z.string().optional(),
+        baseUrl: z.string().url(),
+      }))
+      .mutation(async ({ input }) => createCampaign(input)),
+    list: adminProcedure.query(() => listCampaigns()),
+    getTemplates: adminProcedure.query(() => CAMPAIGN_TEMPLATES),
+  }),
+
+  // ─── Sprint 7: Lead Simulator ───────────────────────────────────────────────
+  simulator: router({
+    getScenarios: adminProcedure.query(() => getScenarioList()),
+    run: adminProcedure
+      .input(z.object({ scenario: z.enum(['cold-sme', 'hot-enterprise', 'lost-lead', 'reactivated-lead']) }))
+      .mutation(async ({ input }) => runSimulation(input.scenario)),
+    cleanup: adminProcedure.mutation(() => cleanupSimulationData()),
+  }),
+
+  // ─── Sprint 7: Agent QA ─────────────────────────────────────────────────────
+  agentQA: router({
+    listTests: adminProcedure.query(() => QA_TESTS),
+    runTest: adminProcedure
+      .input(z.object({ testId: z.string() }))
+      .mutation(async ({ input }) => {
+        const test = QA_TESTS.find(t => t.id === input.testId);
+        if (!test) throw new TRPCError({ code: 'NOT_FOUND', message: 'Test no encontrado' });
+        return runQATest(test);
+      }),
+    runSuite: adminProcedure
+      .input(z.object({ testIds: z.array(z.string()).optional() }))
+      .mutation(async ({ input }) => runQASuite(input.testIds)),
+    getLatestResults: adminProcedure.query(() => getLatestQAResults()),
+  }),
+
+  // ─── Sprint 7: Health Monitor ───────────────────────────────────────────────
+  health: router({
+    getStatus: adminProcedure.query(() => runHealthCheck()),
+    getLogs: adminProcedure
+      .input(z.object({ service: z.string().optional(), limit: z.number().optional() }))
+      .query(async ({ input }) => getHealthHistory(input.service, input.limit)),
+    getErrorSummary: adminProcedure.query(() => getErrorSummary()),
+  }),
+
+  // ─── Sprint 7: Users & Roles ────────────────────────────────────────────────
+  adminUsers: router({
+    list: adminProcedure.query(async () => {
+      const db = await import('./db').then(m => m.getDb());
+      if (!db) return [];
+      const { sql } = await import('drizzle-orm');
+      const rows = await db.execute(sql.raw('SELECT id, name, email, role, createdAt FROM users ORDER BY createdAt DESC')) as any;
+      return Array.isArray(rows) ? rows : (rows?.rows ?? []);
+    }),
+    updateRole: adminProcedure
+      .input(z.object({ userId: z.number(), role: z.enum(['user', 'admin', 'manager', 'viewer']) }))
+      .mutation(async ({ input }) => {
+        const db = await import('./db').then(m => m.getDb());
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        const { sql } = await import('drizzle-orm');
+        await db.execute(sql.raw(`UPDATE users SET role = ${JSON.stringify(input.role)} WHERE id = ${input.userId}`));
+        return { success: true };
+      }),
   }),
 
 });

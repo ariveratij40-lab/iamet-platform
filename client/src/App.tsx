@@ -22,6 +22,12 @@ import AdminIntelligence from "./pages/AdminIntelligence";
 import AdminAgent from "./pages/AdminAgent";
 import AdminKnowledge from "./pages/AdminKnowledge";
 import AdminBriefing from "./pages/AdminBriefing";
+import AdminKnowledgeBatch from "./pages/AdminKnowledgeBatch";
+import AdminCampaigns from "./pages/AdminCampaigns";
+import AdminSimulator from "./pages/AdminSimulator";
+import AdminQA from "./pages/AdminQA";
+import AdminHealth from "./pages/AdminHealth";
+import AdminUsers from "./pages/AdminUsers";
 import TiendaPerfil from "./pages/TiendaPerfil";
 import TiendaLogin from "./pages/TiendaLogin";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
@@ -82,6 +88,12 @@ function Router() {
           <Route path="/admin/agent" component={AdminAgent} />
           <Route path="/admin/knowledge" component={AdminKnowledge} />
           <Route path="/admin/briefing" component={AdminBriefing} />
+          <Route path="/admin/knowledge/batch" component={AdminKnowledgeBatch} />
+          <Route path="/admin/campaigns" component={AdminCampaigns} />
+          <Route path="/admin/simulator" component={AdminSimulator} />
+          <Route path="/admin/qa" component={AdminQA} />
+          <Route path="/admin/health" component={AdminHealth} />
+          <Route path="/admin/users" component={AdminUsers} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>

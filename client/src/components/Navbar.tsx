@@ -8,6 +8,7 @@ import {
   Sun, Moon, Languages, Activity, Menu, X,
   KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Network,
   BarChart3, Bot, Database, Newspaper,
+  Package, Target, FlaskConical, TestTube2, HeartPulse, Users,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -278,6 +279,43 @@ export default function Navbar() {
                       <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
                         <Newspaper className="w-5 h-5 flex-shrink-0" />
                         <span className="text-sm font-medium">Briefing IA</span>
+                      </button>
+                    </Link>
+                    {/* Sprint 7 */}
+                    <Link href="/admin/knowledge/batch" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Package className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Carga Masiva</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/campaigns" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Target className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Campañas UTM</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/simulator" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <FlaskConical className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Simulador</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/qa" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <TestTube2 className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">QA Agente</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/health" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <HeartPulse className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Salud Sistema</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/users" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Users className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Usuarios</span>
                       </button>
                     </Link>
                   </>
@@ -656,11 +694,17 @@ export default function Navbar() {
                   </AnimatePresence>
                 </button>
               </Link>
-              {/* Sprint 6: Módulos de Inteligencia */}
+              {/* Sprint 6 + 7: Módulos de Inteligencia y Operación */}
               {[{ href: "/admin/intelligence", icon: BarChart3, label: "Inteligencia" },
                 { href: "/admin/agent", icon: Bot, label: "Agente SDR" },
                 { href: "/admin/knowledge", icon: Database, label: "Conocimiento" },
                 { href: "/admin/briefing", icon: Newspaper, label: "Briefing IA" },
+                { href: "/admin/knowledge/batch", icon: Package, label: "Carga Masiva" },
+                { href: "/admin/campaigns", icon: Target, label: "Campañas UTM" },
+                { href: "/admin/simulator", icon: FlaskConical, label: "Simulador" },
+                { href: "/admin/qa", icon: TestTube2, label: "QA Agente" },
+                { href: "/admin/health", icon: HeartPulse, label: "Salud" },
+                { href: "/admin/users", icon: Users, label: "Usuarios" },
               ].map(({ href, icon: Icon, label }) => (
                 <Link key={href} href={href} onClick={() => setExpanded(false)}>
                   <button
