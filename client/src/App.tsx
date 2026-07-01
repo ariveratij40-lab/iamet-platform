@@ -38,6 +38,9 @@ import CancelarReunion from "./pages/CancelarReunion";
 import LandingPage from "./pages/LandingPage";
 import Navbar from "./components/Navbar";
 import { useIsMobile } from "./hooks/useMobile";
+import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
+import { AdminGuard } from "./components/AdminGuard";
 
 // Wrapper que compensa el espacio del Navbar (sidebar en desktop, topbar en móvil)
 function PageWrapper({ children }: { children: React.ReactNode }) {
@@ -77,23 +80,26 @@ function Router() {
           <Route path="/landing/:vertical" component={LandingPage} />
           {/* Cancelar reunión — ruta pública */}
           <Route path="/cancelar-reunion" component={CancelarReunion} />
-          {/* Admin */}
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/monitor" component={AdminConsole} />
-          <Route path="/admin/tienda" component={AdminTienda} />
-          <Route path="/admin/reuniones" component={AdminReuiones} />
-          <Route path="/admin/seguimientos" component={AdminSeguimientos} />
-          <Route path="/admin/crm" component={AdminCRM} />
-          <Route path="/admin/intelligence" component={AdminIntelligence} />
-          <Route path="/admin/agent" component={AdminAgent} />
-          <Route path="/admin/knowledge" component={AdminKnowledge} />
-          <Route path="/admin/briefing" component={AdminBriefing} />
-          <Route path="/admin/knowledge/batch" component={AdminKnowledgeBatch} />
-          <Route path="/admin/campaigns" component={AdminCampaigns} />
-          <Route path="/admin/simulator" component={AdminSimulator} />
-          <Route path="/admin/qa" component={AdminQA} />
-          <Route path="/admin/health" component={AdminHealth} />
-          <Route path="/admin/users" component={AdminUsers} />
+          {/* Login local */}
+          <Route path="/login" component={Login} />
+          <Route path="/admin/login" component={AdminLogin} />
+          {/* Admin — protegido con AdminGuard */}
+          <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
+          <Route path="/admin/monitor">{() => <AdminGuard><AdminConsole /></AdminGuard>}</Route>
+          <Route path="/admin/tienda">{() => <AdminGuard><AdminTienda /></AdminGuard>}</Route>
+          <Route path="/admin/reuniones">{() => <AdminGuard><AdminReuiones /></AdminGuard>}</Route>
+          <Route path="/admin/seguimientos">{() => <AdminGuard><AdminSeguimientos /></AdminGuard>}</Route>
+          <Route path="/admin/crm">{() => <AdminGuard><AdminCRM /></AdminGuard>}</Route>
+          <Route path="/admin/intelligence">{() => <AdminGuard><AdminIntelligence /></AdminGuard>}</Route>
+          <Route path="/admin/agent">{() => <AdminGuard><AdminAgent /></AdminGuard>}</Route>
+          <Route path="/admin/knowledge">{() => <AdminGuard><AdminKnowledge /></AdminGuard>}</Route>
+          <Route path="/admin/briefing">{() => <AdminGuard><AdminBriefing /></AdminGuard>}</Route>
+          <Route path="/admin/knowledge/batch">{() => <AdminGuard><AdminKnowledgeBatch /></AdminGuard>}</Route>
+          <Route path="/admin/campaigns">{() => <AdminGuard><AdminCampaigns /></AdminGuard>}</Route>
+          <Route path="/admin/simulator">{() => <AdminGuard><AdminSimulator /></AdminGuard>}</Route>
+          <Route path="/admin/qa">{() => <AdminGuard><AdminQA /></AdminGuard>}</Route>
+          <Route path="/admin/health">{() => <AdminGuard allowedRoles={["admin"]}><AdminHealth /></AdminGuard>}</Route>
+          <Route path="/admin/users">{() => <AdminGuard allowedRoles={["admin"]}><AdminUsers /></AdminGuard>}</Route>
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>

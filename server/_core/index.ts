@@ -16,6 +16,8 @@ import { processLeadFollowups } from "../followups";
 import { processMeetingReminders } from "../reminders";
 import { generateDailyBriefing } from "../briefing";
 import { sdk } from "./sdk";
+import cookieParser from "cookie-parser";
+import { localAuthRouter } from "./local-auth-router";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -144,6 +146,9 @@ async function startServer() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+  // ─── Cookie parser (necesario para auth local) ──────────────────────────
+  app.use(cookieParser());
+
   // ─── Storage proxy (antes de rate limiting — requests internos) ───────────
   registerStorageProxy(app);
 
@@ -152,6 +157,9 @@ async function startServer() {
 
   // ─── OAuth routes ─────────────────────────────────────────────────────────
   registerOAuthRoutes(app);
+
+  // ─── Auth local (JWT + bcrypt, sin Manus OAuth) ───────────────────────────
+  app.use("/api/auth", localAuthRouter);
 
   // ─── Health check (sin rate limiting — usado por Docker healthcheck) ──────
   app.get("/api/health", (_req, res) => {

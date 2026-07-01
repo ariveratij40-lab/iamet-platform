@@ -1,0 +1,221 @@
+/**
+ * Página de login general IAMET
+ * Ruta: /login
+ * Combina auth local + opción OAuth Manus como fallback
+ */
+import { useState, useEffect } from "react";
+import { useLocalAuth } from "@/hooks/useLocalAuth";
+import { getLoginUrl } from "@/const";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, LogIn, AlertCircle, Loader2, ExternalLink } from "lucide-react";
+
+export default function Login() {
+  const { login, isAuthenticated, loading: authLoading } = useLocalAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+      window.location.href = returnTo ?? "/";
+    }
+  }, [isAuthenticated, authLoading]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email.trim() || !password) {
+      setError("Ingresa tu correo y contraseña");
+      return;
+    }
+
+    setSubmitting(true);
+    const result = await login(email.trim(), password);
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "Credenciales inválidas");
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e]">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "linear-gradient(135deg, #0a0f1e 0%, #0d1b2a 50%, #0a1628 100%)",
+      }}
+    >
+      {/* Fondo decorativo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-5"
+          style={{ background: "radial-gradient(circle, #00d4ff 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-5"
+          style={{ background: "radial-gradient(circle, #0066cc 0%, transparent 70%)" }}
+        />
+      </div>
+
+      {/* Card neumorfismo */}
+      <div
+        className="relative w-full max-w-md p-8 rounded-2xl"
+        style={{
+          background: "#0d1b2a",
+          boxShadow:
+            "8px 8px 20px rgba(0,0,0,0.6), -4px -4px 12px rgba(0,100,180,0.08), inset 0 1px 0 rgba(0,212,255,0.06)",
+          border: "1px solid rgba(0,212,255,0.1)",
+        }}
+      >
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+            style={{
+              background: "linear-gradient(135deg, #0066cc, #00d4ff)",
+              boxShadow: "0 4px 20px rgba(0,212,255,0.3)",
+            }}
+          >
+            <LogIn className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Iniciar sesión
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">
+            Plataforma IAMET Evolución Tecnológica
+          </p>
+        </div>
+
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
+              Correo electrónico
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@empresa.com"
+              autoComplete="email"
+              disabled={submitting}
+              className="h-11"
+              style={{
+                background: "rgba(0,0,0,0.3)",
+                border: "1px solid rgba(0,212,255,0.15)",
+                color: "white",
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
+              Contraseña
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                disabled={submitting}
+                className="h-11 pr-10"
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(0,212,255,0.15)",
+                  color: "white",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div
+              className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm"
+              style={{
+                background: "rgba(220,38,38,0.1)",
+                border: "1px solid rgba(220,38,38,0.3)",
+                color: "#fca5a5",
+              }}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={submitting}
+            className="w-full h-11 font-semibold text-white transition-all duration-150 active:scale-[0.97]"
+            style={{
+              background: submitting
+                ? "rgba(0,100,180,0.4)"
+                : "linear-gradient(135deg, #0066cc, #00d4ff)",
+              boxShadow: submitting ? "none" : "0 4px 15px rgba(0,212,255,0.25)",
+              border: "none",
+            }}
+          >
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Verificando...
+              </span>
+            ) : (
+              "Iniciar sesión"
+            )}
+          </Button>
+        </form>
+
+        {/* Separador OAuth */}
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px" style={{ background: "rgba(0,212,255,0.1)" }} />
+          <span className="text-xs text-slate-500">o continúa con</span>
+          <div className="flex-1 h-px" style={{ background: "rgba(0,212,255,0.1)" }} />
+        </div>
+
+        {/* OAuth Manus como fallback */}
+        <a
+          href={getLoginUrl()}
+          className="flex items-center justify-center gap-2 w-full h-11 rounded-lg text-sm font-medium text-slate-300 transition-all duration-150 hover:text-white active:scale-[0.97]"
+          style={{
+            background: "rgba(0,0,0,0.2)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <ExternalLink className="w-4 h-4" />
+          Manus OAuth
+        </a>
+
+        <p className="text-center text-xs text-slate-500 mt-6">
+          IAMET Evolución Tecnológica · Acceso seguro
+        </p>
+      </div>
+    </div>
+  );
+}

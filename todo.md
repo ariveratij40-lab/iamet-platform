@@ -833,3 +833,44 @@
 - [x] Tests para simulator, campaigns, health, agentQA
 - [x] Todos los tests anteriores continúan pasando (43+)
 - [x] Checkpoint Git generado
+
+## Autenticación Local VPS Standalone
+
+### BD y Migración
+- [x] Migración SQL: agregar columnas `passwordHash`, `status`, `lastLoginAt` a tabla `users`
+- [x] Migración SQL: extender enum `role` con `manager`, `viewer` (si no existe)
+- [x] Actualizar `drizzle/schema.ts`: agregar campos passwordHash, status, lastLoginAt al pgTable users
+- [x] Actualizar `drizzle/schema.ts`: extender roleEnum con manager/viewer
+
+### Backend — Endpoints REST
+- [x] Instalar bcryptjs + @types/bcryptjs
+- [x] Crear `server/local-auth.ts`: helpers hashPassword, verifyPassword, signJWT, verifyJWT
+- [x] Crear `server/_core/local-auth-router.ts`: endpoints POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me, POST /api/auth/create-admin
+- [x] Rate limit específico en POST /api/auth/login (máx 10 req/15min por IP)
+- [x] Mensaje genérico "Credenciales inválidas" — nunca revelar si email existe
+- [x] No exponer passwordHash en ninguna respuesta
+- [x] JWT firmado con JWT_SECRET, cookie HttpOnly + SameSite=Lax + Secure en producción
+- [x] Expiración JWT configurable (default 7 días)
+- [x] Registrar lastLoginAt al hacer login exitoso
+- [x] Montar router en `server/_core/index.ts` bajo /api/auth
+
+### Script de Admin Inicial
+- [x] Crear `scripts/create-admin-user.mjs` (ES module)
+- [x] Uso: `ADMIN_EMAIL=admin@iamet.mx ADMIN_PASSWORD='...' ADMIN_NAME='...' node scripts/create-admin-user.mjs`
+- [x] El script verifica si ya existe un admin antes de crear
+- [x] Hashea contraseña con bcrypt antes de insertar
+- [x] Imprime resultado con email y rol asignado
+
+### Frontend
+- [x] Actualizar `client/src/_core/hooks/useAuth.ts`: intentar primero GET /api/auth/me (auth local), luego Manus OAuth como fallback
+- [x] Crear `client/src/pages/Login.tsx`: formulario email + password, validación, error genérico, redirect a /admin tras login
+- [x] Crear `client/src/pages/AdminLogin.tsx`: versión admin del login con branding IAMET
+- [x] Registrar rutas /login y /admin/login en App.tsx
+- [x] Guard en rutas /admin/*: si no hay sesión local, redirigir a /admin/login (no a Manus OAuth)
+- [x] Botón "Cerrar sesión" llama POST /api/auth/logout y limpia cookie
+
+### Calidad
+- [x] TypeScript 0 errores
+- [x] Tests: login exitoso, login fallido, logout, me autenticado, me sin sesión, create-admin
+- [x] Todos los tests anteriores continúan pasando (43+)
+- [x] Checkpoint Git generado
