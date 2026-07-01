@@ -9,9 +9,9 @@ import {
   KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList, Network,
   BarChart3, Bot, Database, Newspaper,
   Package, Target, FlaskConical, TestTube2, HeartPulse, Users,
+  CalendarDays, Mail, TrendingUp,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -245,16 +245,34 @@ export default function Navbar() {
                 )}
                 {user ? (
                   <>
+                    <Link href="/admin" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">{t.nav.dashboard}</span>
+                      </button>
+                    </Link>
                     <Link href="/admin/monitor" onClick={closeMobile}>
                       <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
                         <Activity className="w-5 h-5 flex-shrink-0" />
                         <span className="text-sm font-medium">{t.nav.liveMonitor}</span>
                       </button>
                     </Link>
-                    <Link href="/admin" onClick={closeMobile}>
+                    <Link href="/admin/reuniones" onClick={closeMobile}>
                       <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
-                        <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
-                        <span className="text-sm font-medium">{t.nav.dashboard}</span>
+                        <CalendarDays className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Reuniones</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/seguimientos" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <Mail className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">Seguimientos</span>
+                      </button>
+                    </Link>
+                    <Link href="/admin/crm" onClick={closeMobile}>
+                      <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
+                        <TrendingUp className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">CRM</span>
                       </button>
                     </Link>
                     <Link href="/admin/intelligence" onClick={closeMobile}>
@@ -320,12 +338,12 @@ export default function Navbar() {
                     </Link>
                   </>
                 ) : (
-                  <a href={getLoginUrl()}>
+                  <Link href="/admin/login" onClick={closeMobile}>
                     <button className="w-full flex items-center gap-3 px-4 py-3" style={{ color: "var(--color-iamet-text-muted)" }}>
                       <LogIn className="w-5 h-5 flex-shrink-0" />
                       <span className="text-sm font-medium">{t.nav.login}</span>
                     </button>
-                  </a>
+                  </Link>
                 )}
               </div>
             </motion.div>
@@ -694,8 +712,12 @@ export default function Navbar() {
                   </AnimatePresence>
                 </button>
               </Link>
-              {/* Sprint 6 + 7: Módulos de Inteligencia y Operación */}
-              {[{ href: "/admin/intelligence", icon: BarChart3, label: "Inteligencia" },
+              {/* Core admin links */}
+              {[{ href: "/admin/reuniones", icon: CalendarDays, label: "Reuniones" },
+                { href: "/admin/seguimientos", icon: Mail, label: "Seguimientos" },
+                { href: "/admin/crm", icon: TrendingUp, label: "CRM" },
+                /* Sprint 6 + 7: Módulos de Inteligencia y Operación */
+                { href: "/admin/intelligence", icon: BarChart3, label: "Inteligencia" },
                 { href: "/admin/agent", icon: Bot, label: "Agente SDR" },
                 { href: "/admin/knowledge", icon: Database, label: "Conocimiento" },
                 { href: "/admin/briefing", icon: Newspaper, label: "Briefing IA" },
@@ -739,7 +761,7 @@ export default function Navbar() {
               ))}
             </>
           ) : (
-            <a href={getLoginUrl()}>
+            <Link href="/admin/login">
               <button
                 className="w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-150"
                 style={{ color: "var(--color-iamet-text-muted)" }}
@@ -768,7 +790,7 @@ export default function Navbar() {
                   )}
                 </AnimatePresence>
               </button>
-            </a>
+            </Link>
           )}
         </div>
       </motion.aside>

@@ -5,11 +5,10 @@
  */
 import { useState, useEffect } from "react";
 import { useLocalAuth } from "@/hooks/useLocalAuth";
-import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, LogIn, AlertCircle, Loader2, ExternalLink } from "lucide-react";
+import { Eye, EyeOff, LogIn, AlertCircle, Loader2 } from "lucide-react";
 
 export default function Login() {
   const { login, isAuthenticated, loading: authLoading } = useLocalAuth();
@@ -191,26 +190,6 @@ export default function Login() {
             )}
           </Button>
         </form>
-
-        {/* Separador OAuth */}
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px" style={{ background: "rgba(0,212,255,0.1)" }} />
-          <span className="text-xs text-slate-500">o continúa con</span>
-          <div className="flex-1 h-px" style={{ background: "rgba(0,212,255,0.1)" }} />
-        </div>
-
-        {/* OAuth Manus como fallback */}
-        <a
-          href={getLoginUrl()}
-          className="flex items-center justify-center gap-2 w-full h-11 rounded-lg text-sm font-medium text-slate-300 transition-all duration-150 hover:text-white active:scale-[0.97]"
-          style={{
-            background: "rgba(0,0,0,0.2)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <ExternalLink className="w-4 h-4" />
-          Manus OAuth
-        </a>
 
         <p className="text-center text-xs text-slate-500 mt-6">
           IAMET Evolución Tecnológica · Acceso seguro

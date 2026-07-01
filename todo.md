@@ -874,3 +874,18 @@
 - [x] Tests: login exitoso, login fallido, logout, me autenticado, me sin sesión, create-admin
 - [x] Todos los tests anteriores continúan pasando (43+)
 - [x] Checkpoint Git generado
+
+## Hotfix Staging — Paridad VPS (2026-07-01)
+
+- [x] Eliminar `getLoginUrl()` de const.ts o redirigir a /admin/login
+- [x] useAuth: quitar toda lógica de redirección a manus.im/app-auth
+- [x] main.tsx: eliminar ManusAuthProvider o hacerlo no-op en modo local
+- [x] Login.tsx: eliminar botón "Continuar con Manus"
+- [x] AdminLogin.tsx: asegurar que nunca redirige a Manus OAuth
+- [x] DashboardLayout.tsx: eliminar redirección a getLoginUrl() si no hay sesión
+- [x] Navbar.tsx: sidebar público muestra menú completo igual que Manus
+- [x] Navbar.tsx: sidebar admin muestra los 15 módulos admin cuando hay sesión
+- [x] Dockerfile: agregar `COPY --from=builder /app/scripts ./scripts`
+- [x] TypeScript 0 errores
+- [x] 63+ tests pasando
+- [x] Checkpoint Git generado

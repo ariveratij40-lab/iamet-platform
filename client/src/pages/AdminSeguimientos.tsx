@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,7 +101,7 @@ export default function AdminSeguimientos() {
   }, [followups, verticalFilter, leadSearch]);
 
   if (!user) {
-    window.location.href = getLoginUrl();
+    window.location.href = "/admin/login";
     return null;
   }
   if ((user as any).role !== "admin") {

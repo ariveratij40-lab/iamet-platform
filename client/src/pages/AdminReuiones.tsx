@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,7 +60,7 @@ export default function AdminReuiones() {
   }
 
   if (!user) {
-    window.location.href = getLoginUrl();
+    window.location.href = "/admin/login";
     return null;
   }
 

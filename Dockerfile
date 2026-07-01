@@ -34,6 +34,7 @@ RUN pnpm install --frozen-lockfile --prod
 # Copiar artefactos del build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/scripts ./scripts
 
 # Usuario no-root por seguridad
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001

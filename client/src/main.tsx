@@ -5,7 +5,6 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { getLoginUrl } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -18,7 +17,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  // Redirect to local admin login instead of Manus OAuth
+  const returnTo = encodeURIComponent(window.location.pathname);
+  window.location.href = `/admin/login?returnTo=${returnTo}`;
 };
 
 queryClient.getQueryCache().subscribe(event => {

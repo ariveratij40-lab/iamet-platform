@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 
 // ─── Score Badge ──────────────────────────────────────────────────────────────
 function ScoreBadge({ score }: { score: number }) {
@@ -152,7 +151,7 @@ export default function AdminDashboard() {
             Este panel es exclusivo para administradores de IAMET.
           </p>
           {!isAuthenticated ? (
-            <a href={getLoginUrl()}>
+            <a href="/admin/login">
               <Button className="w-full bg-[var(--color-iamet-accent)] text-white btn-press">
                 Iniciar sesión
               </Button>
