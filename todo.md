@@ -889,3 +889,13 @@
 - [x] TypeScript 0 errores
 - [x] 63+ tests pasando
 - [x] Checkpoint Git generado
+
+## Rediseño Sidebar — Limpio y Espacioso (2026-07-02)
+
+- [x] Sidebar público: solo Home + secciones principales (Soluciones, Industrias, Tech Advisor, Academy, Tienda, Contacto) + controles (idioma, tema)
+- [x] Botón "Iniciar sesión" prominente en la parte inferior del sidebar público (no-auth)
+- [x] Sidebar admin: módulos agrupados en secciones colapsables (Operación, Inteligencia, Conocimiento, Herramientas)
+- [x] Más espacio entre ítems, separadores visuales entre grupos
+- [x] Versión mobile: mismo rediseño en el drawer lateral
+- [x] TypeScript 0 errores
+- [ ] Checkpoint guardado
