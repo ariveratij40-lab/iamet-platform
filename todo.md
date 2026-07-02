@@ -898,4 +898,4 @@
 - [x] Más espacio entre ítems, separadores visuales entre grupos
 - [x] Versión mobile: mismo rediseño en el drawer lateral
 - [x] TypeScript 0 errores
-- [ ] Checkpoint guardado
+- [x] Checkpoint guardado
