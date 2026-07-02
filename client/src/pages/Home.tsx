@@ -120,13 +120,20 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
     const [lastFailedSpecialist, setLastFailedSpecialist] = useState<string | undefined>(undefined);
     const [showCalendar, setShowCalendar] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const startSession = trpc.agent.startSession.useMutation();
     const sendMessage = trpc.agent.sendMessage.useMutation();
 
     useEffect(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Scroll dentro del contenedor del chat, sin mover la página
+      const container = messagesContainerRef.current;
+      if (container) {
+        requestAnimationFrame(() => {
+          container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        });
+      }
     }, [messages]);
 
     const ensureSession = async (): Promise<string> => {
@@ -227,6 +234,7 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              ref={messagesContainerRef}
               className="mb-4 max-h-[50vh] overflow-y-auto space-y-3 px-1"
             >
               {messages.map((msg) => (
@@ -366,7 +374,6 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1131,8 +1138,7 @@ export default function Home() {
               </Link>
               <button
                 onClick={() => {
-                  document.getElementById("agent-chat-section")?.scrollIntoView({ behavior: "smooth" });
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  document.getElementById("agent-chat-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
                 }}
                 className="px-8 py-3.5 rounded-xl text-sm font-semibold transition-all duration-150 btn-press"
                 style={{

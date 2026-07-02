@@ -899,3 +899,12 @@
 - [x] Versión mobile: mismo rediseño en el drawer lateral
 - [x] TypeScript 0 errores
 - [x] Checkpoint guardado
+
+## Corrección Chat Tech Advisor (2026-07-02)
+
+- [x] Corregir historial duplicado — el mensaje actual ya está en BD, no enviarlo dos veces al LLM
+- [x] Pasar specialistId al orquestador — usar buildSpecialistPrompt cuando hay especialista seleccionado
+- [x] Corregir bug de scroll — scroll interno del contenedor del chat, no scrollIntoView de página
+- [x] Eliminar window.scrollTo({ top: 0 }) del botón 'Consultar al Agente IA'
+- [x] TypeScript 0 errores
+- [ ] Checkpoint guardado

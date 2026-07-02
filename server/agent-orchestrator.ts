@@ -12,6 +12,7 @@ import { invokeLLM } from "./_core/llm";
 import { TOOL_REGISTRY } from "./agent-tools";
 import { getMemoryContext, updateMemoryFromConversation } from "./agent-memory";
 import { saveTrace } from "./agent-traces";
+import { buildSpecialistPrompt } from "./specialists";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -381,7 +382,8 @@ export async function runAgentLoop(
   sessionId: string,
   userMessage: string,
   history: AgentMessage[],
-  leadId?: number
+  leadId?: number,
+  specialistId?: string
 ): Promise<AgentRunResult> {
   const MAX_ITERATIONS = 5;
   const toolsUsed: AgentRunResult["toolsUsed"] = [];
@@ -391,18 +393,29 @@ export async function runAgentLoop(
 
   // Get memory context
   const memoryContext = await getMemoryContext(sessionId);
-  const systemPrompt = buildSDRSystemPrompt(memoryContext, sessionId);
 
-  // Build message array for LLM
+  // Use specialist-specific prompt when a specialistId is provided
+  const systemPrompt = specialistId
+    ? buildSpecialistPrompt(specialistId) + `\n\nMEMORIA DE ESTA SESIÓN:\n${memoryContext || "Sin contexto previo — primera interacción"}\n\nHOY ES: ${new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`
+    : buildSDRSystemPrompt(memoryContext, sessionId);
+
+  // Build message array for LLM.
+  // IMPORTANT: history already contains the current user turn (saved before this call),
+  // so we use history directly WITHOUT appending userMessage again to avoid duplication.
+  const historySlice = history.slice(-12);
+  // If the last message in history is the current user turn, don't add it again
+  const lastMsg = historySlice[historySlice.length - 1];
+  const alreadyIncluded = lastMsg?.role === "user" && lastMsg?.content === userMessage;
+
   const messages: any[] = [
     { role: "system", content: systemPrompt },
-    ...history.slice(-10).map((m) => ({
+    ...historySlice.map((m) => ({
       role: m.role,
       content: m.content,
       ...(m.tool_call_id ? { tool_call_id: m.tool_call_id } : {}),
       ...(m.name ? { name: m.name } : {}),
     })),
-    { role: "user", content: userMessage },
+    ...(alreadyIncluded ? [] : [{ role: "user", content: userMessage }]),
   ];
 
   let iterations = 0;

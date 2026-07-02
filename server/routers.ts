@@ -374,11 +374,12 @@ export const appRouter = router({
           agentResult = await runAgentLoop(
             input.sessionId,
             input.message,
-            history.slice(-10).map((m) => ({
+            history.map((m) => ({
               role: m.role as "user" | "assistant",
               content: m.content,
             })),
-            conversation.leadId ?? undefined
+            conversation.leadId ?? undefined,
+            input.specialistId
           );
         } catch (llmErr: unknown) {
           const llmErrMsg = llmErr instanceof Error ? llmErr.message : String(llmErr);
