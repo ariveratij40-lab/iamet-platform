@@ -93,12 +93,13 @@ const PARTNERS = [
 
 // ─── Prompt sugerido ──────────────────────────────────────────────────────────
 const EXAMPLE_PROMPTS = [
-  "Necesito diseñar un Data Center.",
-  "Quiero modernizar mi planta.",
-  "Necesito controlar accesos.",
-  "Diseña una red para 500 usuarios.",
-  "Necesito una solución RFID.",
-  "Genera una arquitectura CCTV.",
+  "Necesito diseñar un Data Center",
+  "Necesito Servicio de Nodos de Red",
+  "Asesoría y Servicio de Control de Acceso",
+  "Necesito una Solución RFID y Equipos Zebra",
+  "Soporte y Servicio CCTV",
+  "Software y Desarrollo de Aplicativos",
+  "Cotización de Equipos, Licenciamiento y Periféricos",
 ];
 
 // ─── Componente del Prompt Central ───────────────────────────────────────────
