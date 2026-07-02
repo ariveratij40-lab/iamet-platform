@@ -560,20 +560,14 @@ export default function Home() {
               className="font-display text-3xl sm:text-4xl lg:text-[2.8rem] font-bold tracking-tight leading-[1.1]"
               style={{ color: "var(--color-iamet-text)" }}
             >
-              Ingeniería de Clase Mundial,<br />
-              <span style={{ color: "var(--color-iamet-accent)" }}>al alcance de tu empresa.</span>
+              Empresa Integradora de<br />
+              <span style={{ color: "var(--color-iamet-accent)" }}>Soluciones y Servicios Tecnológicos</span>
             </h1>
-            <p
-              className="text-base sm:text-lg font-medium mt-3"
-              style={{ color: "var(--color-iamet-text-muted)" }}
-            >
-              Consultor tecnológico de nivel empresarial — disponible 24/7
-            </p>
             <p
               className="text-sm"
               style={{ color: "var(--color-iamet-text-subtle)" }}
             >
-              Describe tu proyecto y nuestros especialistas IA diseñarán la solución óptima para tu empresa.
+              Describe tu proyecto y nuestros agentes de IA te darán un previo de tu proyecto o agenda directamente una cita.
             </p>
           </motion.div>
 
