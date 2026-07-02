@@ -9,6 +9,7 @@ import {
   Factory, KeyRound, Camera, Volume2, Monitor, Laptop, ClipboardList,
   Building2, Stethoscope, GraduationCap, Hotel, ShoppingBag, Landmark,
   Award, BookOpen, ArrowRight, CheckCircle2, Globe, AlertCircle, RefreshCw,
+  CalendarDays,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
@@ -92,14 +93,14 @@ const PARTNERS = [
 ];
 
 // ─── Prompt sugerido ──────────────────────────────────────────────────────────
-const EXAMPLE_PROMPTS = [
-  "Necesito diseñar un Data Center",
-  "Necesito Servicio de Nodos de Red",
-  "Asesoría y Servicio de Control de Acceso",
-  "Necesito una Solución RFID y Equipos Zebra",
-  "Soporte y Servicio CCTV",
-  "Software y Desarrollo de Aplicativos",
-  "Cotización de Equipos, Licenciamiento y Periféricos",
+const EXAMPLE_CHIPS: { label: string; specialistId: string | null }[] = [
+  { label: "Necesito diseñar un Data Center",                       specialistId: "data-centers" },
+  { label: "Necesito Servicio de Nodos de Red",                      specialistId: "redes" },
+  { label: "Asesoría y Servicio de Control de Acceso",              specialistId: "control-acceso" },
+  { label: "Necesito una Solución RFID y Equipos Zebra",            specialistId: "rfid" },
+  { label: "Soporte y Servicio CCTV",                               specialistId: "cctv" },
+  { label: "Software y Desarrollo de Aplicativos",                  specialistId: "software" },
+  { label: "Cotización de Equipos, Licenciamiento y Periféricos",   specialistId: null },
 ];
 
 // ─── Componente del Prompt Central ───────────────────────────────────────────
@@ -420,7 +421,20 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Describe tu proyecto o necesidad tecnológica..."
+              placeholder={
+                selectedSpecialist === "data-centers" ? "Ej: Necesito diseñar un Data Center Tier III para 50 servidores..." :
+                selectedSpecialist === "redes" ? "Ej: Necesito red WiFi 6 para 3 sucursales en Monterrey..." :
+                selectedSpecialist === "control-acceso" ? "Ej: Control de acceso biométrico para 200 empleados..." :
+                selectedSpecialist === "rfid" ? "Ej: Trazabilidad RFID para inventario de 5,000 activos..." :
+                selectedSpecialist === "cctv" ? "Ej: CCTV IP para bodega de 2,000 m² con analítica..." :
+                selectedSpecialist === "software" ? "Ej: App de gestión de mantenimiento con módil..." :
+                selectedSpecialist === "infraestructura" ? "Ej: Cableado estructurado Cat6A para 3 pisos..." :
+                selectedSpecialist === "redes" ? "Ej: Red Cisco para 150 usuarios con segmentación VLAN..." :
+                selectedSpecialist === "energia" ? "Ej: UPS para sala de servidores de 10 kVA..." :
+                selectedSpecialist === "ia" ? "Ej: Agente IA para automatizar cotizaciones..." :
+                selectedSpecialist === "industria4" ? "Ej: SCADA para planta maquiladora con 20 PLCs..." :
+                "Describe tu proyecto o necesidad tecnológica..."
+              }
               className="flex-1 bg-transparent text-sm outline-none"
               style={{ color: "var(--color-iamet-text)" }}
             />
@@ -472,6 +486,7 @@ export default function Home() {
   const [currentSection, setCurrentSection] = useState("hero");
   const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showDirectCalendar, setShowDirectCalendar] = useState(false);
   const [selectedSpecialist, setSelectedSpecialist] = useState<string | null>(null);
 
   const { visitorId: trackingVisitorId } = useVisitorTracking({
@@ -492,9 +507,20 @@ export default function Home() {
     }
   }, []);
 
-  const handleExampleClick = useCallback((prompt: string) => {
+  const handleExampleClick = useCallback((prompt: string, chipSpecialistId?: string | null) => {
+    // Si el chip tiene un especialista mapeado, activarlo primero
+    if (chipSpecialistId && chipSpecialistId !== selectedSpecialist) {
+      setSelectedSpecialist(chipSpecialistId);
+      const specialist = SPECIALISTS.find(s => s.id === chipSpecialistId);
+      if (specialist) {
+        toast.success(`Conectado con ${specialist.name}`, {
+          description: specialist.desc,
+          duration: 2000,
+        });
+      }
+    }
     setShowSuggestions(false);
-    agentRef.current?.triggerSend(prompt, selectedSpecialist ?? undefined);
+    agentRef.current?.triggerSend(prompt, chipSpecialistId ?? selectedSpecialist ?? undefined);
     setTimeout(() => {
       document.getElementById("agent-chat-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
@@ -618,7 +644,7 @@ export default function Home() {
             />
           </motion.div>
 
-          {/* Ejemplos de prompts */}
+          {/* Chips de servicio + agendar cita */}
           <AnimatePresence>
             {showSuggestions && (
               <motion.div
@@ -627,13 +653,13 @@ export default function Home() {
                 transition={{ duration: 0.25 }}
                 className="w-full flex flex-wrap justify-center gap-2 mb-8"
               >
-                {EXAMPLE_PROMPTS.map((prompt, i) => (
+                {EXAMPLE_CHIPS.map((chip, i) => (
                   <motion.button
-                    key={prompt}
+                    key={chip.label}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.25, delay: 0.3 + i * 0.05 }}
-                    onClick={() => handleExampleClick(prompt)}
+                    onClick={() => handleExampleClick(chip.label, chip.specialistId)}
                     className="text-xs px-3.5 py-2 rounded-full transition-all duration-150 btn-press"
                     style={{
                       border: "1px solid var(--color-iamet-border)",
@@ -651,9 +677,60 @@ export default function Home() {
                       (e.currentTarget as HTMLElement).style.background = "transparent";
                     }}
                   >
-                    {prompt}
+                    {chip.label}
                   </motion.button>
                 ))}
+
+                {/* Chip especial: Agendar cita directa */}
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25, delay: 0.3 + EXAMPLE_CHIPS.length * 0.05 }}
+                  onClick={() => setShowDirectCalendar(true)}
+                  className="text-xs px-3.5 py-2 rounded-full transition-all duration-150 btn-press flex items-center gap-1.5"
+                  style={{
+                    border: "1px solid var(--color-iamet-accent)",
+                    color: "var(--color-iamet-accent)",
+                    background: "var(--color-iamet-accent-muted)",
+                    fontWeight: 600,
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.background = "var(--color-iamet-accent)";
+                    (e.currentTarget as HTMLElement).style.color = "#fff";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = "var(--color-iamet-accent-muted)";
+                    (e.currentTarget as HTMLElement).style.color = "var(--color-iamet-accent)";
+                  }}
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  Agendar cita directa
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* CalendarPicker directo — sin pasar por el agente */}
+          <AnimatePresence>
+            {showDirectCalendar && (
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+                className="w-full mb-4"
+              >
+                <CalendarPicker
+                  specialistId={selectedSpecialist ?? undefined}
+                  onClose={() => setShowDirectCalendar(false)}
+                  onBooked={() => {
+                    setShowDirectCalendar(false);
+                    toast.success("¡Cita agendada exitosamente!", {
+                      description: "Revisa tu correo para los detalles de la reunión.",
+                      duration: 5000,
+                    });
+                  }}
+                />
               </motion.div>
             )}
           </AnimatePresence>

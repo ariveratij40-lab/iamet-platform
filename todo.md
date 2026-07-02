@@ -919,3 +919,11 @@
 - [x] Comparar userMessage con trim() para evitar falsos positivos en alreadyIncluded
 - [x] TypeScript 0 errores
 - [x] Checkpoint guardado
+
+## Mejoras UX Chat Hero (2026-07-02)
+
+- [x] Mapear cada chip a especialista automático (CCTV→cctv, RFID→rfid, Data Center→data-centers, etc.)
+- [x] Placeholder dinámico del input según especialista seleccionado
+- [x] Chip "Agendar cita directa" que abre CalendarPicker sin pasar por el agente
+- [x] TypeScript 0 errores
+- [ ] Checkpoint guardado
