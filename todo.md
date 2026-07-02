@@ -907,4 +907,4 @@
 - [x] Corregir bug de scroll — scroll interno del contenedor del chat, no scrollIntoView de página
 - [x] Eliminar window.scrollTo({ top: 0 }) del botón 'Consultar al Agente IA'
 - [x] TypeScript 0 errores
-- [ ] Checkpoint guardado
+- [x] Checkpoint guardado

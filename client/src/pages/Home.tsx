@@ -508,7 +508,7 @@ export default function Home() {
       {/* HERO — Asistente de Ingeniería Inteligente                           */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       <main
-        className="flex-1 flex flex-col items-center justify-center relative overflow-hidden"
+        className="flex-1 flex flex-col items-center justify-start relative overflow-hidden"
         style={{ minHeight: "100vh" }}
       >
         {/* Background glow */}
@@ -531,7 +531,7 @@ export default function Home() {
         />
 
         <div
-          className="relative z-10 w-full flex flex-col items-center px-4 py-12 sm:py-16"
+          className="relative z-10 w-full flex flex-col items-center px-4 pt-20 pb-12 sm:pt-24 sm:pb-16"
           style={{ maxWidth: "760px", margin: "0 auto" }}
         >
           {/* Logo */}
