@@ -908,3 +908,14 @@
 - [x] Eliminar window.scrollTo({ top: 0 }) del botón 'Consultar al Agente IA'
 - [x] TypeScript 0 errores
 - [x] Checkpoint guardado
+
+## Corrección Coherencia Agente — Mensajes Cortos (2026-07-02)
+
+- [x] Diagnosticar: el content del LLM puede ser array (no solo string) — el orquestador lo descartaba como string vacío
+- [x] Corregir extracción de finalReply — manejar content como array de text parts
+- [x] Corregir fallback: solo resumir herramientas si se usaron; si no, reintentar con contexto completo
+- [x] Ampliar historySlice de 12 a 20 mensajes para conversaciones más largas
+- [x] Agregar log de diagnóstico en el orquestador para verificar historial
+- [x] Comparar userMessage con trim() para evitar falsos positivos en alreadyIncluded
+- [x] TypeScript 0 errores
+- [ ] Checkpoint guardado

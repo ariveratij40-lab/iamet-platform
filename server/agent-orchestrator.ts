@@ -402,18 +402,23 @@ export async function runAgentLoop(
   // Build message array for LLM.
   // IMPORTANT: history already contains the current user turn (saved before this call),
   // so we use history directly WITHOUT appending userMessage again to avoid duplication.
-  const historySlice = history.slice(-12);
+  // Use up to 20 messages to maintain longer conversation context.
+  const historySlice = history.slice(-20);
+
+  // Filter out any tool-role messages from DB history (they are not stored, but guard anyway)
+  const cleanHistory = historySlice.filter((m) => m.role === "user" || m.role === "assistant");
+
   // If the last message in history is the current user turn, don't add it again
-  const lastMsg = historySlice[historySlice.length - 1];
-  const alreadyIncluded = lastMsg?.role === "user" && lastMsg?.content === userMessage;
+  const lastMsg = cleanHistory[cleanHistory.length - 1];
+  const alreadyIncluded = lastMsg?.role === "user" && lastMsg?.content?.trim() === userMessage.trim();
+
+  console.log(`[Orchestrator] session=${sessionId} historyLen=${cleanHistory.length} alreadyIncluded=${alreadyIncluded} lastRole=${lastMsg?.role} userMsg="${userMessage.slice(0, 40)}"`);
 
   const messages: any[] = [
     { role: "system", content: systemPrompt },
-    ...historySlice.map((m) => ({
+    ...cleanHistory.map((m) => ({
       role: m.role,
       content: m.content,
-      ...(m.tool_call_id ? { tool_call_id: m.tool_call_id } : {}),
-      ...(m.name ? { name: m.name } : {}),
     })),
     ...(alreadyIncluded ? [] : [{ role: "user", content: userMessage }]),
   ];
@@ -448,7 +453,17 @@ export async function runAgentLoop(
     // If no tool calls, we have the final reply
     if (finishReason === "stop" || !assistantMessage.tool_calls?.length) {
       const rawContent = assistantMessage.content;
-      finalReply = typeof rawContent === "string" ? rawContent : "";
+      if (typeof rawContent === "string") {
+        finalReply = rawContent;
+      } else if (Array.isArray(rawContent)) {
+        // Handle array content parts (text blocks)
+        finalReply = rawContent
+          .filter((p: any) => p?.type === "text" && typeof p?.text === "string")
+          .map((p: any) => p.text)
+          .join("\n") || "";
+      } else {
+        finalReply = "";
+      }
       break;
     }
 
@@ -534,21 +549,44 @@ export async function runAgentLoop(
 
   // If we exhausted iterations without a final reply, generate one
   if (!finalReply) {
-    const toolsSummary = toolsUsed.map((t) => `- ${t.name}: ${t.summary}`).join("\n");
-    try {
-      const summaryResponse = await invokeLLM({
-        messages: [
-          {
-            role: "system",
-            content: `Eres ARIA de IAMET. Resume las siguientes acciones ejecutadas de forma natural y amigable para el cliente. Máximo 3 oraciones.\n\nAcciones:\n${toolsSummary}`,
-          },
-          { role: "user", content: "Resume lo que hiciste" },
-        ],
-      });
-      const rawSummary = summaryResponse?.choices?.[0]?.message?.content;
-      finalReply = typeof rawSummary === "string" ? rawSummary : "He procesado tu solicitud. ¿En qué más puedo ayudarte?";
-    } catch {
-      finalReply = "He procesado tu solicitud. ¿En qué más puedo ayudarte?";
+    if (toolsUsed.length > 0) {
+      // Only summarize if tools were actually used
+      const toolsSummary = toolsUsed.map((t) => `- ${t.name}: ${t.summary}`).join("\n");
+      try {
+        const summaryResponse = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...messages.slice(1), // include full conversation context
+            {
+              role: "user",
+              content: `Basado en la conversación anterior y las acciones ejecutadas, responde al usuario de forma natural y coherente con el contexto.\n\nAcciones ejecutadas:\n${toolsSummary}`,
+            },
+          ],
+        });
+        const rawSummary = summaryResponse?.choices?.[0]?.message?.content;
+        finalReply = typeof rawSummary === "string" ? rawSummary : "He procesado tu solicitud. ¿En qué más puedo ayudarte?";
+      } catch {
+        finalReply = "He procesado tu solicitud. ¿En qué más puedo ayudarte?";
+      }
+    } else {
+      // No tools used and no reply — retry with the full context to get a proper response
+      try {
+        const retryResponse = await invokeLLM({
+          messages,
+        });
+        const rawRetry = retryResponse?.choices?.[0]?.message?.content;
+        if (typeof rawRetry === "string") {
+          finalReply = rawRetry;
+        } else if (Array.isArray(rawRetry)) {
+          finalReply = rawRetry
+            .filter((p: any) => p?.type === "text")
+            .map((p: any) => p.text)
+            .join("\n") || "";
+        }
+        if (!finalReply) finalReply = "Entendido. ¿En qué más puedo ayudarte?";
+      } catch {
+        finalReply = "Entendido. ¿En qué más puedo ayudarte?";
+      }
     }
   }
 
