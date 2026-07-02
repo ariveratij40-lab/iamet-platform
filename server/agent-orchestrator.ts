@@ -446,14 +446,17 @@ export async function runAgentLoop(
 
     const assistantMessage = choice.message;
     const finishReason = choice.finish_reason;
+    const rawContent = assistantMessage.content;
+    const hasToolCalls = !!(assistantMessage.tool_calls?.length);
+
+    console.log(`[Orchestrator] iter=${iterations} finish=${finishReason} hasTools=${hasToolCalls} contentType=${typeof rawContent} contentLen=${typeof rawContent === 'string' ? rawContent.length : Array.isArray(rawContent) ? rawContent.length : 0}`);
 
     // Add assistant message to context
     messages.push(assistantMessage);
 
     // If no tool calls, we have the final reply
-    if (finishReason === "stop" || !assistantMessage.tool_calls?.length) {
-      const rawContent = assistantMessage.content;
-      if (typeof rawContent === "string") {
+    if (!hasToolCalls) {
+      if (typeof rawContent === "string" && rawContent.trim()) {
         finalReply = rawContent;
       } else if (Array.isArray(rawContent)) {
         // Handle array content parts (text blocks)
@@ -461,10 +464,23 @@ export async function runAgentLoop(
           .filter((p: any) => p?.type === "text" && typeof p?.text === "string")
           .map((p: any) => p.text)
           .join("\n") || "";
-      } else {
-        finalReply = "";
       }
-      break;
+      // If content is empty/null but finish_reason is stop, retry without tools
+      if (!finalReply && finishReason === "stop") {
+        console.warn(`[Orchestrator] Empty content on stop, retrying without tools session=${sessionId}`);
+        try {
+          const retryResp = await invokeLLM({ messages: messages.slice(0, -1) });
+          const retryContent = retryResp?.choices?.[0]?.message?.content;
+          if (typeof retryContent === "string" && retryContent.trim()) {
+            finalReply = retryContent;
+          } else if (Array.isArray(retryContent)) {
+            finalReply = retryContent.filter((p: any) => p?.type === "text").map((p: any) => p.text).join("\n");
+          }
+        } catch (retryErr) {
+          console.error(`[Orchestrator] Retry failed:`, retryErr);
+        }
+      }
+      if (finalReply) break;
     }
 
     // Execute tool calls

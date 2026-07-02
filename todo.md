@@ -918,4 +918,4 @@
 - [x] Agregar log de diagnóstico en el orquestador para verificar historial
 - [x] Comparar userMessage con trim() para evitar falsos positivos en alreadyIncluded
 - [x] TypeScript 0 errores
-- [ ] Checkpoint guardado
+- [x] Checkpoint guardado
