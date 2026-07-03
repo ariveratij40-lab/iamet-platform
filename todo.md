@@ -926,4 +926,15 @@
 - [x] Placeholder dinámico del input según especialista seleccionado
 - [x] Chip "Agendar cita directa" que abre CalendarPicker sin pasar por el agente
 - [x] TypeScript 0 errores
+- [x] Checkpoint guardado
+
+## Reescritura System Prompt Agente (2026-07-02)
+
+- [ ] Leer buildSDRSystemPrompt y buildSpecialistPrompt actuales
+- [ ] Reescribir system prompt: agente consultor que da valor inmediato, no interrogatorio
+- [ ] El agente debe: responder con solución técnica preliminar después de 2 datos clave
+- [ ] El agente debe: ofrecer cotización o cita después de dar el previo técnico
+- [ ] El agente NO debe: hacer más de 2 preguntas seguidas sin dar valor
+- [ ] El agente NO debe: caer en "He procesado tu solicitud. ¿En qué más puedo ayudarte?"
+- [ ] TypeScript 0 errores
 - [ ] Checkpoint guardado
