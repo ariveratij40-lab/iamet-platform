@@ -1,5 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { storeAuthRouter as newStoreAuthRouter } from "./routers/storeAuth";
+import { subscribersRouter } from "./routers/subscribers";
+import { adminSubscribersRouter } from "./routers/adminSubscribers";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -329,12 +331,13 @@ export const appRouter = router({
   // ─── Agente Virtual IAMET ──────────────────────────────────────────────────
   agent: router({
     startSession: publicProcedure
-      .input(z.object({ visitorId: z.string().optional() }))
+      .input(z.object({ visitorId: z.string().optional(), subscriberId: z.number().optional() }))
       .mutation(async ({ input }) => {
         const sessionId = nanoid(16);
         await createConversation({
           sessionId,
           visitorId: input.visitorId,
+          subscriberId: input.subscriberId ?? null,
           status: "active",
         });
         return { sessionId };
@@ -1568,6 +1571,12 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
       .query(async ({ input }) => getHealthHistory(input.service, input.limit)),
     getErrorSummary: adminProcedure.query(() => getErrorSummary()),
   }),
+
+  // ─── Suscriptores Públicos ────────────────────────────────────────────────
+  subscribers: subscribersRouter,
+
+  // ─── Admin: Suscriptores ─────────────────────────────────────────────────
+  adminSubscribers: adminSubscribersRouter,
 
   // ─── Sprint 7: Users & Roles ────────────────────────────────────────────────
   adminUsers: router({

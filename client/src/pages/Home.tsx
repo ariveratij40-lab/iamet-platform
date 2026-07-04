@@ -17,6 +17,7 @@ import { nanoid } from "nanoid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { useSubscriberAuth } from "@/hooks/useSubscriberAuth";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ToolUsed {
@@ -106,6 +107,7 @@ const EXAMPLE_CHIPS: { label: string; specialistId: string | null }[] = [
 // ─── Componente del Prompt Central ───────────────────────────────────────────
 const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
   function AgentPrompt({ onSessionStart, selectedSpecialist }, ref) {
+    const { subscriber } = useSubscriberAuth();
     const [visitorId] = useState(() => {
       const stored = sessionStorage.getItem("iamet_visitor_home");
       if (stored) return stored;
@@ -140,7 +142,7 @@ const AgentPrompt = forwardRef<AgentPromptHandle, AgentPromptProps>(
 
     const ensureSession = async (): Promise<string> => {
       if (conversationSessionId) return conversationSessionId;
-      const result = await startSession.mutateAsync({ visitorId });
+      const result = await startSession.mutateAsync({ visitorId, subscriberId: subscriber?.id });
       setConversationSessionId(result.sessionId);
       onSessionStart?.(result.sessionId);
       return result.sessionId;
@@ -1226,7 +1228,158 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ─── Banner Registro Suscriptores ─────────────────────────────────────────────── */}
+      <SubscriberBanner />
+
       <LiveChatWidget sessionId={liveSessionId} visitorId={trackingVisitorId} />
     </div>
+  );
+}
+
+// ─── Banner de Registro para Suscriptores ──────────────────────────────────────────────────
+function SubscriberBanner() {
+  const { subscriber, isAuthenticated } = useSubscriberAuth();
+
+  if (isAuthenticated) {
+    // Usuario ya registrado: mostrar acceso rápido a su cuenta
+    return (
+      <section className="py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div
+            className="rounded-2xl p-6 border border-cyan-500/20 flex flex-col sm:flex-row items-center gap-6"
+            style={{
+              background: "linear-gradient(135deg, rgba(6,182,212,0.05) 0%, rgba(59,130,246,0.05) 100%)",
+            }}
+          >
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-lg shadow-blue-500/20">
+              {subscriber!.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <p className="text-white font-semibold">Bienvenido, {subscriber!.name}</p>
+              <p className="text-slate-400 text-sm mt-0.5">
+                Tus conversaciones con ARIA se están guardando en tu historial.
+              </p>
+            </div>
+            <Link href="/mi-cuenta">
+              <button
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 active:scale-[0.97] flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #2563eb, #06b6d4)" }}
+              >
+                Ver mi historial
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Usuario no registrado: mostrar oferta de registro
+  return (
+    <section className="py-16 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div
+          className="rounded-2xl overflow-hidden border border-white/5"
+          style={{
+            background: "linear-gradient(135deg, #0d1526 0%, #111827 100%)",
+            boxShadow: "8px 8px 20px rgba(0,0,0,0.4), -4px -4px 12px rgba(30,58,138,0.08)",
+          }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Lado izquierdo: oferta */}
+            <div className="p-8 lg:p-10">
+              <div className="inline-flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/20 rounded-full px-3 py-1 text-cyan-400 text-xs font-medium mb-5">
+                ✨ Acceso gratuito
+              </div>
+              <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-4">
+                Registrate y guarda el historial de tus proyectos
+              </h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                Crea tu cuenta gratuita para acceder a todas tus conversaciones con ARIA,
+                guardar cotizaciones y recibir atención prioritaria de nuestros ingenieros.
+              </p>
+              <div className="space-y-3 mb-8">
+                {[
+                  { icon: "💬", text: "Historial completo de conversaciones con ARIA" },
+                  { icon: "⚡", text: "Respuestas prioritarias de ingenieros especializados" },
+                  { icon: "📊", text: "Seguimiento de cotizaciones y propuestas técnicas" },
+                  { icon: "🛡️", text: "Perfil de empresa para propuestas más precisas" },
+                ].map((item) => (
+                  <div key={item.text} className="flex items-center gap-3 text-sm">
+                    <span className="text-base">{item.icon}</span>
+                    <span className="text-slate-300">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link href="/registro">
+                  <button
+                    className="px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-150 active:scale-[0.97] w-full sm:w-auto"
+                    style={{ background: "linear-gradient(135deg, #2563eb, #06b6d4)" }}
+                  >
+                    Crear cuenta gratuita
+                  </button>
+                </Link>
+                <Link href="/login-suscriptor">
+                  <button
+                    className="px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-[0.97] w-full sm:w-auto"
+                    style={{
+                      background: "transparent",
+                      color: "rgba(148,163,184,1)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    }}
+                  >
+                    Ya tengo cuenta
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Lado derecho: visual */}
+            <div
+              className="p-8 lg:p-10 flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-white/5"
+              style={{
+                background: "linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(6,182,212,0.05) 100%)",
+              }}
+            >
+              <div className="space-y-4">
+                {[
+                  { plan: "Gratuito", desc: "Historial básico + conversaciones guardadas", icon: "⭐", active: true },
+                  { plan: "Pro", desc: "Reportes avanzados + atención prioritaria", icon: "⚡", active: false },
+                  { plan: "Enterprise", desc: "Integración personalizada + soporte dedicado", icon: "👑", active: false },
+                ].map((tier) => (
+                  <div
+                    key={tier.plan}
+                    className={`p-4 rounded-xl border transition-all duration-200 ${
+                      tier.active
+                        ? "border-cyan-500/30 bg-cyan-500/5"
+                        : "border-white/5 bg-white/3"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{tier.icon}</span>
+                      <div>
+                        <div className="text-white font-semibold text-sm flex items-center gap-2">
+                          {tier.plan}
+                          {tier.active && (
+                            <span className="text-xs bg-cyan-400/20 text-cyan-400 px-2 py-0.5 rounded-full">
+                              Disponible ahora
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-slate-400 text-xs mt-0.5">{tier.desc}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-slate-500 text-xs mt-6 text-center">
+                Sin tarjeta de crédito. Sin compromisos. Cancela cuando quieras.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

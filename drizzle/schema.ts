@@ -105,6 +105,7 @@ export const conversations = pgTable("conversations", {
   leadScore: integer("leadScore").default(0),
   humanTookOver: boolean("humanTookOver").default(false).notNull(),
   humanAgentName: varchar("humanAgentName", { length: 128 }),
+  subscriberId: integer("subscriberId"),  // FK a subscribers.id (null si es visitante anónimo)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
@@ -555,3 +556,32 @@ export const channelRoi = pgTable("channel_roi", {
 });
 export type ChannelRoi = typeof channelRoi.$inferSelect;
 export type InsertChannelRoi = typeof channelRoi.$inferInsert;
+
+// ─── Suscriptores Públicos (Registro para Historial de Conversaciones) ─────────
+export const subscriberPlanEnum = pgEnum("subscriber_plan", ["free", "pro", "enterprise"]);
+export const subscriberStatusEnum = pgEnum("subscriber_status", ["active", "inactive", "suspended"]);
+
+export const subscribers = pgTable("subscribers", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: text("passwordHash").notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  company: varchar("company", { length: 256 }),
+  phone: varchar("phone", { length: 32 }),
+  plan: subscriberPlanEnum("plan").default("free").notNull(),
+  status: subscriberStatusEnum("status").default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type Subscriber = typeof subscribers.$inferSelect;
+export type InsertSubscriber = typeof subscribers.$inferInsert;
+
+export const subscriberSessions = pgTable("subscriber_sessions", {
+  id: serial("id").primaryKey(),
+  subscriberId: integer("subscriberId").notNull(),
+  token: varchar("token", { length: 256 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SubscriberSession = typeof subscriberSessions.$inferSelect;
+export type InsertSubscriberSession = typeof subscriberSessions.$inferInsert;

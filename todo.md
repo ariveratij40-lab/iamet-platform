@@ -938,3 +938,63 @@
 - [x] El agente NO debe: caer en "He procesado tu solicitud. ¿En qué más puedo ayudarte?"
 - [x] TypeScript 0 errores
 - [x] Checkpoint guardado
+
+## Sistema de Registro y Suscriptores (2026-07-04)
+
+### DB Schema
+- [ ] Tabla `subscribers` — email, nombre, empresa, plan, status, created_at
+- [ ] Tabla `subscriber_sessions` — token, subscriber_id, expires_at
+- [ ] Agregar `subscriber_id` nullable a `agent_conversations`
+- [ ] Migración SQL ejecutada en la DB
+
+### Backend tRPC
+- [ ] `subscribers.register` — registro público con email + contraseña
+- [ ] `subscribers.login` — login con email/contraseña, retorna JWT cookie
+- [ ] `subscribers.me` — obtener perfil del suscriptor autenticado
+- [ ] `subscribers.logout` — limpiar cookie de sesión
+- [ ] `subscribers.myConversations` — historial de conversaciones del suscriptor
+- [ ] `admin.subscribers.list` — listar todos los suscriptores (solo admin)
+- [ ] `admin.subscribers.update` — cambiar plan/status de un suscriptor (solo admin)
+- [ ] `admin.subscribers.delete` — eliminar suscriptor (solo admin)
+- [ ] `admin.subscribers.stats` — métricas de suscriptores (total, activos, por plan)
+
+### Frontend — Registro Público
+- [ ] Página /registro con formulario de registro + oferta de beneficios
+- [ ] Página /login-suscriptor con formulario de login
+- [ ] Página /mi-cuenta con historial de conversaciones
+- [ ] Botón "Registrarse" en el sidebar público (Navbar.tsx)
+- [ ] Botón "Mi cuenta" en el sidebar cuando hay sesión de suscriptor
+- [ ] Banner en el chat invitando a registrarse para guardar historial
+
+### Frontend — Módulo Admin
+- [ ] Página /admin/users con tabla de suscriptores, filtros y acciones
+- [ ] Métricas en header: total, activos, nuevos esta semana
+
+### Calidad
+- [ ] TypeScript 0 errores
+- [ ] Tests actualizados
+- [ ] Checkpoint guardado
+- [ ] Deploy en VPS
+
+## Sistema de Suscriptores Públicos
+- [x] Schema BD: tabla subscribers (id, email, name, company, phone, plan, status, passwordHash, createdAt)
+- [x] Schema BD: tabla subscriber_sessions (id, subscriberId, token, expiresAt, createdAt)
+- [x] Schema BD: campo subscriberId en tabla conversations (FK nullable)
+- [x] Router tRPC: subscribers.register (registro público con bcrypt)
+- [x] Router tRPC: subscribers.login (JWT + cookie)
+- [x] Router tRPC: subscribers.me (perfil del suscriptor autenticado)
+- [x] Router tRPC: subscribers.logout
+- [x] Router tRPC: subscribers.myConversations (historial paginado)
+- [x] Router tRPC: adminSubscribers.list (con filtros: plan, status, búsqueda)
+- [x] Router tRPC: adminSubscribers.stats (métricas de suscriptores)
+- [x] Router tRPC: adminSubscribers.update (cambiar plan/status)
+- [x] Router tRPC: adminSubscribers.delete
+- [x] Router tRPC: adminSubscribers.subscriberConversations
+- [x] Página /registro: formulario de registro con beneficios (Register.tsx)
+- [x] Página /login-suscriptor: login de suscriptor (SubscriberLogin.tsx)
+- [x] Página /mi-cuenta: perfil + historial de conversaciones (MyAccount.tsx)
+- [x] Hook useSubscriberAuth: manejo de sesión del suscriptor en frontend
+- [x] Home: banner de registro con oferta de beneficios para visitantes
+- [x] Home: banner de bienvenida con acceso al historial para suscriptores autenticados
+- [x] agent.startSession: acepta subscriberId para vincular conversación al suscriptor
+- [x] Admin /admin/users: módulo de gestión de suscriptores con tabla, filtros, acciones

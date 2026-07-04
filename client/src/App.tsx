@@ -41,6 +41,9 @@ import { useIsMobile } from "./hooks/useMobile";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import { AdminGuard } from "./components/AdminGuard";
+import Register from "./pages/Register";
+import SubscriberLogin from "./pages/SubscriberLogin";
+import MyAccount from "./pages/MyAccount";
 
 // Wrapper que compensa el espacio del Navbar (sidebar en desktop, topbar en móvil)
 function PageWrapper({ children }: { children: React.ReactNode }) {
@@ -80,6 +83,10 @@ function Router() {
           <Route path="/landing/:vertical" component={LandingPage} />
           {/* Cancelar reunión — ruta pública */}
           <Route path="/cancelar-reunion" component={CancelarReunion} />
+          {/* Suscriptores públicos */}
+          <Route path="/registro" component={Register} />
+          <Route path="/login-suscriptor" component={SubscriberLogin} />
+          <Route path="/mi-cuenta" component={MyAccount} />
           {/* Login local */}
           <Route path="/login" component={Login} />
           <Route path="/admin/login" component={AdminLogin} />
