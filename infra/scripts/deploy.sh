@@ -32,6 +32,33 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
+# ─── 2b. Validar variables críticas del LLM ─────────────────────────────────
+# REGLA: BUILT_IN_FORGE_API_KEY y BUILT_IN_FORGE_API_URL son OBLIGATORIAS.
+# Sin ellas el agente ARIA cae al fallback genérico "Entendido. ¿En qué más puedo ayudarte?"
+# y el LLM nunca se invoca. Verificar ANTES del build para fallar rápido.
+echo ""
+echo "▶ Validando variables críticas del LLM..."
+
+FORGE_KEY=$(grep '^BUILT_IN_FORGE_API_KEY=' "$ENV_FILE" | cut -d= -f2)
+FORGE_URL=$(grep '^BUILT_IN_FORGE_API_URL=' "$ENV_FILE" | cut -d= -f2)
+
+if [ -z "$FORGE_KEY" ]; then
+    echo "✗ BUILT_IN_FORGE_API_KEY está vacía en $ENV_FILE"
+    echo "  El agente ARIA no funcionará sin esta variable."
+    echo "  Obtén el valor desde el panel de Manus → Settings → Secrets"
+    echo "  y agrégalo al $ENV_FILE antes de continuar."
+    exit 1
+fi
+
+if [ -z "$FORGE_URL" ]; then
+    echo "✗ BUILT_IN_FORGE_API_URL está vacía en $ENV_FILE"
+    echo "  Valor esperado: https://forge.manus.ai"
+    exit 1
+fi
+
+echo "  ✓ BUILT_IN_FORGE_API_KEY configurada (${#FORGE_KEY} chars)"
+echo "  ✓ BUILT_IN_FORGE_API_URL = $FORGE_URL"
+
 # ─── 3. Pull del código más reciente ─────────────────────────────────────────
 echo ""
 echo "▶ Actualizando código desde GitHub..."
