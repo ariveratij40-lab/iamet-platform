@@ -44,6 +44,7 @@ import { AdminGuard } from "./components/AdminGuard";
 import Register from "./pages/Register";
 import SubscriberLogin from "./pages/SubscriberLogin";
 import MyAccount from "./pages/MyAccount";
+import VerifyEmail from "./pages/VerifyEmail";
 
 // Wrapper que compensa el espacio del Navbar (sidebar en desktop, topbar en móvil)
 function PageWrapper({ children }: { children: React.ReactNode }) {
@@ -87,6 +88,7 @@ function Router() {
           <Route path="/registro" component={Register} />
           <Route path="/login-suscriptor" component={SubscriberLogin} />
           <Route path="/mi-cuenta" component={MyAccount} />
+          <Route path="/verificar-email" component={VerifyEmail} />
           {/* Login local */}
           <Route path="/login" component={Login} />
           <Route path="/admin/login" component={AdminLogin} />

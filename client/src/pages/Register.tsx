@@ -68,6 +68,7 @@ export default function Register() {
   const [, navigate] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [successData, setSuccessData] = useState<{ message: string; emailSent: boolean; verifyUrl?: string } | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -77,7 +78,8 @@ export default function Register() {
   });
 
   const registerMutation = trpc.subscribers.register.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setSuccessData({ message: data.message, emailSent: data.emailSent, verifyUrl: data.verifyUrl });
       setSuccess(true);
     },
   });
@@ -90,6 +92,7 @@ export default function Register() {
       password: form.password,
       company: form.company || undefined,
       phone: form.phone || undefined,
+      origin: window.location.origin,
     });
   };
 
@@ -109,29 +112,38 @@ export default function Register() {
           }}
         >
           <div className="w-20 h-20 rounded-full bg-cyan-400/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-cyan-400" />
+            <Mail className="w-10 h-10 text-cyan-400" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-3">
-            ¡Cuenta creada exitosamente!
+            ¡Cuenta creada! Verifica tu correo
           </h2>
-          <p className="text-slate-400 mb-8">
-            Ya puedes iniciar sesión y empezar a guardar el historial de tus
-            conversaciones con ARIA.
+          <p className="text-slate-400 mb-4">
+            {successData?.message ?? "Te enviamos un correo de confirmación. Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta."}
           </p>
+          {successData?.verifyUrl && (
+            <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs text-left break-all">
+              <p className="font-semibold mb-1">🔧 Modo desarrollo — URL de verificación:</p>
+              <a href={successData.verifyUrl} className="underline hover:text-amber-300">{successData.verifyUrl}</a>
+            </div>
+          )}
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm text-left mb-6">
+            <p className="font-semibold mb-1">📧 Revisa tu bandeja de entrada</p>
+            <p className="text-slate-400 text-xs">Si no ves el correo en unos minutos, revisa la carpeta de spam o correo no deseado.</p>
+          </div>
           <div className="flex flex-col gap-3">
             <Button
               onClick={() => navigate("/login-suscriptor")}
               className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold py-3 rounded-xl transition-all duration-200"
             >
-              Iniciar sesión
+              Ir al inicio de sesión
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
-              onClick={() => navigate("/")}
-              className="w-full text-slate-400 hover:text-white"
+              onClick={() => navigate("/verificar-email")}
+              className="w-full text-slate-400 hover:text-white text-sm"
             >
-              Volver al inicio
+              Reenviar correo de verificación
             </Button>
           </div>
         </div>

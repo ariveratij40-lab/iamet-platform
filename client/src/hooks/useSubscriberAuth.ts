@@ -9,10 +9,21 @@ export interface SubscriberUser {
   phone?: string | null;
   plan: "free" | "pro" | "enterprise";
   status: "active" | "inactive" | "suspended";
+  emailVerified: boolean;
   createdAt: Date;
 }
 
 const SUBSCRIBER_TOKEN_KEY = "iamet_sub_token";
+
+// Exponer el token para que main.tsx pueda inyectarlo en los headers tRPC
+let _subscriberToken: string | null =
+  typeof window !== "undefined"
+    ? localStorage.getItem(SUBSCRIBER_TOKEN_KEY)
+    : null;
+
+export function getSubscriberToken(): string | null {
+  return _subscriberToken;
+}
 
 export function useSubscriberAuth() {
   const [token, setToken] = useState<string | null>(() =>
@@ -35,6 +46,7 @@ export function useSubscriberAuth() {
       const result = await loginMutation.mutateAsync({ email, password });
       if (result.token) {
         localStorage.setItem(SUBSCRIBER_TOKEN_KEY, result.token);
+        _subscriberToken = result.token;
         setToken(result.token);
       }
       await utils.subscribers.me.invalidate();
@@ -46,6 +58,7 @@ export function useSubscriberAuth() {
   const logout = useCallback(async () => {
     await logoutMutation.mutateAsync();
     localStorage.removeItem(SUBSCRIBER_TOKEN_KEY);
+    _subscriberToken = null;
     setToken(null);
     await utils.subscribers.me.invalidate();
   }, [logoutMutation, utils]);

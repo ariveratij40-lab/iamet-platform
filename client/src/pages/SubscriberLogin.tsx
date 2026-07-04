@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { Mail } from "lucide-react";
 import { useSubscriberAuth } from "@/hooks/useSubscriberAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, MessageSquare } from "lucide-react";
+import { Eye, EyeOff, Lock, ArrowRight, MessageSquare } from "lucide-react";
 
 export default function SubscriberLogin() {
   const [, navigate] = useLocation();
@@ -123,11 +124,30 @@ export default function SubscriberLogin() {
               </div>
 
               {/* Error */}
-              {(error || loginError) && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                  {error || loginError}
-                </div>
-              )}
+              {(error || loginError) && (() => {
+                const msg = error || loginError || "";
+                const isUnverified = msg.includes("EMAIL_NOT_VERIFIED");
+                const displayMsg = isUnverified
+                  ? "Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada."
+                  : msg;
+                return (
+                  <div className={`p-3 rounded-xl border text-sm ${
+                    isUnverified
+                      ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                      : "bg-red-500/10 border-red-500/20 text-red-400"
+                  }`}>
+                    <p>{displayMsg}</p>
+                    {isUnverified && (
+                      <Link href={`/verificar-email`}>
+                        <span className="mt-2 inline-flex items-center gap-1 text-amber-300 hover:text-amber-200 cursor-pointer font-medium underline text-xs">
+                          <Mail className="w-3 h-3" />
+                          Reenviar correo de verificación
+                        </span>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Submit */}
               <Button

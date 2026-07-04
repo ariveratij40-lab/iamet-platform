@@ -570,6 +570,9 @@ export const subscribers = pgTable("subscribers", {
   phone: varchar("phone", { length: 32 }),
   plan: subscriberPlanEnum("plan").default("free").notNull(),
   status: subscriberStatusEnum("status").default("active").notNull(),
+  emailVerified: boolean("emailVerified").default(false).notNull(),
+  verificationToken: varchar("verificationToken", { length: 128 }),
+  verificationTokenExpiresAt: timestamp("verificationTokenExpiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

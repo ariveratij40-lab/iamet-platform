@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { getSubscriberToken } from "@/hooks/useSubscriberAuth";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
@@ -43,6 +44,10 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
+      headers() {
+        const subToken = getSubscriberToken();
+        return subToken ? { Authorization: `Bearer ${subToken}` } : {};
+      },
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),
