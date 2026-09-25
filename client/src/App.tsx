@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
+import HomeV2 from "./pages/HomeV2";
 import VerticalLanding from "./pages/VerticalLanding";
 import TechAdvisor from "./pages/TechAdvisor";
 import Academy from "./pages/Academy";
@@ -76,7 +77,7 @@ function Router() {
   return (
     <AppShell>
       <Switch>
-          <Route path="/" component={Home} />
+          <Route path="/" component={HomeV2} />
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
           <Route path="/soluciones/:slug" component={VerticalLanding} />
