@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
@@ -37,6 +37,7 @@ import Soluciones from "./pages/Soluciones";
 import CancelarReunion from "./pages/CancelarReunion";
 import LandingPage from "./pages/LandingPage";
 import Navbar from "./components/Navbar";
+import PublicHeaderV2 from "./components/v2/PublicHeaderV2";
 import { useIsMobile } from "./hooks/useMobile";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
@@ -47,21 +48,34 @@ import MyAccount from "./pages/MyAccount";
 import VerifyEmail from "./pages/VerifyEmail";
 
 // Wrapper que compensa el espacio del Navbar (sidebar en desktop, topbar en móvil)
-function PageWrapper({ children }: { children: React.ReactNode }) {
+function AppShell({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
   const isMobile = useIsMobile();
+  const isAdmin = location === "/admin" || location.startsWith("/admin/");
+
+  if (isAdmin) {
+    return (
+      <>
+        <Navbar />
+        <div style={isMobile ? { paddingTop: "56px" } : { paddingLeft: "56px" }}>
+          {children}
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div style={isMobile ? { paddingTop: "56px" } : { paddingLeft: "56px" }}>
-      {children}
-    </div>
+    <>
+      <PublicHeaderV2 />
+      <main>{children}</main>
+    </>
   );
 }
 
 function Router() {
   return (
-    <>
-      <Navbar />
-      <PageWrapper>
-        <Switch>
+    <AppShell>
+      <Switch>
           <Route path="/" component={Home} />
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
@@ -111,16 +125,15 @@ function Router() {
           <Route path="/admin/users">{() => <AdminGuard allowedRoles={["admin"]}><AdminUsers /></AdminGuard>}</Route>
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
-        </Switch>
-      </PageWrapper>
-    </>
+      </Switch>
+    </AppShell>
   );
 }
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable={true}>
+      <ThemeProvider defaultTheme="light" switchable={true}>
         <LanguageProvider>
           <TooltipProvider>
             <Toaster />
