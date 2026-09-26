@@ -3,6 +3,7 @@ import NeedsCarouselV2 from "@/components/v2/NeedsCarouselV2";
 import SolutionsShowcaseV2 from "@/components/v2/SolutionsShowcaseV2";
 import HowWeWorkV2 from "@/components/v2/HowWeWorkV2";
 import WhyIAMETV2 from "@/components/v2/WhyIAMETV2";
+import CorporateClosingV2 from "@/components/v2/CorporateClosingV2";
 
 export default function HomeV2() {
   return (
@@ -12,6 +13,7 @@ export default function HomeV2() {
       <SolutionsShowcaseV2 />
       <HowWeWorkV2 />
       <WhyIAMETV2 />
+      <CorporateClosingV2 />
     </>
   );
 }

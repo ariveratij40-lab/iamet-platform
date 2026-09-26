@@ -81,7 +81,7 @@ export default function PublicHeaderV2() {
             }}
           >
             <MessageCircle className="h-4 w-4" />
-            {language === "es" ? "Hablar con ARIA" : "Talk to ARIA"}
+            {language === "es" ? "¿Necesita orientación?" : "Talk to ARIA"}
           </Link>
         </nav>
 

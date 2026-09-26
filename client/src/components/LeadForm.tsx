@@ -74,7 +74,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
             ¡Mensaje recibido!
           </h3>
           <p className="text-sm text-[var(--color-iamet-text-muted)]">
-            Un especialista de IAMET se pondrá en contacto contigo en menos de 24 horas.
+            Un especialista de IAMET revisará su solicitud y dará seguimiento a su requerimiento.
           </p>
         </div>
         {score !== null && (
@@ -92,9 +92,9 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
               <span className="text-sm font-700 gradient-text">{score}/100</span>
             </div>
             <p className="text-xs text-[var(--color-iamet-text-subtle)] mt-1">
-              {score >= 70 ? "Alta prioridad — respuesta en menos de 4 horas" :
-               score >= 40 ? "Prioridad media — respuesta en menos de 24 horas" :
-               "Respuesta en menos de 48 horas"}
+              {score >= 70 ? "Alta prioridad" :
+               score >= 40 ? "Prioridad media" :
+               "Prioridad estándar"}
             </p>
           </div>
         )}
@@ -110,10 +110,10 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
       {!compact && (
         <div className="space-y-1">
           <h3 className="font-display text-xl font-700 text-[var(--color-iamet-text)]">
-            Habla con un experto IAMET
+            Hable con un especialista IAMET
           </h3>
           <p className="text-sm text-[var(--color-iamet-text-muted)]">
-            Cuéntanos sobre tu empresa y te contactaremos en menos de 24 horas.
+            Cuéntenos sobre su empresa y el proyecto o necesidad que desea resolver.
           </p>
         </div>
       )}
@@ -127,7 +127,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
             </label>
             <input
               type="text"
-              placeholder="Nombre de tu empresa"
+              placeholder="Nombre de su empresa"
               value={form.company}
               onChange={set("company")}
               required
@@ -142,7 +142,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
             </label>
             <input
               type="text"
-              placeholder="Tu nombre completo"
+              placeholder="Su nombre completo"
               value={form.contactName}
               onChange={set("contactName")}
               required
@@ -172,7 +172,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
             </label>
             <input
               type="tel"
-              placeholder="+52 55 0000 0000"
+              placeholder="Número de contacto"
               value={form.phone}
               onChange={set("phone")}
               className={inputClass}
@@ -209,10 +209,10 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
         {/* Problem Description */}
         <div>
           <label className={labelClass}>
-            <MessageSquare className="w-3.5 h-3.5" /> ¿Cuál es tu principal reto tecnológico?
+            <MessageSquare className="w-3.5 h-3.5" /> ¿Cuál es su principal reto tecnológico?
           </label>
           <textarea
-            placeholder="Describe brevemente el problema o necesidad que tienes..."
+            placeholder="Describa brevemente el problema o necesidad que desea resolver..."
             value={form.problemDescription}
             onChange={set("problemDescription")}
             rows={3}
@@ -233,13 +233,13 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
           ) : (
             <>
               <Send className="w-4 h-4 mr-2" />
-              Solicitar Asesoría Gratuita
+              Solicitar asesoría
             </>
           )}
         </Button>
 
         <p className="text-xs text-center text-[var(--color-iamet-text-subtle)]">
-          Al enviar, aceptas que IAMET te contacte para brindarte asesoría tecnológica.
+          Al enviar, acepta que IAMET le contacte para dar seguimiento a su solicitud.
         </p>
       </form>
     </div>

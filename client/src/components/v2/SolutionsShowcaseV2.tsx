@@ -230,7 +230,7 @@ export default function SolutionsShowcaseV2() {
   return (
     <section
       id="soluciones-v2"
-      className="px-5 py-20 lg:px-8 lg:py-28"
+      className="px-5 py-14 sm:py-16 lg:px-8 lg:py-28"
       style={{ background: "#ffffff" }}
     >
       <div className="mx-auto max-w-[1440px]">
@@ -240,7 +240,7 @@ export default function SolutionsShowcaseV2() {
           </p>
 
           <h2
-            className="mt-4 text-4xl font-bold tracking-[-0.04em] md:text-5xl"
+            className="mt-3 text-[2.15rem] font-bold leading-[1.03] tracking-[-0.04em] sm:mt-4 sm:text-4xl md:text-5xl"
             style={{ color: "#101828" }}
           >
             {es
@@ -248,14 +248,14 @@ export default function SolutionsShowcaseV2() {
               : "Integrated technology around your operation."}
           </h2>
 
-          <p className="mt-5 text-lg leading-8 text-slate-500">
+          <p className="mt-4 text-base leading-7 text-slate-500 sm:mt-5 sm:text-lg sm:leading-8">
             {es
               ? "Explore nuestras principales áreas de especialización y descubra cómo se integran dentro de una misma estrategia tecnológica."
               : "Explore our core areas of expertise and see how they work together within one technology strategy."}
           </p>
         </div>
 
-        <div className="mt-12 flex gap-2 overflow-x-auto pb-3">
+        <div className="-mx-5 mt-7 flex snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:mt-12 sm:px-0">
           {solutions.map(solution => {
             const Icon = solution.icon;
             const selected = solution.id === active.id;
@@ -265,7 +265,7 @@ export default function SolutionsShowcaseV2() {
                 key={solution.id}
                 type="button"
                 onClick={() => selectSolution(solution.id)}
-                className="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all"
+                className="flex shrink-0 snap-start items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all sm:px-4 sm:py-2.5 sm:text-sm"
                 style={{
                   color: selected ? "#ffffff" : "#475467",
                   background: selected ? "#1264d8" : "#ffffff",
@@ -283,7 +283,7 @@ export default function SolutionsShowcaseV2() {
         </div>
 
         <div
-          className="mt-5 overflow-hidden rounded-[30px] border"
+          className="mt-4 overflow-hidden rounded-[24px] border sm:mt-5 sm:rounded-[30px]"
           style={{
             borderColor: "#dfe7f0",
             background: "#f8fbff",
@@ -299,7 +299,7 @@ export default function SolutionsShowcaseV2() {
               transition={{ duration: 0.24 }}
               className="grid lg:grid-cols-[.9fr_1.1fr]"
             >
-              <div className="flex flex-col justify-center p-8 md:p-12 lg:p-14">
+              <div className="order-2 flex flex-col justify-center p-5 sm:p-8 md:p-12 lg:order-1 lg:p-14">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                   <ActiveIcon className="h-6 w-6" />
                 </div>
@@ -309,17 +309,17 @@ export default function SolutionsShowcaseV2() {
                 </p>
 
                 <h3
-                  className="mt-3 text-3xl font-bold leading-tight tracking-[-0.035em] md:text-4xl"
+                  className="mt-2 text-[1.7rem] font-bold leading-[1.08] tracking-[-0.035em] sm:mt-3 sm:text-3xl md:text-4xl"
                   style={{ color: "#101828" }}
                 >
                   {es ? active.titleEs : active.titleEn}
                 </h3>
 
-                <p className="mt-5 max-w-[620px] text-base leading-7 text-slate-500">
+                <p className="mt-4 max-w-[620px] text-[15px] leading-6 text-slate-500 sm:mt-5 sm:text-base sm:leading-7">
                   {es ? active.descEs : active.descEn}
                 </p>
 
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 sm:mt-7 sm:gap-3">
                   {(es
                     ? active.capabilitiesEs
                     : active.capabilitiesEn
@@ -334,7 +334,7 @@ export default function SolutionsShowcaseV2() {
                   ))}
                 </div>
 
-                <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row">
                   <Link
                     href="/soluciones"
                     onClick={() =>
@@ -359,7 +359,7 @@ export default function SolutionsShowcaseV2() {
                         action: "open_aria",
                       })
                     }
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+                    className="hidden items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:inline-flex"
                   >
                     <MessageCircle className="h-4 w-4 text-blue-600" />
                     {es ? "Consultar con ARIA" : "Ask ARIA"}
@@ -367,7 +367,7 @@ export default function SolutionsShowcaseV2() {
                 </div>
               </div>
 
-              <div className="relative min-h-[360px] overflow-hidden lg:min-h-[590px]">
+              <div className="relative order-1 min-h-[230px] overflow-hidden sm:min-h-[320px] lg:order-2 lg:min-h-[590px]">
                 <img
                   src={active.image}
                   alt={es ? active.es : active.en}
@@ -382,7 +382,7 @@ export default function SolutionsShowcaseV2() {
                   }}
                 />
 
-                <div className="absolute bottom-5 left-5 rounded-xl border border-white/50 bg-white/88 px-4 py-3 shadow-lg backdrop-blur-xl">
+                <div className="absolute bottom-5 left-5 hidden rounded-xl border border-white/50 bg-white/88 px-4 py-3 shadow-lg backdrop-blur-xl sm:block">
                   <div className="flex items-center gap-3">
                     <ActiveIcon className="h-5 w-5 text-blue-600" />
                     <div>

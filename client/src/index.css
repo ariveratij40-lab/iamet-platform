@@ -422,3 +422,121 @@
 .text-destructive-foreground { color: var(--destructive-foreground); }
 .border-input { border-color: var(--input); }
 .bg-input { background-color: var(--input); }
+
+/* ─── IAMET V2 Public Experience ──────────────────────────────────────────── */
+@layer utilities {
+  .iamet-v2-canvas {
+    background:
+      radial-gradient(
+        circle at 78% 18%,
+        oklch(0.72 0.14 245 / 0.14),
+        transparent 32%
+      ),
+      radial-gradient(
+        circle at 18% 82%,
+        oklch(0.78 0.10 215 / 0.10),
+        transparent 30%
+      ),
+      linear-gradient(
+        135deg,
+        oklch(1 0 0) 0%,
+        oklch(0.985 0.010 245) 48%,
+        oklch(0.965 0.022 245) 100%
+      );
+  }
+
+  .iamet-v2-grid {
+    background-image:
+      linear-gradient(
+        oklch(0.55 0.16 250 / 0.055) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        oklch(0.55 0.16 250 / 0.055) 1px,
+        transparent 1px
+      );
+    background-size: 42px 42px;
+  }
+
+  .iamet-v2-dot-grid {
+    background-image:
+      radial-gradient(
+        circle at 1px 1px,
+        oklch(0.55 0.18 255 / 0.18) 1px,
+        transparent 0
+      );
+    background-size: 28px 28px;
+  }
+
+  .iamet-v2-glass {
+    background: oklch(1 0 0 / 0.74);
+    border: 1px solid oklch(0.72 0.08 245 / 0.24);
+    box-shadow:
+      0 30px 80px oklch(0.40 0.10 250 / 0.10),
+      inset 0 1px 0 oklch(1 0 0 / 0.88);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+  }
+
+  .iamet-v2-tech-surface {
+    background:
+      linear-gradient(
+        145deg,
+        oklch(1 0 0 / 0.98),
+        oklch(0.965 0.025 245 / 0.96)
+      );
+    border: 1px solid oklch(0.58 0.18 255 / 0.14);
+    box-shadow:
+      0 35px 90px oklch(0.38 0.10 250 / 0.14);
+  }
+
+  .iamet-v2-electric {
+    color: oklch(0.50 0.23 255);
+  }
+
+  .iamet-v2-electric-bg {
+    background: oklch(0.50 0.23 255);
+  }
+
+  .iamet-v2-electric-glow {
+    box-shadow:
+      0 0 0 1px oklch(0.55 0.20 255 / 0.08),
+      0 12px 32px oklch(0.50 0.23 255 / 0.20),
+      0 0 64px oklch(0.60 0.20 245 / 0.10);
+  }
+
+  .iamet-v2-node {
+    background: oklch(1 0 0 / 0.88);
+    border: 1px solid oklch(0.55 0.18 255 / 0.16);
+    box-shadow:
+      0 16px 40px oklch(0.35 0.08 250 / 0.12),
+      inset 0 1px 0 oklch(1 0 0 / 0.90);
+    backdrop-filter: blur(14px);
+  }
+
+  .iamet-v2-eyebrow {
+    color: oklch(0.50 0.23 255);
+    border: 1px solid oklch(0.50 0.23 255 / 0.16);
+    background: oklch(0.50 0.23 255 / 0.055);
+  }
+
+  .iamet-v2-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.055em;
+    text-wrap: balance;
+  }
+
+  .iamet-v2-copy {
+    color: oklch(0.42 0.025 245);
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iamet-v2-motion {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,9 +1,5 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Send, CheckCircle2, Building2, User, MessageSquare, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { trpc } from "@/lib/trpc";
-import { toast } from "sonner";
+import { Mail } from "lucide-react";
 import LeadForm from "@/components/LeadForm";
 
 export default function Contact() {
@@ -20,12 +16,15 @@ export default function Contact() {
             <Mail className="w-3.5 h-3.5" />
             Contacto
           </span>
+
           <h1 className="font-display text-4xl md:text-5xl font-800 text-[var(--color-iamet-text)]">
-            Hablemos de tu{" "}
+            Hablemos de su{" "}
             <span className="text-gradient">proyecto</span>
           </h1>
+
           <p className="text-lg text-[var(--color-iamet-text-muted)] max-w-xl mx-auto">
-            Cuéntanos tu desafío tecnológico. Nuestro equipo te contactará en menos de 24 horas con una propuesta personalizada.
+            Cuéntenos qué necesita resolver. Nuestro equipo revisará su solicitud
+            para dirigirla con el especialista adecuado.
           </p>
         </motion.div>
 
@@ -48,32 +47,37 @@ export default function Contact() {
             className="lg:col-span-2 space-y-6"
           >
             <div className="neumorphic rounded-2xl p-6 space-y-5">
-              <h3 className="font-display font-700 text-[var(--color-iamet-text)]">Información de contacto</h3>
-              {[
-                { icon: Mail, label: "Email", value: "contacto@iamet.mx" },
-                { icon: Phone, label: "Teléfono", value: "+52 (55) 1234-5678" },
-                { icon: MapPin, label: "Ubicación", value: "Ciudad de México, México" },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[var(--color-iamet-accent-muted)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Icon className="w-4 h-4 text-[var(--color-iamet-accent)]" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-[var(--color-iamet-text-subtle)]">{label}</p>
-                    <p className="text-sm text-[var(--color-iamet-text-muted)] font-medium">{value}</p>
-                  </div>
+              <h3 className="font-display font-700 text-[var(--color-iamet-text)]">
+                Información de contacto
+              </h3>
+
+              <a
+                href="mailto:contacto@iamet.mx"
+                className="flex items-start gap-3"
+              >
+                <div className="w-9 h-9 rounded-xl bg-[var(--color-iamet-accent-muted)] flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Mail className="w-4 h-4 text-[var(--color-iamet-accent)]" />
                 </div>
-              ))}
+
+                <div>
+                  <p className="text-xs text-[var(--color-iamet-text-subtle)]">
+                    Email
+                  </p>
+                  <p className="text-sm text-[var(--color-iamet-text-muted)] font-medium">
+                    contacto@iamet.mx
+                  </p>
+                </div>
+              </a>
             </div>
 
             <div className="neumorphic rounded-2xl p-6 space-y-3">
-              <h4 className="font-semibold text-sm text-[var(--color-iamet-text)]">Tiempo de respuesta</h4>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[oklch(0.68_0.18_160)] animate-pulse" />
-                <span className="text-xs text-[var(--color-iamet-text-muted)]">Respuesta en menos de 24 horas</span>
-              </div>
-              <p className="text-xs text-[var(--color-iamet-text-subtle)]">
-                Lunes a Viernes, 9:00 AM – 7:00 PM (CST)
+              <h4 className="font-semibold text-sm text-[var(--color-iamet-text)]">
+                Atención a proyectos
+              </h4>
+
+              <p className="text-sm leading-6 text-[var(--color-iamet-text-muted)]">
+                Revisamos su necesidad para canalizarla con el especialista
+                adecuado.
               </p>
             </div>
           </motion.div>
