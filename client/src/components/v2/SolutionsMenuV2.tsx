@@ -35,6 +35,12 @@ export default function SolutionsMenuV2({
   return (
     <div
       ref={root}
+      onMouseEnter={() => {
+        if (!mobile) setOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (!mobile) setOpen(false);
+      }}
       className={
         mobile
           ? "border-b border-slate-100"
