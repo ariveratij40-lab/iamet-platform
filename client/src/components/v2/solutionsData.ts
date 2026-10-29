@@ -108,7 +108,7 @@ export const solutions: Solution[] = [
       "Visitors",
       "CCTV integration",
     ],
-    image: `${R2}/services/cctv.jpg`,
+    image: "/images/solutions/access-control-cinematic.png",
     icon: Fingerprint,
   },
   {
