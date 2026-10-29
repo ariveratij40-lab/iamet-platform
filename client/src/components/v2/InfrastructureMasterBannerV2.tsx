@@ -109,32 +109,11 @@ export default function InfrastructureMasterBannerV2() {
             exit={{ opacity: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.35 }}
           >
-            {infra && !reduceMotion ? (
-              <video
-                className="h-full w-full object-cover object-[72%_center] lg:object-[62%_center]"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                poster="/images/solutions/infrastructure-master.png"
-              >
-                <source
-                  src="/videos/infrastructure-master.mp4"
-                  type="video/mp4"
-                />
-              </video>
-            ) : (
-              <img
-                src={
-                  infra
-                    ? "/images/solutions/infrastructure-master.png"
-                    : active.image
-                }
-                alt=""
-                className={`h-full w-full object-cover object-[72%_center] lg:object-[62%_center] ${["seguridad-cctv", "control-acceso", "rfid", "energia", "desarrollo-ia"].includes(active.id) && !reduceMotion ? "iamet-cctv-cinematic" : ""}`}
-              />
-            )}
+            <img
+              src={active.image}
+              alt=""
+              className={`h-full w-full object-cover object-[72%_center] lg:object-[62%_center] ${!reduceMotion ? "iamet-cctv-cinematic" : ""}`}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
@@ -197,6 +176,31 @@ export default function InfrastructureMasterBannerV2() {
                   ? active.descEs
                   : active.descEn}
             </p>
+            {infra && (
+              <div
+                className="mt-6 inline-flex max-w-full items-center gap-4 rounded-lg px-4 py-3 shadow-lg"
+                style={{ background: "#fff" }}
+              >
+                <img
+                  src="/partners/panduit-one-silver-partner.png"
+                  alt="Panduit ONE Silver Partner"
+                  className="h-auto w-[140px] shrink-0 object-contain sm:w-[156px]"
+                />
+                <div className="border-l border-slate-200 pl-4">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-[.1em]"
+                    style={{ color: "#13243b" }}
+                  >
+                    {es ? "Integradores certificados" : "Certified integrators"}
+                  </p>
+                  <p className="mt-1 text-xs" style={{ color: "#54657b" }}>
+                    {es
+                      ? "Cableado estructurado Panduit"
+                      : "Panduit structured cabling"}
+                  </p>
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
 
