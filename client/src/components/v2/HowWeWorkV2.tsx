@@ -6,7 +6,7 @@ export default function HowWeWorkV2() {
   const es = language === "es";
   const processSteps = processStepsByLanguage[language];
   return (
-    <section className="bg-blue-50/40 px-5 py-14 sm:py-16 lg:px-8 lg:py-28">
+    <section className="iamet-process-section bg-blue-50/40 px-5 py-14 sm:py-16 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-[1440px]">
         <div className="grid gap-10 lg:grid-cols-[.75fr_1.25fr] lg:gap-8">
           <div className="max-w-[520px]">

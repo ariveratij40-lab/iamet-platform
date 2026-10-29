@@ -569,3 +569,86 @@
 @media (prefers-reduced-motion: reduce) {
   .iamet-tech-ambient, .iamet-tech-orbit { animation: none; }
 }
+
+/* IAMET engineering aesthetic, inspired by the Vectrion reference. */
+.iamet-reference-home {
+  background: #06101c;
+  color: #e7eef8;
+  --color-iamet-text: #e7eef8;
+  --color-iamet-text-muted: #a2b4ca;
+}
+.iamet-reference-home .iamet-tech-background {
+  background: radial-gradient(ellipse at 85% 10%,rgba(0,174,224,.10),transparent 40%),linear-gradient(180deg,#071421,#06101c 65%,#050c16);
+}
+.iamet-reference-home .iamet-tech-background svg { color: #38c9ed; opacity: 1; }
+.iamet-reference-home .iamet-tech-watermark { -webkit-text-stroke-color: rgba(56,201,237,.10); }
+.iamet-reference-home .iamet-tech-ambient { background: radial-gradient(circle,rgba(0,188,235,.11),transparent 65%); }
+.iamet-reference-home .text-slate-950,
+.iamet-reference-home .text-slate-900 { color: #edf5ff; }
+.iamet-reference-home .text-slate-500,
+.iamet-reference-home .text-slate-600 { color: #9aadc4; }
+.iamet-reference-home .text-blue-600,
+.iamet-reference-home .text-blue-700 { color: #42d2ef; }
+.iamet-reference-home .border-slate-200 { border-color: rgba(98,153,190,.18); }
+.iamet-reference-home .bg-slate-200 { background: rgba(98,153,190,.2); }
+.iamet-reference-home .bg-white { background: linear-gradient(140deg,rgba(20,43,63,.86),rgba(9,24,39,.94)); }
+.iamet-reference-home .bg-slate-50 { background: rgba(37,144,191,.09); }
+.iamet-reference-home .bg-blue-50\/40 { background: rgba(9,27,43,.56); }
+.iamet-reference-home .bg-blue-50\/60 { background: rgba(18,67,90,.25); }
+.iamet-reference-home .border-blue-100 { border-color: rgba(56,201,237,.18); }
+.iamet-reference-home .text-slate-100 { color: rgba(89,174,208,.16); }
+.iamet-reference-home article {
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+.iamet-reference-home article:hover {
+  border-color: rgba(56,201,237,.35);
+  box-shadow: 0 10px 40px rgba(0,0,0,.13);
+}
+.iamet-reference-home #soluciones-iamet { position: relative; }
+.iamet-reference-home #soluciones-iamet > div > div:first-child h1 {
+  font-family: ui-monospace,SFMono-Regular,Menlo,monospace;
+  color: #51cee9;
+  font-size: 11px;
+  letter-spacing: .16em;
+}
+.iamet-reference-home #soluciones-iamet [aria-roledescription="carrusel"] {
+  border: 1px solid rgba(71,188,225,.25);
+  box-shadow: 0 24px 80px rgba(0,0,0,.25),0 0 50px rgba(0,169,220,.04);
+}
+.iamet-reference-home section:not(#soluciones-iamet) > div > div > div > p:first-child {
+  font-family: ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+/* Keep the public header in the same visual language on the home page. */
+body:has(.iamet-reference-home) header {
+  background: rgba(5,16,29,.96);
+  border-color: rgba(98,153,190,.18);
+  backdrop-filter: blur(18px);
+}
+body:has(.iamet-reference-home) header nav > a,
+body:has(.iamet-reference-home) header nav > div > button { color: #b5c5d8; }
+body:has(.iamet-reference-home) header nav > a[aria-current="page"],
+body:has(.iamet-reference-home) header nav > div > button[aria-expanded="true"] { color: #45d3ef; border-color: #45d3ef; }
+body:has(.iamet-reference-home) header [id$="-links"],
+body:has(.iamet-reference-home) header #public-mobile-menu { background: #0c1d2e; border-color: #21374e; }
+body:has(.iamet-reference-home) header [id$="-links"] a,
+body:has(.iamet-reference-home) header #public-mobile-menu a,
+body:has(.iamet-reference-home) header button { color: #b5c5d8; }
+body:has(.iamet-reference-home) header [id$="-links"] a:hover { background: #15344b; color: #55d6f0; }
+body:has(.iamet-reference-home) header a.bg-blue-600 { color: white; }
+body:has(.iamet-reference-home) header .border-slate-200 { border-color: #21374e; }
+@media (prefers-reduced-motion: reduce) {
+  .iamet-reference-home article { transition: none; }
+}
+
+@media (min-width: 768px) {
+  .iamet-reference-home .iamet-process-section article { background: linear-gradient(140deg,#102638,#0a1a2a); border-color: rgba(98,153,190,.2); }
+  .iamet-reference-home .iamet-process-section article > span { background: transparent; color: rgba(71,182,215,.18); }
+}
+@media (max-width: 767px) {
+  .iamet-reference-home .iamet-process-section article > span { background: #102638; border-color: #245069; color: #45d3ef; }
+}
+body:has(.iamet-reference-home) header a:has(> img[alt="IAMET"]) {
+  background: #f8fbff;
+  border-radius: 6px;
+  padding: 4px 8px;
+}

@@ -8,7 +8,7 @@ import CorporateClosingV2 from "@/components/v2/CorporateClosingV2";
 export default function HomeV2() {
   const { language } = useLanguage();
   return (
-    <div className="relative isolate bg-[#fbfcff]">
+    <div className="iamet-reference-home relative isolate">
       <TechnologyBackgroundV2 />
       <section
         id="soluciones-iamet"
