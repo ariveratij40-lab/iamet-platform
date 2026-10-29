@@ -10,10 +10,17 @@ export default function PublicHeaderV2() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { language, setLanguage } = useLanguage();
+  const es = language === "es";
 
   const items = [
-    { href: "/soluciones", label: language === "es" ? "Soluciones" : "Solutions" },
-    { href: "/industrias", label: language === "es" ? "Industrias" : "Industries" },
+    {
+      href: "/soluciones",
+      label: language === "es" ? "Soluciones" : "Solutions",
+    },
+    {
+      href: "/industrias",
+      label: language === "es" ? "Industrias" : "Industries",
+    },
     { href: "/academy", label: "Academy" },
     { href: "/tienda", label: language === "es" ? "Tienda" : "Store" },
     { href: "/contacto", label: language === "es" ? "Contacto" : "Contact" },
@@ -26,7 +33,8 @@ export default function PublicHeaderV2() {
     <header
       className="sticky top-0 z-50 w-full"
       style={{
-        background: "color-mix(in oklch, var(--color-iamet-bg) 92%, transparent)",
+        background:
+          "color-mix(in oklch, var(--color-iamet-bg) 92%, transparent)",
         borderBottom: "1px solid var(--color-iamet-border-subtle)",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
@@ -34,11 +42,7 @@ export default function PublicHeaderV2() {
     >
       <div className="mx-auto flex h-[72px] max-w-[1440px] items-center px-5 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center">
-          <img
-            src={LOGO}
-            alt="IAMET"
-            className="h-9 w-auto object-contain"
-          />
+          <img src={LOGO} alt="IAMET" className="h-9 w-auto object-contain" />
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
@@ -65,7 +69,9 @@ export default function PublicHeaderV2() {
             onClick={() => setLanguage(language === "es" ? "en" : "es")}
             className="ml-2 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium"
             style={{ color: "var(--color-iamet-text-muted)" }}
-            aria-label={language === "es" ? "Cambiar a inglés" : "Switch to Spanish"}
+            aria-label={
+              language === "es" ? "Cambiar a inglés" : "Switch to Spanish"
+            }
           >
             <Languages className="h-4 w-4" />
             {language.toUpperCase()}
@@ -77,7 +83,8 @@ export default function PublicHeaderV2() {
             style={{
               background: "var(--color-iamet-accent)",
               color: "white",
-              boxShadow: "0 8px 24px color-mix(in oklch, var(--color-iamet-accent) 22%, transparent)",
+              boxShadow:
+                "0 8px 24px color-mix(in oklch, var(--color-iamet-accent) 22%, transparent)",
             }}
           >
             <MessageCircle className="h-4 w-4" />
@@ -90,10 +97,22 @@ export default function PublicHeaderV2() {
           className="ml-auto flex h-10 w-10 items-center justify-center rounded-lg lg:hidden"
           style={{ color: "var(--color-iamet-text)" }}
           onClick={() => setMobileOpen(v => !v)}
-          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-label={
+            es
+              ? mobileOpen
+                ? "Cerrar menú"
+                : "Abrir menú"
+              : mobileOpen
+                ? "Close menu"
+                : "Open menu"
+          }
           aria-expanded={mobileOpen}
         >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </button>
       </div>
 

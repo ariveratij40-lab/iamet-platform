@@ -45,3 +45,41 @@ export const whyItems = [
     icon: TrendingUp,
   },
 ];
+
+const englishContent = [
+  {
+    title: "Engineering",
+    description:
+      "We design the solution before installation, considering operation, integration, growth and maintenance.",
+  },
+  {
+    title: "Integration",
+    description:
+      "We connect different technology disciplines so they work as part of one solution.",
+  },
+  {
+    title: "Execution",
+    description:
+      "We deliver the project from design and supply through installation, configuration and commissioning.",
+  },
+  {
+    title: "Support",
+    description:
+      "We support your operation after installation through maintenance, assistance and technology improvements.",
+  },
+  {
+    title: "Technology",
+    description:
+      "We integrate specialized technologies according to each project’s technical and operational requirements.",
+  },
+  {
+    title: "Evolution",
+    description:
+      "We design for growth, new needs and the ability to adapt the solution over time.",
+  },
+] satisfies Array<Pick<(typeof whyItems)[number], "title" | "description">>;
+
+export const whyItemsByLanguage = {
+  es: whyItems,
+  en: whyItems.map((item, index) => ({ ...item, ...englishContent[index] })),
+};

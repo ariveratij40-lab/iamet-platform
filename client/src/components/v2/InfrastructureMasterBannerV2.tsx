@@ -1,5 +1,11 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Network, Server, Cable, PanelsTopLeft } from "lucide-react";
+import {
+  ArrowRight,
+  Network,
+  Server,
+  Cable,
+  PanelsTopLeft,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -55,10 +61,7 @@ export default function InfrastructureMasterBannerV2() {
             poster="/images/solutions/infrastructure-master.png"
             aria-hidden="true"
           >
-            <source
-              src="/videos/infrastructure-master.mp4"
-              type="video/mp4"
-            />
+            <source src="/videos/infrastructure-master.mp4" type="video/mp4" />
           </video>
         )}
       </div>
@@ -102,15 +105,13 @@ export default function InfrastructureMasterBannerV2() {
           >
             {es ? (
               <>
-                La base{" "}
-                <span className="text-blue-400">tecnológica</span>
+                La base <span className="text-blue-400">tecnológica</span>
                 <br />
                 de su operación.
               </>
             ) : (
               <>
-                The{" "}
-                <span className="text-blue-400">technology foundation</span>
+                The <span className="text-blue-400">technology foundation</span>
                 <br />
                 of your operation.
               </>
@@ -172,7 +173,10 @@ export default function InfrastructureMasterBannerV2() {
           </motion.div>
 
           {/* Future carousel contract */}
-          <div className="mt-5 flex items-center gap-3 sm:mt-10" aria-label="1 de 6">
+          <div
+            className="mt-5 flex items-center gap-3 sm:mt-10"
+            aria-label={es ? "1 de 6" : "1 of 6"}
+          >
             <span className="text-[11px] font-semibold text-white/60">01</span>
 
             <div className="flex flex-1 gap-2">

@@ -21,9 +21,7 @@ export default function HeroV2() {
           transition={{ duration: 0.55 }}
           className="max-w-[720px]"
         >
-          <div
-            className="iamet-v2-eyebrow mb-5 inline-flex lg:mb-7 items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.16em]"
-          >
+          <div className="iamet-v2-eyebrow mb-5 inline-flex lg:mb-7 items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.16em]">
             <Sparkles className="h-3.5 w-3.5" />
             <>
               <span className="sm:hidden">
@@ -43,8 +41,7 @@ export default function HeroV2() {
           >
             {es ? (
               <>
-                Integramos{" "}
-                <span style={{ color: "#1264d8" }}>tecnología</span>
+                Integramos <span style={{ color: "#1264d8" }}>tecnología</span>
                 <br />
                 para que su empresa opere mejor.
               </>
@@ -58,9 +55,7 @@ export default function HeroV2() {
             )}
           </h1>
 
-          <p
-            className="iamet-v2-copy mt-5 max-w-[650px] text-[15px] leading-6 sm:mt-6 sm:text-lg sm:leading-8 lg:mt-8 lg:text-xl"
-          >
+          <p className="iamet-v2-copy mt-5 max-w-[650px] text-[15px] leading-6 sm:mt-6 sm:text-lg sm:leading-8 lg:mt-8 lg:text-xl">
             {es
               ? "Infraestructura de red, seguridad CCTV, control de acceso, RFID, energía, desarrollo de aplicaciones e inteligencia artificial. Desde el diseño y suministro hasta la instalación, puesta en marcha, mantenimiento y soporte."
               : "Network infrastructure, CCTV security, access control, RFID, power, application development and artificial intelligence — from design and supply through installation, commissioning, maintenance and support."}
@@ -68,7 +63,7 @@ export default function HeroV2() {
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:mt-9">
             <a
-              href="#soluciones-v2"
+              href="#soluciones-iamet"
               onClick={() =>
                 trackEvent("cta_clicked", {
                   location: "hero_v2",
@@ -85,8 +80,6 @@ export default function HeroV2() {
               {es ? "Explorar soluciones" : "Explore solutions"}
               <ArrowRight className="h-4 w-4" />
             </a>
-
-
           </div>
 
           <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-2.5 lg:mt-11 lg:gap-x-7 lg:gap-y-3">

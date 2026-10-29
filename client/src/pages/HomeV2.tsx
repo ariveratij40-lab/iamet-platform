@@ -1,3 +1,4 @@
+import { useLanguage } from "@/contexts/LanguageContext";
 import HeroV2 from "@/components/v2/HeroV2";
 import NeedsCarouselV2 from "@/components/v2/NeedsCarouselV2";
 import InfrastructureMasterBannerV2 from "@/components/v2/InfrastructureMasterBannerV2";
@@ -6,6 +7,7 @@ import WhyIAMETV2 from "@/components/v2/WhyIAMETV2";
 import CorporateClosingV2 from "@/components/v2/CorporateClosingV2";
 
 export default function HomeV2() {
+  const { language } = useLanguage();
   return (
     <>
       <HeroV2 />
@@ -17,7 +19,7 @@ export default function HomeV2() {
         <div className="mx-auto max-w-[1440px]">
           <div className="mb-6 flex items-center gap-3">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
-              Soluciones IAMET
+              {language === "es" ? "Soluciones IAMET" : "IAMET solutions"}
             </span>
             <span className="h-px flex-1 bg-slate-200" />
           </div>

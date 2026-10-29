@@ -1,3 +1,4 @@
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import {
   Cable,
@@ -23,7 +24,8 @@ const nodes: FabricNode[] = [
     id: "infra",
     label: "INFRA",
     title: "¿Está construyendo o modernizando?",
-    detail: "Podemos orientarle en infraestructura, conectividad y preparación tecnológica.",
+    detail:
+      "Podemos orientarle en infraestructura, conectividad y preparación tecnológica.",
     icon: Cable,
     x: "4%",
     y: "30%",
@@ -41,7 +43,8 @@ const nodes: FabricNode[] = [
     id: "access",
     label: "ACCESO",
     title: "¿Necesita controlar quién entra?",
-    detail: "Podemos orientarle en accesos, credenciales, biometría y visitantes.",
+    detail:
+      "Podemos orientarle en accesos, credenciales, biometría y visitantes.",
     icon: Fingerprint,
     x: "73%",
     y: "57%",
@@ -58,11 +61,12 @@ const nodes: FabricNode[] = [
 ];
 
 export default function TechnologyFabricV2() {
+  const { language } = useLanguage();
+  const es = language === "es";
   const reduceMotion = useReducedMotion();
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const activeNode =
-    nodes.find(node => node.id === activeId) ?? null;
+  const activeNode = nodes.find(node => node.id === activeId) ?? null;
 
   return (
     <div className="relative min-h-[470px] w-full sm:min-h-[520px] lg:min-h-[650px]">
@@ -85,10 +89,12 @@ export default function TechnologyFabricV2() {
         className="absolute left-[4%] top-[1%] z-30 sm:left-[8%] sm:top-[3%]"
       >
         <p className="iamet-v2-electric text-[11px] font-bold uppercase tracking-[0.2em]">
-          Ecosistema tecnológico IAMET
+          {es ? "Ecosistema tecnológico IAMET" : "IAMET technology ecosystem"}
         </p>
         <p className="mt-1.5 max-w-[250px] text-xs leading-5 text-slate-500 sm:mt-2 sm:max-w-[290px] sm:text-sm sm:leading-6">
-          Soluciones conectadas para una operación inteligente
+          {es
+            ? "Soluciones conectadas para una operación inteligente"
+            : "Connected solutions for smarter operations"}
         </p>
       </motion.div>
 
@@ -124,37 +130,25 @@ export default function TechnologyFabricV2() {
           <motion.path
             d="M105 210 C205 205 250 240 310 260"
             animate={{
-              opacity:
-                activeId === null || activeId === "infra"
-                  ? 1
-                  : 0.22,
+              opacity: activeId === null || activeId === "infra" ? 1 : 0.22,
             }}
           />
           <motion.path
             d="M505 115 C430 135 370 205 325 255"
             animate={{
-              opacity:
-                activeId === null || activeId === "cctv"
-                  ? 1
-                  : 0.22,
+              opacity: activeId === null || activeId === "cctv" ? 1 : 0.22,
             }}
           />
           <motion.path
             d="M520 355 C430 345 370 300 325 270"
             animate={{
-              opacity:
-                activeId === null || activeId === "access"
-                  ? 1
-                  : 0.22,
+              opacity: activeId === null || activeId === "access" ? 1 : 0.22,
             }}
           />
           <motion.path
             d="M125 405 C215 365 260 310 310 270"
             animate={{
-              opacity:
-                activeId === null || activeId === "rfid"
-                  ? 1
-                  : 0.22,
+              opacity: activeId === null || activeId === "rfid" ? 1 : 0.22,
             }}
           />
         </g>
@@ -259,11 +253,11 @@ export default function TechnologyFabricV2() {
         </div>
 
         <span className="mt-3 text-xs font-bold tracking-[0.14em] text-slate-900">
-          SU OPERACIÓN
+          {es ? "SU OPERACIÓN" : "YOUR OPERATION"}
         </span>
 
         <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-          Tecnología integrada
+          {es ? "Tecnología integrada" : "Integrated technology"}
         </span>
       </motion.div>
 
@@ -276,7 +270,16 @@ export default function TechnologyFabricV2() {
           <motion.button
             key={node.id}
             type="button"
-            aria-label={`${node.title}: ${node.detail}`}
+            aria-label={
+              es
+                ? `${node.title}: ${node.detail}`
+                : {
+                    infra: "Infrastructure and connectivity",
+                    cctv: "Video surveillance and monitoring",
+                    access: "Access control and credentials",
+                    rfid: "Asset identification and traceability",
+                  }[node.id]
+            }
             onMouseEnter={() => setActiveId(node.id)}
             onMouseLeave={() => setActiveId(null)}
             onFocus={() => setActiveId(node.id)}
@@ -306,7 +309,7 @@ export default function TechnologyFabricV2() {
           >
             <Icon className="iamet-v2-electric h-5 w-5 lg:h-6 lg:w-6" />
             <span className="mt-1.5 text-[9px] font-bold lg:mt-2 lg:text-[10px] tracking-[0.14em] text-slate-500">
-              {node.label}
+              {es ? node.label : node.id === "access" ? "ACCESS" : node.label}
             </span>
           </motion.button>
         );

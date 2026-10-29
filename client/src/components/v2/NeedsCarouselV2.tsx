@@ -1,15 +1,15 @@
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import {
-  ArrowLeft,
-  ArrowRight,
-  MessageCircle,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { needs } from "./needsData";
+import { needsByLanguage } from "./needsData";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 export default function NeedsCarouselV2() {
+  const { language } = useLanguage();
+  const es = language === "es";
+  const needs = needsByLanguage[language];
   const [index, setIndex] = useState(0);
   const [interacted, setInteracted] = useState(false);
   const { trackEvent } = useAnalytics();
@@ -38,8 +38,7 @@ export default function NeedsCarouselV2() {
   };
 
   const move = (direction: number) => {
-    const next =
-      (index + direction + needs.length) % needs.length;
+    const next = (index + direction + needs.length) % needs.length;
 
     select(next);
   };
@@ -49,16 +48,17 @@ export default function NeedsCarouselV2() {
       <div className="mx-auto max-w-[1440px]">
         <div className="max-w-[820px]">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
-            Podemos orientarle
+            {es ? "Podemos orientarle" : "We can guide you"}
           </p>
 
           <h2 className="mt-3 text-[2.15rem] font-bold leading-[1.02] tracking-[-0.04em] text-slate-950 sm:mt-4 sm:text-4xl md:text-5xl">
-            ¿Qué necesita resolver?
+            {es ? "¿Qué necesita resolver?" : "What do you need to solve?"}
           </h2>
 
           <p className="mt-4 text-base leading-7 text-slate-500 sm:mt-5 sm:text-lg sm:leading-8">
-            No necesita conocer el nombre técnico de la solución.
-            Comience por el problema o proyecto que necesita resolver.
+            {es
+              ? "No necesita conocer el nombre técnico de la solución. Comience por el problema o proyecto que necesita resolver."
+              : "You do not need to know the technical name of the solution. Start with the problem or project you need to address."}
           </p>
         </div>
 
@@ -76,9 +76,7 @@ export default function NeedsCarouselV2() {
                 style={{
                   color: selected ? "#fff" : "#475467",
                   background: selected ? "#1264d8" : "#fff",
-                  borderColor: selected
-                    ? "#1264d8"
-                    : "#dce3ec",
+                  borderColor: selected ? "#1264d8" : "#dce3ec",
                 }}
               >
                 <Icon className="h-4 w-4" />
@@ -131,7 +129,7 @@ export default function NeedsCarouselV2() {
 
                 <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row">
                   <a
-                    href="#soluciones-v2"
+                    href="#soluciones-iamet"
                     onClick={() =>
                       trackEvent("cta_clicked", {
                         location: "needs_carousel_v2",
@@ -141,7 +139,7 @@ export default function NeedsCarouselV2() {
                     }
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white"
                   >
-                    Ver cómo podemos ayudar
+                    {es ? "Ver cómo podemos ayudar" : "See how we can help"}
                     <ArrowRight className="h-4 w-4" />
                   </a>
 
@@ -157,7 +155,9 @@ export default function NeedsCarouselV2() {
                     className="hidden items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 sm:inline-flex"
                   >
                     <MessageCircle className="h-4 w-4 text-blue-600" />
-                    Explicar mi proyecto a ARIA
+                    {es
+                      ? "Explicar mi proyecto a ARIA"
+                      : "Explain my project to ARIA"}
                   </Link>
                 </div>
               </div>
@@ -181,7 +181,7 @@ export default function NeedsCarouselV2() {
               <button
                 type="button"
                 onClick={() => move(-1)}
-                aria-label="Anterior"
+                aria-label={es ? "Anterior" : "Previous"}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -190,7 +190,7 @@ export default function NeedsCarouselV2() {
               <button
                 type="button"
                 onClick={() => move(1)}
-                aria-label="Siguiente"
+                aria-label={es ? "Siguiente" : "Next"}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white"
               >
                 <ArrowRight className="h-4 w-4" />

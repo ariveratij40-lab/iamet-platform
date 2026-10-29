@@ -1,27 +1,35 @@
-import { processSteps } from "./processData";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { processStepsByLanguage } from "./processData";
 
 export default function HowWeWorkV2() {
+  const { language } = useLanguage();
+  const es = language === "es";
+  const processSteps = processStepsByLanguage[language];
   return (
     <section className="bg-[#f7faff] px-5 py-14 sm:py-16 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-[1440px]">
         <div className="grid gap-10 lg:grid-cols-[.75fr_1.25fr] lg:gap-8">
           <div className="max-w-[520px]">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
-              De la necesidad a la operación
+              {es
+                ? "De la necesidad a la operación"
+                : "From your needs to operation"}
             </p>
 
             <h2 className="mt-3 text-[2.15rem] font-bold leading-[1.03] tracking-[-0.04em] text-slate-950 sm:mt-4 sm:text-4xl md:text-5xl">
-              ¿Cómo trabajamos?
+              {es ? "¿Cómo trabajamos?" : "How do we work?"}
             </h2>
 
             <p className="mt-4 text-base leading-7 text-slate-500 sm:mt-5 sm:text-lg sm:leading-8">
-              IAMET acompaña el proyecto desde la definición de la necesidad
-              hasta la puesta en marcha, mantenimiento y soporte.
+              {es
+                ? "IAMET acompaña el proyecto desde la definición de la necesidad hasta la puesta en marcha, mantenimiento y soporte."
+                : "IAMET supports your project from defining your needs through commissioning, maintenance and support."}
             </p>
 
             <p className="mt-6 hidden text-base leading-7 text-slate-600 sm:block">
-              Aplicamos un proceso estructurado para llevar cada proyecto
-              desde la necesidad inicial hasta su operación y soporte.
+              {es
+                ? "Aplicamos un proceso estructurado para llevar cada proyecto desde la necesidad inicial hasta su operación y soporte."
+                : "We follow a structured process to take each project from its initial requirements through operation and support."}
             </p>
           </div>
 

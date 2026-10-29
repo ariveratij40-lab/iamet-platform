@@ -1,33 +1,40 @@
-import { whyItems } from "./whyData";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { whyItemsByLanguage } from "./whyData";
 
 export default function WhyIAMETV2() {
+  const { language } = useLanguage();
+  const es = language === "es";
+  const whyItems = whyItemsByLanguage[language];
   return (
     <section className="bg-white px-5 py-14 sm:py-16 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-[1440px]">
         <div className="grid gap-9 sm:gap-12 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
           <div className="max-w-[560px]">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
-              Por qué IAMET
+              {es ? "Por qué IAMET" : "Why IAMET"}
             </p>
 
             <h2 className="mt-3 text-[2.15rem] font-bold leading-[1.03] tracking-[-0.04em] text-slate-950 sm:mt-4 sm:text-4xl md:text-5xl">
-              Una visión completa del proyecto tecnológico.
+              {es
+                ? "Una visión completa del proyecto tecnológico."
+                : "A complete view of your technology project."}
             </h2>
 
             <p className="mt-4 text-base leading-7 text-slate-500 sm:mt-6 sm:text-lg sm:leading-8">
-              Un proyecto tecnológico no termina al seleccionar equipos.
-              Requiere ingeniería, integración, ejecución y continuidad
-              para convertirse en una solución que funcione en la operación.
+              {es
+                ? "Un proyecto tecnológico no termina al seleccionar equipos. Requiere ingeniería, integración, ejecución y continuidad para convertirse en una solución que funcione en la operación."
+                : "A technology project does not end with equipment selection. It takes engineering, integration, execution and ongoing support to become a solution that works in your operation."}
             </p>
 
             <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:mt-9 sm:p-6">
               <p className="text-sm font-bold text-blue-700">
-                IAMET como integrador
+                {es ? "IAMET como integrador" : "IAMET as your integrator"}
               </p>
 
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Coordinamos las distintas disciplinas tecnológicas alrededor
-                de una misma necesidad operativa y una arquitectura común.
+                {es
+                  ? "Coordinamos las distintas disciplinas tecnológicas alrededor de una misma necesidad operativa y una arquitectura común."
+                  : "We coordinate different technology disciplines around a shared operational need and a common architecture."}
               </p>
             </div>
           </div>

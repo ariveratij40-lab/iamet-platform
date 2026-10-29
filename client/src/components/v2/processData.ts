@@ -51,3 +51,44 @@ export const processSteps = [
     icon: Headphones,
   },
 ];
+
+const englishContent = [
+  {
+    title: "We understand your needs",
+    description:
+      "We learn about your project, current operation, goals and constraints before proposing technology.",
+  },
+  {
+    title: "We design the solution",
+    description:
+      "We define the architecture, scope, equipment, integration and technical criteria for the solution.",
+  },
+  {
+    title: "We supply the technology",
+    description:
+      "We bring together the equipment, materials, licenses and components needed to deliver the project.",
+  },
+  {
+    title: "We install and integrate",
+    description:
+      "We install and connect the different systems so they work as one integrated solution.",
+  },
+  {
+    title: "We commission the solution",
+    description:
+      "We configure, verify and deliver the solution ready for operation.",
+  },
+  {
+    title: "We maintain and support",
+    description:
+      "We support your operation with maintenance, assistance and improvements as your needs change.",
+  },
+] satisfies Array<Pick<(typeof processSteps)[number], "title" | "description">>;
+
+export const processStepsByLanguage = {
+  es: processSteps,
+  en: processSteps.map((item, index) => ({
+    ...item,
+    ...englishContent[index],
+  })),
+};
