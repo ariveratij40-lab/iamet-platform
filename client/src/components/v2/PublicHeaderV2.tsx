@@ -55,8 +55,11 @@ export default function PublicHeaderV2() {
           className="ml-auto hidden h-full items-center gap-5 lg:flex xl:gap-7"
         >
           {items.map(item =>
-            item.href === "/soluciones" ? (
-              <SolutionsMenuV2 key={item.href} />
+            item.href === "/soluciones" || item.href === "/industrias" ? (
+              <SolutionsMenuV2
+                key={item.href}
+                industries={item.href === "/industrias"}
+              />
             ) : (
               <Link
                 key={item.href}
@@ -125,10 +128,11 @@ export default function PublicHeaderV2() {
             className="mx-auto flex max-w-[1440px] flex-col"
           >
             {items.map(item =>
-              item.href === "/soluciones" ? (
+              item.href === "/soluciones" || item.href === "/industrias" ? (
                 <SolutionsMenuV2
                   key={item.href}
                   mobile
+                  industries={item.href === "/industrias"}
                   onNavigate={() => setMobileOpen(false)}
                 />
               ) : (
