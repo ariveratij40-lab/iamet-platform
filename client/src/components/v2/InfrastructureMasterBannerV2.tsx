@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
+  Pause,
+  Play,
   ArrowRight,
   Cable,
   Network,
@@ -30,15 +32,15 @@ export default function InfrastructureMasterBannerV2() {
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [interacted, setInteracted] = useState(false);
+  const [autoplayPaused, setAutoplayPaused] = useState(Boolean(reduceMotion));
 
   useEffect(() => {
-    if (hovered || focused || interacted || reduceMotion) return;
+    if (hovered || focused || autoplayPaused) return;
     const timer = window.setInterval(() => {
       setIndex(current => (current + 1) % solutions.length);
     }, 7000);
     return () => window.clearInterval(timer);
-  }, [hovered, focused, interacted, reduceMotion]);
+  }, [hovered, focused, autoplayPaused]);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const active = solutions[index];
   const infra = index === 0;
@@ -56,11 +58,11 @@ export default function InfrastructureMasterBannerV2() {
       : ["Data Center", "Structured cabling", "Fiber optics", "MDF / IDF"]
     : (es ? active.capabilitiesEs : active.capabilitiesEn).slice(0, 4);
   const select = (nextIndex: number) => {
-    setInteracted(true);
+    setAutoplayPaused(true);
     setIndex(nextIndex);
   };
   const move = (direction: number) => {
-    setInteracted(true);
+    setAutoplayPaused(true);
     setIndex(
       current => (current + direction + solutions.length) % solutions.length
     );
@@ -159,9 +161,7 @@ export default function InfrastructureMasterBannerV2() {
           role="group"
           aria-roledescription={es ? "diapositiva" : "slide"}
           aria-label={`${index + 1} ${es ? "de" : "of"} ${solutions.length}: ${label}`}
-          aria-live={
-            interacted || hovered || focused || reduceMotion ? "polite" : "off"
-          }
+          aria-live={autoplayPaused || hovered || focused ? "polite" : "off"}
           aria-atomic="true"
           className="lg:w-[52%]"
         >
@@ -267,6 +267,38 @@ export default function InfrastructureMasterBannerV2() {
             <span className="text-xs font-semibold text-white/50">
               {String(solutions.length).padStart(2, "0")}
             </span>
+            <button
+              type="button"
+              onClick={event => {
+                setAutoplayPaused(paused => !paused);
+                event.currentTarget.blur();
+              }}
+              aria-label={
+                autoplayPaused
+                  ? es
+                    ? "Reanudar avance automático"
+                    : "Resume autoplay"
+                  : es
+                    ? "Pausar avance automático"
+                    : "Pause autoplay"
+              }
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-white/25 bg-slate-950/50 px-3 text-xs font-semibold text-white transition hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-blue-300"
+            >
+              {autoplayPaused ? (
+                <Play className="h-4 w-4" />
+              ) : (
+                <Pause className="h-4 w-4" />
+              )}
+              <span>
+                {autoplayPaused
+                  ? es
+                    ? "Reanudar"
+                    : "Resume"
+                  : es
+                    ? "Pausar"
+                    : "Pause"}
+              </span>
+            </button>
             <div className="ml-1 flex gap-2 sm:ml-4">
               <button
                 type="button"
