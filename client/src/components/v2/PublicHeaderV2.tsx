@@ -3,6 +3,8 @@ import { Link, useLocation } from "wouter";
 import { ArrowRight, Languages, Menu, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+import SolutionsMenuV2 from "./SolutionsMenuV2";
+
 const LOGO =
   "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png";
 
@@ -52,16 +54,20 @@ export default function PublicHeaderV2() {
           aria-label={es ? "Navegación principal" : "Main navigation"}
           className="ml-auto hidden h-full items-center gap-5 lg:flex xl:gap-7"
         >
-          {items.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active(item.href) ? "page" : undefined}
-              className={`inline-flex h-full items-center whitespace-nowrap border-b-2 pt-0.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-600 ${active(item.href) ? "border-blue-600 text-blue-600" : "border-transparent text-slate-600 hover:border-blue-200 hover:text-blue-600"}`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {items.map(item =>
+            item.href === "/soluciones" ? (
+              <SolutionsMenuV2 key={item.href} />
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active(item.href) ? "page" : undefined}
+                className={`inline-flex h-full items-center whitespace-nowrap border-b-2 pt-0.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-600 ${active(item.href) ? "border-blue-600 text-blue-600" : "border-transparent text-slate-600 hover:border-blue-200 hover:text-blue-600"}`}
+              >
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         <div className="hidden shrink-0 items-center gap-4 border-l border-slate-200 pl-5 lg:flex xl:pl-7">
@@ -118,18 +124,26 @@ export default function PublicHeaderV2() {
             aria-label={es ? "Navegación móvil" : "Mobile navigation"}
             className="mx-auto flex max-w-[1440px] flex-col"
           >
-            {items.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                aria-current={active(item.href) ? "page" : undefined}
-                className={`flex min-h-12 items-center justify-between border-b border-slate-100 px-3 text-sm font-medium ${active(item.href) ? "bg-blue-50 text-blue-600" : "text-slate-700 hover:bg-slate-50"}`}
-              >
-                {item.label}
-                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
-              </Link>
-            ))}
+            {items.map(item =>
+              item.href === "/soluciones" ? (
+                <SolutionsMenuV2
+                  key={item.href}
+                  mobile
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  aria-current={active(item.href) ? "page" : undefined}
+                  className={`flex min-h-12 items-center justify-between border-b border-slate-100 px-3 text-sm font-medium ${active(item.href) ? "bg-blue-50 text-blue-600" : "text-slate-700 hover:bg-slate-50"}`}
+                >
+                  {item.label}
+                  <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+                </Link>
+              )
+            )}
             <div className="mt-4 flex items-center justify-between gap-4">
               <button
                 type="button"

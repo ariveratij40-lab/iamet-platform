@@ -12,17 +12,8 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { solutions } from "./solutionsData";
+import { solutions, solutionDestinations } from "./solutionsData";
 
-// Public solution routes use different slugs from the marketing catalog.
-const destinations: Record<string, string> = {
-  infraestructura: "/soluciones/infraestructura",
-  "seguridad-cctv": "/soluciones/cctv",
-  "control-acceso": "/soluciones/control-acceso",
-  rfid: "/soluciones/rfid",
-  energia: "/contacto",
-  "desarrollo-ia": "/soluciones/software-ia",
-};
 const infrastructureIcons = [Server, Network, Cable, PanelsTopLeft];
 
 export default function InfrastructureMasterBannerV2() {
@@ -227,7 +218,7 @@ export default function InfrastructureMasterBannerV2() {
             })}
           </div>
           <Link
-            href={destinations[active.id]}
+            href={solutionDestinations[active.id]}
             className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(37,99,235,.28)] transition hover:bg-blue-500 sm:w-auto"
           >
             {infra

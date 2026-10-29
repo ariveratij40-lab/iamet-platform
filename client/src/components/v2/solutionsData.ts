@@ -199,3 +199,13 @@ export const solutions: Solution[] = [
     icon: Bot,
   },
 ];
+
+// Public solution routes use different slugs from the marketing catalog.
+export const solutionDestinations: Record<string, string> = {
+  infraestructura: "/soluciones/infraestructura",
+  "seguridad-cctv": "/soluciones/cctv",
+  "control-acceso": "/soluciones/control-acceso",
+  rfid: "/soluciones/rfid",
+  energia: "/contacto",
+  "desarrollo-ia": "/soluciones/software-ia",
+};
