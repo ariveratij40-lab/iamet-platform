@@ -1,5 +1,6 @@
 import {
   Bot,
+  Building2,
   Cable,
   Fingerprint,
   RadioTower,
@@ -52,6 +53,35 @@ export const solutions: Solution[] = [
     ],
     image: "/images/solutions/panduit-high-density-cinematic.png",
     icon: Cable,
+  },
+  {
+    id: "edificios-inteligentes",
+    es: "Edificios inteligentes",
+    en: "Smart buildings",
+    titleEs: "Un edificio conectado. Una operación más inteligente.",
+    titleEn: "A connected building. A smarter operation.",
+    descEs:
+      "Integramos conectividad, seguridad, iluminación y control sobre una infraestructura común, preparada para acompañar la evolución de sus espacios.",
+    descEn:
+      "We integrate connectivity, security, lighting and control on a shared infrastructure built to evolve with your spaces.",
+    capabilitiesEs: [
+      "Redes convergentes",
+      "Seguridad integrada",
+      "Iluminación y sensores",
+      "Control centralizado",
+      "Colaboración AV",
+      "Infraestructura PoE",
+    ],
+    capabilitiesEn: [
+      "Converged networks",
+      "Integrated security",
+      "Lighting and sensors",
+      "Centralized control",
+      "AV collaboration",
+      "PoE infrastructure",
+    ],
+    image: "/images/solutions/smart-building-cinematic.png",
+    icon: Building2,
   },
   {
     id: "seguridad-cctv",
@@ -203,6 +233,7 @@ export const solutions: Solution[] = [
 // Public solution routes use different slugs from the marketing catalog.
 export const solutionDestinations: Record<string, string> = {
   infraestructura: "/soluciones/infraestructura",
+  "edificios-inteligentes": "/contacto?solucion=edificios-inteligentes",
   "seguridad-cctv": "/soluciones/cctv",
   "control-acceso": "/soluciones/control-acceso",
   rfid: "/soluciones/rfid",

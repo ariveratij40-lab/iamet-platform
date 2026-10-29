@@ -189,13 +189,17 @@ export default function InfrastructureMasterBannerV2() {
                 ? es
                   ? "Explorar infraestructura"
                   : "Explore infrastructure"
-                : active.id === "energia"
+                : active.id === "edificios-inteligentes"
                   ? es
-                    ? "Consultar soluciones de energía"
-                    : "Ask about power solutions"
-                  : es
-                    ? `Explorar ${active.es.toLowerCase()}`
-                    : `Explore ${active.en.toLowerCase()}`}
+                    ? "Consultar mi proyecto"
+                    : "Discuss my project"
+                  : active.id === "energia"
+                    ? es
+                      ? "Consultar soluciones de energía"
+                      : "Ask about power solutions"
+                    : es
+                      ? `Explorar ${active.es.toLowerCase()}`
+                      : `Explore ${active.en.toLowerCase()}`}
               <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
             {infra && (
