@@ -126,14 +126,14 @@ export default function InfrastructureMasterBannerV2() {
         className="absolute inset-y-0 left-[32%] hidden w-[25%] -skew-x-[17deg] border-x border-blue-400/20 bg-gradient-to-r from-blue-600/10 via-blue-400/5 to-transparent lg:block"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-80px)] max-w-[1600px] flex-col justify-between px-5 pb-6 pt-24 sm:px-8 sm:pb-9 sm:pt-20 lg:px-12 lg:pb-10 lg:pt-24">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-80px)] max-w-[1600px] flex-col justify-between px-5 pb-6 pt-12 sm:px-8 sm:pb-9 sm:pt-16 lg:px-12 lg:pb-8 lg:pt-32">
         <div
           role="group"
           aria-roledescription={es ? "diapositiva" : "slide"}
           aria-label={`${index + 1} ${es ? "de" : "of"} ${solutions.length}: ${label}`}
           aria-live={autoplayPaused || hovered || focused ? "polite" : "off"}
           aria-atomic="true"
-          className="lg:w-[52%]"
+          className="lg:my-auto lg:w-[52%]"
         >
           <motion.div
             key={active.id}
@@ -147,7 +147,7 @@ export default function InfrastructureMasterBannerV2() {
                 {label}
               </p>
             </div>
-            <h2 className="mt-4 max-w-[610px] text-[2rem] font-bold leading-[1.02] tracking-[-0.04em] text-white sm:mt-6 sm:text-5xl lg:text-[3.4rem]">
+            <h2 className="mt-5 max-w-[620px] text-[2rem] font-bold leading-[1.14] tracking-[-0.025em] text-white sm:text-[2.8rem] lg:text-[3.1rem]">
               {infra ? (
                 es ? (
                   <>
@@ -167,7 +167,7 @@ export default function InfrastructureMasterBannerV2() {
                 title
               )}
             </h2>
-            <p className="mt-4 max-w-[520px] text-sm leading-7 text-white/90 sm:mt-6 sm:text-base">
+            <p className="mt-6 max-w-[480px] text-base leading-8 text-white/80 sm:text-[17px]">
               {infra
                 ? es
                   ? "Diseñamos e integramos infraestructura crítica que conecta, protege y prepara su operación para crecer."
@@ -176,68 +176,68 @@ export default function InfrastructureMasterBannerV2() {
                   ? active.descEs
                   : active.descEn}
             </p>
-            {infra && (
-              <div
-                className="mt-6 inline-flex max-w-full items-center gap-4 rounded-lg px-4 py-3 shadow-lg"
-                style={{ background: "#fff" }}
-              >
-                <img
-                  src="/partners/panduit-one-silver-partner.png"
-                  alt="Panduit ONE Silver Partner"
-                  className="h-auto w-[140px] shrink-0 object-contain sm:w-[156px]"
-                />
-                <div className="border-l border-slate-200 pl-4">
-                  <p
-                    className="text-[10px] font-bold uppercase tracking-[.1em]"
-                    style={{ color: "#13243b" }}
-                  >
-                    {es ? "Integradores certificados" : "Certified integrators"}
-                  </p>
-                  <p className="mt-1 text-xs" style={{ color: "#54657b" }}>
-                    {es
-                      ? "Cableado estructurado Panduit"
-                      : "Panduit structured cabling"}
-                  </p>
-                </div>
-              </div>
-            )}
+            <Link
+              href={solutionDestinations[active.id]}
+              className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(37,99,235,.28)] transition hover:bg-blue-500 sm:w-auto"
+            >
+              {infra
+                ? es
+                  ? "Explorar infraestructura"
+                  : "Explore infrastructure"
+                : active.id === "energia"
+                  ? es
+                    ? "Consultar soluciones de energía"
+                    : "Ask about power solutions"
+                  : es
+                    ? `Explorar ${active.es.toLowerCase()}`
+                    : `Explore ${active.en.toLowerCase()}`}
+              <ArrowRight className="h-4 w-4 shrink-0" />
+            </Link>
           </motion.div>
         </div>
 
-        <div className="mt-10">
-          <div className="grid max-w-[560px] grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
+        {infra && (
+          <div
+            className="mt-8 inline-flex max-w-full items-center gap-4 self-start rounded-lg px-4 py-3 shadow-lg lg:absolute lg:right-12 lg:top-10 lg:mt-0"
+            style={{ background: "#fff" }}
+          >
+            <img
+              src="/partners/panduit-one-silver-partner.png"
+              alt="Panduit ONE Silver Partner"
+              className="h-auto w-[110px] shrink-0 object-contain sm:w-[124px]"
+            />
+            <div className="border-l border-slate-200 pl-4">
+              <p
+                className="text-[10px] font-bold uppercase tracking-[.1em]"
+                style={{ color: "#13243b" }}
+              >
+                {es ? "Integradores certificados" : "Certified integrators"}
+              </p>
+              <p className="mt-1 text-xs" style={{ color: "#54657b" }}>
+                {es
+                  ? "Cableado estructurado Panduit"
+                  : "Panduit structured cabling"}
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="mt-12 lg:mt-16">
+          <div className="grid max-w-[680px] grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
             {capabilities.map((capability, i) => {
               const Icon = infra ? infrastructureIcons[i] : active.icon;
               return (
                 <div
                   key={capability}
-                  className="min-w-0 border-l border-white/20 pl-3 first:border-blue-400/80"
+                  className="flex min-w-0 items-start gap-3"
                 >
-                  <Icon className="h-5 w-5 text-blue-400" />
-                  <p className="mt-2 text-xs font-semibold leading-5 text-white/90">
+                  <Icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                  <p className="text-xs font-medium leading-5 text-white/75">
                     {capability}
                   </p>
                 </div>
               );
             })}
           </div>
-          <Link
-            href={solutionDestinations[active.id]}
-            className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(37,99,235,.28)] transition hover:bg-blue-500 sm:w-auto"
-          >
-            {infra
-              ? es
-                ? "Explorar infraestructura"
-                : "Explore infrastructure"
-              : active.id === "energia"
-                ? es
-                  ? "Consultar soluciones de energía"
-                  : "Ask about power solutions"
-                : es
-                  ? `Explorar ${active.es.toLowerCase()}`
-                  : `Explore ${active.en.toLowerCase()}`}
-            <ArrowRight className="h-4 w-4 shrink-0" />
-          </Link>
 
           <div className="mt-7 flex items-center gap-3 sm:mt-10">
             <span className="text-xs font-semibold tabular-nums text-white/70">
