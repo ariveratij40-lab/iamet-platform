@@ -550,3 +550,22 @@
 @media (prefers-reduced-motion: reduce) {
   .iamet-cctv-cinematic { animation: none; }
 }
+
+/* Quiet technology texture and IAMET watermark behind the public home. */
+.iamet-tech-ambient {
+  background: radial-gradient(circle, rgba(59,130,246,.065), rgba(56,189,248,.025) 45%, transparent 70%);
+  animation: iamet-tech-drift 26s ease-in-out infinite alternate;
+}
+.iamet-tech-watermark {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(37,99,235,.055);
+}
+.iamet-tech-orbit { animation: iamet-tech-orbit 90s linear infinite; }
+@keyframes iamet-tech-drift {
+  from { transform: translate3d(0,0,0); }
+  to { transform: translate3d(-65px,90px,0); }
+}
+@keyframes iamet-tech-orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .iamet-tech-ambient, .iamet-tech-orbit { animation: none; }
+}

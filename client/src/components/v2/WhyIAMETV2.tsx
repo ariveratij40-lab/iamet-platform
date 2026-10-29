@@ -6,7 +6,7 @@ export default function WhyIAMETV2() {
   const es = language === "es";
   const whyItems = whyItemsByLanguage[language];
   return (
-    <section className="bg-white px-5 py-14 sm:py-16 lg:px-8 lg:py-28">
+    <section className="px-5 py-14 sm:py-16 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-[1440px]">
         <div className="grid gap-9 sm:gap-12 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
           <div className="max-w-[560px]">
