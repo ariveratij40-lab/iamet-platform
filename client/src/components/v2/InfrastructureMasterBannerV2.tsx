@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
@@ -28,6 +28,17 @@ export default function InfrastructureMasterBannerV2() {
   const es = language === "es";
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [interacted, setInteracted] = useState(false);
+
+  useEffect(() => {
+    if (hovered || focused || interacted || reduceMotion) return;
+    const timer = window.setInterval(() => {
+      setIndex(current => (current + 1) % solutions.length);
+    }, 7000);
+    return () => window.clearInterval(timer);
+  }, [hovered, focused, interacted, reduceMotion]);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const active = solutions[index];
   const infra = index === 0;
@@ -44,10 +55,16 @@ export default function InfrastructureMasterBannerV2() {
       ? ["Data Center", "Cableado estructurado", "Fibra óptica", "MDF / IDF"]
       : ["Data Center", "Structured cabling", "Fiber optics", "MDF / IDF"]
     : (es ? active.capabilitiesEs : active.capabilitiesEn).slice(0, 4);
-  const move = (direction: number) =>
+  const select = (nextIndex: number) => {
+    setInteracted(true);
+    setIndex(nextIndex);
+  };
+  const move = (direction: number) => {
+    setInteracted(true);
     setIndex(
       current => (current + direction + solutions.length) % solutions.length
     );
+  };
 
   return (
     <section
@@ -56,6 +73,14 @@ export default function InfrastructureMasterBannerV2() {
         es ? "Soluciones tecnológicas IAMET" : "IAMET technology solutions"
       }
       tabIndex={0}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={event => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setFocused(false);
+        }
+      }}
       onKeyDown={event => {
         if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
           event.preventDefault();
@@ -134,7 +159,9 @@ export default function InfrastructureMasterBannerV2() {
           role="group"
           aria-roledescription={es ? "diapositiva" : "slide"}
           aria-label={`${index + 1} ${es ? "de" : "of"} ${solutions.length}: ${label}`}
-          aria-live="polite"
+          aria-live={
+            interacted || hovered || focused || reduceMotion ? "polite" : "off"
+          }
           aria-atomic="true"
           className="lg:w-[52%]"
         >
@@ -228,7 +255,7 @@ export default function InfrastructureMasterBannerV2() {
                   type="button"
                   aria-label={`${es ? "Ver" : "View"} ${es ? solution.es : solution.en}`}
                   aria-current={index === i ? "true" : undefined}
-                  onClick={() => setIndex(i)}
+                  onClick={() => select(i)}
                   className="group flex h-11 min-w-0 flex-1 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-blue-300"
                 >
                   <span
