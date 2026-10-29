@@ -79,7 +79,7 @@ export const solutions: Solution[] = [
       "Integration",
       "Storage",
     ],
-    image: `${R2}/services/cctv.jpg`,
+    image: "/images/solutions/cctv-installation-cinematic.png",
     icon: ShieldCheck,
   },
   {

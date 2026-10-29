@@ -540,3 +540,13 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Slow camera move for the CCTV installation scene. */
+@keyframes iamet-cctv-camera {
+  0%, 100% { transform: scale(1.03) translateX(0); }
+  50% { transform: scale(1.12) translateX(-12px); }
+}
+.iamet-cctv-cinematic { animation: iamet-cctv-camera 18s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .iamet-cctv-cinematic { animation: none; }
+}
