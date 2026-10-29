@@ -97,7 +97,7 @@ export default function InfrastructureMasterBannerV2() {
       onTouchCancel={() => {
         touchStart.current = null;
       }}
-      className="relative isolate overflow-hidden rounded-[28px] bg-[#031426] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-blue-500 lg:rounded-[34px]"
+      className="relative isolate w-full overflow-hidden bg-[#031426] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-blue-500"
     >
       <div className="absolute inset-0" aria-hidden="true">
         <AnimatePresence initial={false}>
@@ -147,7 +147,7 @@ export default function InfrastructureMasterBannerV2() {
         className="absolute inset-y-0 left-[32%] hidden w-[25%] -skew-x-[17deg] border-x border-blue-400/20 bg-gradient-to-r from-blue-600/10 via-blue-400/5 to-transparent lg:block"
       />
 
-      <div className="relative z-10 flex min-h-[660px] flex-col justify-between px-5 py-6 sm:min-h-[740px] sm:px-8 sm:py-9 lg:min-h-[760px] lg:px-12 lg:py-12 xl:px-14">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-80px)] max-w-[1600px] flex-col justify-between px-5 pb-6 pt-24 sm:px-8 sm:pb-9 sm:pt-20 lg:px-12 lg:pb-10 lg:pt-24">
         <div
           role="group"
           aria-roledescription={es ? "diapositiva" : "slide"}

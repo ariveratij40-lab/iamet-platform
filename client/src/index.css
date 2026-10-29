@@ -652,3 +652,9 @@ body:has(.iamet-reference-home) header a:has(> img[alt="IAMET"]) {
   border-radius: 6px;
   padding: 4px 8px;
 }
+
+.iamet-reference-home #soluciones-iamet [aria-roledescription="carrusel"] {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
