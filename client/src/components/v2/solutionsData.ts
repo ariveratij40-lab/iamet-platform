@@ -137,7 +137,7 @@ export const solutions: Solution[] = [
       "Printing",
       "Mobility",
     ],
-    image: `${R2}/services/computo.jpg`,
+    image: "/images/solutions/rfid-warehouse-cinematic.png",
     icon: RadioTower,
   },
   {
