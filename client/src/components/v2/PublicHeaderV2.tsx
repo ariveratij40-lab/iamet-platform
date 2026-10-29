@@ -42,7 +42,7 @@ export default function PublicHeaderV2() {
     >
       <div className="mx-auto flex h-[72px] max-w-[1440px] items-center px-5 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center">
-          <img src={LOGO} alt="IAMET" className="h-9 w-auto object-contain" />
+          <img src={LOGO} alt="IAMET" className="h-[46.8px] w-auto object-contain" />
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
