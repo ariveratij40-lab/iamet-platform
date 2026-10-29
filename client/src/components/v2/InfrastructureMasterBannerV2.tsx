@@ -132,7 +132,7 @@ export default function InfrastructureMasterBannerV2() {
                     : active.image
                 }
                 alt=""
-                className={`h-full w-full object-cover object-[72%_center] lg:object-[62%_center] ${["seguridad-cctv", "control-acceso", "rfid"].includes(active.id) && !reduceMotion ? "iamet-cctv-cinematic" : ""}`}
+                className={`h-full w-full object-cover object-[72%_center] lg:object-[62%_center] ${["seguridad-cctv", "control-acceso", "rfid", "energia"].includes(active.id) && !reduceMotion ? "iamet-cctv-cinematic" : ""}`}
               />
             )}
           </motion.div>
