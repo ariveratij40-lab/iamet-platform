@@ -195,7 +195,7 @@ export const solutions: Solution[] = [
       "Dashboards",
       "Data",
     ],
-    image: `${R2}/services/software.jpg`,
+    image: "/images/solutions/software-dashboards-cinematic.png",
     icon: Bot,
   },
 ];
