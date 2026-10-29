@@ -1,6 +1,6 @@
 type Props = { image: string; paused: boolean };
 
-/** Lightweight regional depth planes; no video generation or external 3D runtime. */
+/** Single image plane avoids ghosting; camera and light provide gentle motion. */
 export default function SmartBuildingDepthV2({ image, paused }: Props) {
   return (
     <div
@@ -14,12 +14,6 @@ export default function SmartBuildingDepthV2({ image, paused }: Props) {
           alt=""
           className="iamet-depth-image iamet-depth-base"
         />
-        <div className="iamet-depth-upper absolute inset-0">
-          <img src={image} alt="" className="iamet-depth-image" />
-        </div>
-        <div className="iamet-depth-front absolute inset-0">
-          <img src={image} alt="" className="iamet-depth-image" />
-        </div>
         <div className="iamet-depth-light absolute inset-0" />
       </div>
       <div className="iamet-depth-lens absolute inset-0" />
