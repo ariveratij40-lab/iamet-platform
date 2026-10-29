@@ -121,6 +121,7 @@ export default function InfrastructureMasterBannerV2() {
             <BannerMediaV2
               image={active.image}
               video={active.video}
+              cinematicDepth={active.id === "edificios-inteligentes"}
               paused={autoplayPaused || hovered || focused}
               reduceMotion={Boolean(reduceMotion)}
             />

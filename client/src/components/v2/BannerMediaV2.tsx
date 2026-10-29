@@ -1,3 +1,4 @@
+import SmartBuildingDepthV2 from "./SmartBuildingDepthV2";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
@@ -5,6 +6,7 @@ type Props = {
   video?: string;
   paused: boolean;
   reduceMotion: boolean;
+  cinematicDepth?: boolean;
 };
 
 /** Only the active slide mounts media. Poster stays visible until playback is ready. */
@@ -13,6 +15,7 @@ export default function BannerMediaV2({
   video,
   paused,
   reduceMotion,
+  cinematicDepth = false,
 }: Props) {
   const player = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
@@ -60,14 +63,18 @@ export default function BannerMediaV2({
     "absolute inset-0 h-full w-full object-cover object-[72%_center] lg:object-[62%_center]";
   return (
     <div ref={root} className="absolute inset-0" aria-hidden="true">
-      <img
-        src={image}
-        alt=""
-        className={`${imageClass} ${!reduceMotion && !hasVideo ? "iamet-cctv-cinematic" : ""}`}
-        style={{
-          animationPlayState: paused || !visible ? "paused" : "running",
-        }}
-      />
+      {cinematicDepth && !reduceMotion && !hasVideo ? (
+        <SmartBuildingDepthV2 image={image} paused={paused || !visible} />
+      ) : (
+        <img
+          src={image}
+          alt=""
+          className={`${imageClass} ${!reduceMotion && !hasVideo ? "iamet-cctv-cinematic" : ""}`}
+          style={{
+            animationPlayState: paused || !visible ? "paused" : "running",
+          }}
+        />
+      )}
       {hasVideo && (
         <video
           ref={player}

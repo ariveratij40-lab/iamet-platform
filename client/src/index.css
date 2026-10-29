@@ -753,3 +753,43 @@ body:has(.iamet-reference-home) header nav > div > button[aria-expanded="true"] 
 
 .iamet-brand-tagline { color: #53677f; }
 body:has(.iamet-reference-home) .iamet-brand-tagline { color: #9ab6df; }
+
+/* Smart Building 2.5D: camera, regional depth and a restrained light pass. */
+.iamet-depth-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% center; }
+.iamet-depth-camera { transform-origin: 72% 48%; animation: iamet-depth-camera 14s cubic-bezier(.45,0,.55,1) infinite alternate; will-change: transform; }
+.iamet-depth-base { filter: saturate(.94) contrast(1.03); }
+.iamet-depth-upper {
+  mask-image: linear-gradient(180deg,#000 0%,#000 25%,transparent 52%);
+  animation: iamet-depth-upper 14s cubic-bezier(.45,0,.55,1) infinite alternate;
+  will-change: transform;
+}
+.iamet-depth-front {
+  mask-image: linear-gradient(90deg,transparent 42%,#000 75%);
+  animation: iamet-depth-front 14s cubic-bezier(.45,0,.55,1) infinite alternate;
+  will-change: transform;
+}
+.iamet-depth-light {
+  background: linear-gradient(110deg,transparent 34%,rgba(102,193,255,.07) 52%,rgba(255,221,166,.055) 62%,transparent 78%);
+  mix-blend-mode: screen;
+  animation: iamet-depth-light 12s ease-in-out infinite alternate;
+}
+.iamet-depth-lens {
+  pointer-events: none;
+  background: radial-gradient(ellipse at 72% 48%,transparent 28%,rgba(0,7,18,.17) 100%);
+}
+.iamet-depth-scene[data-paused="true"] * { animation-play-state: paused !important; }
+@keyframes iamet-depth-camera {
+  from { transform: perspective(1400px) scale(1.055) translate3d(-.5%,.2%,0) rotateY(-.35deg); }
+  to { transform: perspective(1400px) scale(1.115) translate3d(.5%,-.2%,0) rotateY(.35deg); }
+}
+@keyframes iamet-depth-upper { from { transform: translate3d(-2px,0,0); } to { transform: translate3d(4px,2px,0); } }
+@keyframes iamet-depth-front { from { transform: translate3d(3px,0,0) scale(1.002); } to { transform: translate3d(-5px,-2px,0) scale(1.008); } }
+@keyframes iamet-depth-light { from { opacity: .3; transform: translateX(-8%); } to { opacity: .8; transform: translateX(8%); } }
+@media (max-width: 640px) {
+  .iamet-depth-image { object-position: 72% center; }
+  .iamet-depth-upper { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iamet-depth-scene * { animation: none !important; will-change: auto; }
+  .iamet-depth-upper, .iamet-depth-front, .iamet-depth-light { display: none; }
+}
