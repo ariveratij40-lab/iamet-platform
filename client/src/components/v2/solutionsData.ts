@@ -50,7 +50,7 @@ export const solutions: Solution[] = [
       "Data Center",
       "Certification",
     ],
-    image: "/images/solutions/infrastructure-panduit-cinematic.png",
+    image: "/images/solutions/panduit-high-density-cinematic.png",
     icon: Cable,
   },
   {
