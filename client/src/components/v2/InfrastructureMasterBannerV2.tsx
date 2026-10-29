@@ -193,34 +193,34 @@ export default function InfrastructureMasterBannerV2() {
                     : `Explore ${active.en.toLowerCase()}`}
               <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
+            {infra && (
+              <div
+                className="mt-5 flex w-fit max-w-full items-center gap-4 rounded-lg px-4 py-3 shadow-lg"
+                style={{ background: "#fff" }}
+              >
+                <img
+                  src="/partners/panduit-one-silver-partner.png"
+                  alt="Panduit ONE Silver Partner"
+                  className="h-auto w-[110px] shrink-0 object-contain sm:w-[124px]"
+                />
+                <div className="border-l border-slate-200 pl-4">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-[.1em]"
+                    style={{ color: "#13243b" }}
+                  >
+                    {es ? "Integradores certificados" : "Certified integrators"}
+                  </p>
+                  <p className="mt-1 text-xs" style={{ color: "#54657b" }}>
+                    {es
+                      ? "Cableado estructurado Panduit"
+                      : "Panduit structured cabling"}
+                  </p>
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
 
-        {infra && (
-          <div
-            className="mt-8 inline-flex max-w-full items-center gap-4 self-start rounded-lg px-4 py-3 shadow-lg lg:absolute lg:right-12 lg:top-10 lg:mt-0"
-            style={{ background: "#fff" }}
-          >
-            <img
-              src="/partners/panduit-one-silver-partner.png"
-              alt="Panduit ONE Silver Partner"
-              className="h-auto w-[110px] shrink-0 object-contain sm:w-[124px]"
-            />
-            <div className="border-l border-slate-200 pl-4">
-              <p
-                className="text-[10px] font-bold uppercase tracking-[.1em]"
-                style={{ color: "#13243b" }}
-              >
-                {es ? "Integradores certificados" : "Certified integrators"}
-              </p>
-              <p className="mt-1 text-xs" style={{ color: "#54657b" }}>
-                {es
-                  ? "Cableado estructurado Panduit"
-                  : "Panduit structured cabling"}
-              </p>
-            </div>
-          </div>
-        )}
         <div className="mt-12 lg:mt-16">
           <div className="grid max-w-[680px] grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
             {capabilities.map((capability, i) => {
