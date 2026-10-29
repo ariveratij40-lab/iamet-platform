@@ -39,9 +39,12 @@ export default function PublicHeaderV2() {
         <Link
           href="/"
           aria-label={es ? "IAMET — Inicio" : "IAMET — Home"}
-          className="flex shrink-0 items-center rounded focus-visible:outline-2 focus-visible:outline-blue-600"
+          className="flex shrink-0 flex-col items-center rounded focus-visible:outline-2 focus-visible:outline-blue-600"
         >
           <IametTechLogoV2 className="h-[46.8px] w-[167px]" />
+          <span className="iamet-brand-tagline mt-0.5 text-[9px] font-medium uppercase tracking-[0.16em]">
+            {es ? "Integración tecnológica" : "Technology integration"}
+          </span>
         </Link>
 
         <nav

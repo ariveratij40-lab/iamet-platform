@@ -750,3 +750,6 @@ body:has(.iamet-reference-home) header nav > div > button[aria-expanded="true"] 
 @media (prefers-reduced-motion: reduce) {
   .iamet-intro-logo .iamet-logo-wordmark > g { animation: none; opacity: 1; transform: none; filter: none; }
 }
+
+.iamet-brand-tagline { color: #53677f; }
+body:has(.iamet-reference-home) .iamet-brand-tagline { color: #9ab6df; }
