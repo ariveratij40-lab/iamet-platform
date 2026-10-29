@@ -5,7 +5,7 @@ import { RotateCcw } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import IametTechLogoV2 from "./IametTechLogoV2";
 
-const SESSION_KEY = "iamet-brand-intro-v2";
+const SESSION_KEY = "iamet-brand-intro-v3";
 export default function BrandIntroV2() {
   const { language } = useLanguage();
   const es = language === "es";
@@ -40,7 +40,7 @@ export default function BrandIntroV2() {
     const start = performance.now();
     let frame = 0;
     const tick = (now: number) => {
-      const value = Math.min(100, Math.round((now - start) / 48));
+      const value = Math.min(100, Math.round((now - start) / 58));
       setProgress(value);
       if (value < 100) frame = requestAnimationFrame(tick);
       else close();

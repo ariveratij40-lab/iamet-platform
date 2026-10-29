@@ -726,3 +726,42 @@ body:has(.iamet-reference-home) header nav > div > button[aria-expanded="true"] 
   .iamet-intro-logo .iamet-logo-glint { display: none; }
   .iamet-intro-logo .iamet-logo-wordmark { animation: none; opacity: 1; }
 }
+
+.iamet-intro-logo .iamet-logo-wordmark { animation: none; opacity: 1; }
+/* Wordmark emerges from a distant point of light after the processor is drawn. */
+.iamet-intro-logo .iamet-logo-wordmark > g {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: iamet-wordmark-light 1.65s cubic-bezier(.16,1,.3,1) 2.8s forwards;
+}
+@keyframes iamet-wordmark-light {
+  0% {
+    opacity: 0;
+    transform: scale(.06);
+    filter: blur(12px) brightness(5) drop-shadow(0 0 30px #55aaff);
+  }
+  18% {
+    opacity: .7;
+    transform: scale(.18);
+    filter: blur(7px) brightness(4) drop-shadow(0 0 35px #55aaff);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(.78);
+    filter: blur(2px) brightness(2.5) drop-shadow(0 0 22px #398bff);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1.035);
+    filter: blur(.3px) brightness(1.4) drop-shadow(0 0 9px #398bff);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0) brightness(1) drop-shadow(0 0 0 transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iamet-intro-logo .iamet-logo-wordmark > g { animation: none; opacity: 1; transform: none; filter: none; }
+}
