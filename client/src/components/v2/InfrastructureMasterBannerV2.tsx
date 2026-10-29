@@ -1,198 +1,266 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
+  ArrowLeft,
   ArrowRight,
-  Network,
-  Server,
   Cable,
+  Network,
   PanelsTopLeft,
+  Server,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { solutions } from "./solutionsData";
 
-const capabilities = [
-  {
-    es: "Data Center",
-    en: "Data Center",
-    icon: Server,
-  },
-  {
-    es: "Cableado estructurado",
-    en: "Structured cabling",
-    icon: Network,
-  },
-  {
-    es: "Fibra óptica",
-    en: "Fiber optics",
-    icon: Cable,
-  },
-  {
-    es: "MDF / IDF",
-    en: "MDF / IDF",
-    icon: PanelsTopLeft,
-  },
-];
+// Public solution routes use different slugs from the marketing catalog.
+const destinations: Record<string, string> = {
+  infraestructura: "/soluciones/infraestructura",
+  "seguridad-cctv": "/soluciones/cctv",
+  "control-acceso": "/soluciones/control-acceso",
+  rfid: "/soluciones/rfid",
+  energia: "/contacto",
+  "desarrollo-ia": "/soluciones/software-ia",
+};
+const infrastructureIcons = [Server, Network, Cable, PanelsTopLeft];
 
 export default function InfrastructureMasterBannerV2() {
   const { language } = useLanguage();
   const es = language === "es";
   const reduceMotion = useReducedMotion();
+  const [index, setIndex] = useState(0);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const active = solutions[index];
+  const infra = index === 0;
+  const title = es ? active.titleEs : active.titleEn;
+  const label = infra
+    ? es
+      ? "Infraestructura física"
+      : "Physical infrastructure"
+    : es
+      ? active.es
+      : active.en;
+  const capabilities = infra
+    ? es
+      ? ["Data Center", "Cableado estructurado", "Fibra óptica", "MDF / IDF"]
+      : ["Data Center", "Structured cabling", "Fiber optics", "MDF / IDF"]
+    : (es ? active.capabilitiesEs : active.capabilitiesEn).slice(0, 4);
+  const move = (direction: number) =>
+    setIndex(
+      current => (current + direction + solutions.length) % solutions.length
+    );
 
   return (
-    <article
-      className="group relative isolate overflow-hidden rounded-[28px] bg-[#031426] text-white lg:rounded-[34px]"
-      aria-label={es ? "Infraestructura física" : "Physical infrastructure"}
+    <section
+      aria-roledescription={es ? "carrusel" : "carousel"}
+      aria-label={
+        es ? "Soluciones tecnológicas IAMET" : "IAMET technology solutions"
+      }
+      tabIndex={0}
+      onKeyDown={event => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          move(event.key === "ArrowLeft" ? -1 : 1);
+        }
+      }}
+      onTouchStart={event => {
+        const touch = event.touches[0];
+        touchStart.current = { x: touch.clientX, y: touch.clientY };
+      }}
+      onTouchEnd={event => {
+        const start = touchStart.current;
+        touchStart.current = null;
+        if (!start) return;
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - start.x;
+        const dy = touch.clientY - start.y;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy))
+          move(dx < 0 ? 1 : -1);
+      }}
+      onTouchCancel={() => {
+        touchStart.current = null;
+      }}
+      className="relative isolate overflow-hidden rounded-[28px] bg-[#031426] text-white outline-offset-4 focus-visible:outline-2 focus-visible:outline-blue-500 lg:rounded-[34px]"
     >
-      {/* Immersive cinematic video layer */}
-      <div className="absolute inset-0">
-        {reduceMotion ? (
-          <img
-            src="/images/solutions/infrastructure-master.png"
-            alt=""
-            className="h-full w-full object-cover object-[72%_center] sm:object-[68%_center] lg:object-[62%_center]"
-          />
-        ) : (
-          <video
-            className="h-full w-full object-cover object-[72%_center] sm:object-[68%_center] lg:object-[62%_center]"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster="/images/solutions/infrastructure-master.png"
-            aria-hidden="true"
-          >
-            <source src="/videos/infrastructure-master.mp4" type="video/mp4" />
-          </video>
-        )}
-      </div>
-
-      {/* Contrast architecture */}
-      <div
-        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,17,34,.86)_0%,rgba(3,25,49,.72)_35%,rgba(2,17,34,.88)_100%)] lg:bg-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, rgba(2,17,34,.94) 0%, rgba(3,25,49,.86) 25%, rgba(3,30,59,.58) 41%, rgba(3,26,51,.14) 62%, rgba(2,15,30,.04) 100%)",
-        }}
-      />
-
-      <div
-        className="absolute inset-y-0 left-[32%] hidden w-[25%] -skew-x-[17deg] border-x border-blue-400/20 bg-gradient-to-r from-blue-600/10 via-blue-400/5 to-transparent lg:block"
-        aria-hidden="true"
-      />
-
-      {/* Content */}
-      <div className="relative z-10 flex min-h-[620px] flex-col justify-between px-5 py-6 sm:min-h-[700px] sm:px-8 sm:py-9 lg:min-h-[700px] lg:w-[49%] lg:px-12 lg:py-12 xl:px-14">
-        <div>
+      <div className="absolute inset-0" aria-hidden="true">
+        <AnimatePresence initial={false}>
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-3"
+            key={active.id}
+            className="absolute inset-0"
+            initial={{ opacity: reduceMotion ? 1 : 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.35 }}
           >
-            <span className="h-px w-8 bg-blue-400" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-blue-300 sm:text-xs">
-              {es ? "Infraestructura física" : "Physical infrastructure"}
-            </span>
-          </motion.div>
-
-          <motion.h3
-            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.65, delay: 0.08 }}
-            className="mt-4 max-w-[330px] text-[2rem] font-bold leading-[1.02] tracking-[-0.04em] text-white sm:mt-6 sm:max-w-[610px] sm:text-5xl lg:text-[3.65rem]"
-          >
-            {es ? (
-              <>
-                La base <span className="text-blue-400">tecnológica</span>
-                <br />
-                de su operación.
-              </>
+            {infra && !reduceMotion ? (
+              <video
+                className="h-full w-full object-cover object-[72%_center] lg:object-[62%_center]"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                poster="/images/solutions/infrastructure-master.png"
+              >
+                <source
+                  src="/videos/infrastructure-master.mp4"
+                  type="video/mp4"
+                />
+              </video>
             ) : (
-              <>
-                The <span className="text-blue-400">technology foundation</span>
-                <br />
-                of your operation.
-              </>
+              <img
+                src={
+                  infra
+                    ? "/images/solutions/infrastructure-master.png"
+                    : active.image
+                }
+                alt=""
+                className="h-full w-full object-cover object-[72%_center] lg:object-[62%_center]"
+              />
             )}
-          </motion.h3>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,17,34,.94),rgba(3,25,49,.78),rgba(2,17,34,.94))] lg:bg-[linear-gradient(90deg,rgba(2,17,34,.96)_0%,rgba(3,25,49,.90)_27%,rgba(3,30,59,.65)_45%,rgba(3,26,51,.16)_70%,rgba(2,15,30,.08)_100%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-0 left-[32%] hidden w-[25%] -skew-x-[17deg] border-x border-blue-400/20 bg-gradient-to-r from-blue-600/10 via-blue-400/5 to-transparent lg:block"
+      />
 
-          <motion.p
-            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.6, delay: 0.16 }}
-            className="mt-3 max-w-[325px] text-[13px] leading-[1.55rem] text-white/90 sm:mt-6 sm:max-w-[520px] sm:text-base sm:leading-7 sm:text-white/85"
+      <div className="relative z-10 flex min-h-[660px] flex-col justify-between px-5 py-6 sm:min-h-[740px] sm:px-8 sm:py-9 lg:min-h-[760px] lg:px-12 lg:py-12 xl:px-14">
+        <div
+          role="group"
+          aria-roledescription={es ? "diapositiva" : "slide"}
+          aria-label={`${index + 1} ${es ? "de" : "of"} ${solutions.length}: ${label}`}
+          aria-live="polite"
+          aria-atomic="true"
+          className="lg:w-[52%]"
+        >
+          <motion.div
+            key={active.id}
+            initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25 }}
           >
-            {es
-              ? "Diseñamos e integramos infraestructura crítica que conecta, protege y prepara su operación para crecer."
-              : "We design and integrate critical infrastructure that connects, protects and prepares your operation to grow."}
-          </motion.p>
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 shrink-0 bg-blue-400" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-blue-300 sm:text-xs">
+                {label}
+              </p>
+            </div>
+            <h2 className="mt-4 max-w-[610px] text-[2rem] font-bold leading-[1.02] tracking-[-0.04em] text-white sm:mt-6 sm:text-5xl lg:text-[3.4rem]">
+              {infra ? (
+                es ? (
+                  <>
+                    La base <span className="text-blue-400">tecnológica</span>
+                    <br />
+                    de su operación.
+                  </>
+                ) : (
+                  <>
+                    The{" "}
+                    <span className="text-blue-400">technology foundation</span>
+                    <br />
+                    of your operation.
+                  </>
+                )
+              ) : (
+                title
+              )}
+            </h2>
+            <p className="mt-4 max-w-[520px] text-sm leading-7 text-white/90 sm:mt-6 sm:text-base">
+              {infra
+                ? es
+                  ? "Diseñamos e integramos infraestructura crítica que conecta, protege y prepara su operación para crecer."
+                  : "We design and integrate critical infrastructure that connects, protects and prepares your operation to grow."
+                : es
+                  ? active.descEs
+                  : active.descEn}
+            </p>
+          </motion.div>
         </div>
 
-        <div>
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.45 }}
-            transition={{ duration: 0.6, delay: 0.22 }}
-            className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4 sm:gap-x-4 sm:gap-y-5 lg:grid-cols-2 xl:grid-cols-4"
-          >
-            {capabilities.map(item => {
-              const Icon = item.icon;
-
+        <div className="mt-10">
+          <div className="grid max-w-[560px] grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
+            {capabilities.map((capability, i) => {
+              const Icon = infra ? infrastructureIcons[i] : active.icon;
               return (
                 <div
-                  key={item.es}
+                  key={capability}
                   className="min-w-0 border-l border-white/20 pl-3 first:border-blue-400/80"
                 >
                   <Icon className="h-5 w-5 text-blue-400" />
-                  <p className="mt-1.5 max-w-[110px] text-[11px] font-semibold leading-4 text-white/90 sm:mt-2 sm:max-w-none sm:text-xs">
-                    {es ? item.es : item.en}
+                  <p className="mt-2 text-xs font-semibold leading-5 text-white/90">
+                    {capability}
                   </p>
                 </div>
               );
             })}
-          </motion.div>
-
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-6 sm:mt-8"
+          </div>
+          <Link
+            href={destinations[active.id]}
+            className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(37,99,235,.28)] transition hover:bg-blue-500 sm:w-auto"
           >
-            <Link
-              href="/soluciones/infraestructura"
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(37,99,235,.28)] transition hover:-translate-y-0.5 hover:bg-blue-500 sm:inline-flex sm:w-auto"
-            >
-              {es ? "Explorar infraestructura" : "Explore infrastructure"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </motion.div>
+            {infra
+              ? es
+                ? "Explorar infraestructura"
+                : "Explore infrastructure"
+              : active.id === "energia"
+                ? es
+                  ? "Consultar soluciones de energía"
+                  : "Ask about power solutions"
+                : es
+                  ? `Explorar ${active.es.toLowerCase()}`
+                  : `Explore ${active.en.toLowerCase()}`}
+            <ArrowRight className="h-4 w-4 shrink-0" />
+          </Link>
 
-          {/* Future carousel contract */}
-          <div
-            className="mt-5 flex items-center gap-3 sm:mt-10"
-            aria-label={es ? "1 de 6" : "1 of 6"}
-          >
-            <span className="text-[11px] font-semibold text-white/60">01</span>
-
-            <div className="flex flex-1 gap-2">
-              <span className="h-1 flex-[1.8] rounded-full bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,.8)]" />
-              {[2, 3, 4, 5, 6].map(item => (
-                <span
-                  key={item}
-                  className="h-1 flex-1 rounded-full bg-white/18"
-                />
+          <div className="mt-7 flex items-center gap-3 sm:mt-10">
+            <span className="text-xs font-semibold tabular-nums text-white/70">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div className="flex flex-1 gap-1 sm:gap-2">
+              {solutions.map((solution, i) => (
+                <button
+                  key={solution.id}
+                  type="button"
+                  aria-label={`${es ? "Ver" : "View"} ${es ? solution.es : solution.en}`}
+                  aria-current={index === i ? "true" : undefined}
+                  onClick={() => setIndex(i)}
+                  className="group flex h-11 min-w-0 flex-1 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-blue-300"
+                >
+                  <span
+                    className={`h-1 w-full rounded-full transition-colors ${index === i ? "bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,.8)]" : "bg-white/25 group-hover:bg-white/60"}`}
+                  />
+                </button>
               ))}
             </div>
-
-            <span className="text-[11px] font-semibold text-white/40">06</span>
+            <span className="text-xs font-semibold text-white/50">
+              {String(solutions.length).padStart(2, "0")}
+            </span>
+            <div className="ml-1 flex gap-2 sm:ml-4">
+              <button
+                type="button"
+                onClick={() => move(-1)}
+                aria-label={es ? "Solución anterior" : "Previous solution"}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-slate-950/50 transition hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-blue-300"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => move(1)}
+                aria-label={es ? "Solución siguiente" : "Next solution"}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-slate-950/50 transition hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-blue-300"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </article>
+    </section>
   );
 }
