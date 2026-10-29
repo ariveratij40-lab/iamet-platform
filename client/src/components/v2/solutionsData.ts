@@ -21,6 +21,8 @@ type Solution = {
   capabilitiesEs: string[];
   capabilitiesEn: string[];
   image: string;
+  video?: string;
+  slideDurationMs?: number;
   icon: typeof Cable;
 };
 

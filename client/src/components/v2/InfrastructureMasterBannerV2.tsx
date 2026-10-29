@@ -1,3 +1,4 @@
+import BannerMediaV2 from "./BannerMediaV2";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -25,13 +26,16 @@ export default function InfrastructureMasterBannerV2() {
   const [focused, setFocused] = useState(false);
   const [autoplayPaused, setAutoplayPaused] = useState(Boolean(reduceMotion));
 
+  const slideDuration =
+    solutions[index].slideDurationMs ?? (solutions[index].video ? 12000 : 7000);
+
   useEffect(() => {
     if (hovered || focused || autoplayPaused) return;
     const timer = window.setInterval(() => {
       setIndex(current => (current + 1) % solutions.length);
-    }, 7000);
+    }, slideDuration);
     return () => window.clearInterval(timer);
-  }, [hovered, focused, autoplayPaused]);
+  }, [hovered, focused, autoplayPaused, slideDuration]);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const active = solutions[index];
   const infra = index === 0;
@@ -114,10 +118,11 @@ export default function InfrastructureMasterBannerV2() {
             exit={{ opacity: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.35 }}
           >
-            <img
-              src={active.image}
-              alt=""
-              className={`h-full w-full object-cover object-[72%_center] lg:object-[62%_center] ${!reduceMotion ? "iamet-cctv-cinematic" : ""}`}
+            <BannerMediaV2
+              image={active.image}
+              video={active.video}
+              paused={autoplayPaused || hovered || focused}
+              reduceMotion={Boolean(reduceMotion)}
             />
           </motion.div>
         </AnimatePresence>
