@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 146 146"><g class="iamet-logo-symbol" fill="none" stroke="#1264E8" stroke-width="8" stroke-linecap="square" stroke-linejoin="bevel">
+<path pathLength="1" class="iamet-logo-frame" d="M46 20H94L110 36V104L94 120H46L30 104V36Z"/>
+<path pathLength="1" class="iamet-logo-connections" d="M30 45H12V30M30 70H6M30 95H12V110M110 45H128V30M110 70H134M110 95H128V110"/>
+<path pathLength="1" class="iamet-logo-core" d="M55 43H85M70 43V97M55 97H85" stroke="#1264E8" stroke-width="10"/>
+</g></svg>

@@ -7,7 +7,7 @@
 @theme inline {
   /* Fonts */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
+  --font-display: "Oxanium", "Inter", ui-sans-serif, sans-serif;
 
   /* Base Radius */
   --radius-sm: 0.375rem;
@@ -673,3 +673,23 @@ body:has(.iamet-reference-home) header a:has(> img[alt="IAMET"]) {
 @media (prefers-reduced-motion: reduce) {
   .iamet-intro-logo, .iamet-intro-logo .iamet-logo-traces path, .iamet-intro-logo .iamet-logo-signal { animation: none; stroke-dashoffset: 0; }
 }
+
+/* Processor corporate identity: exact vector signature + geometric display type. */
+.iamet-brand-logo { color: #111f34; flex-shrink: 0; }
+.dark .iamet-brand-logo,
+body:has(.iamet-reference-home) header .iamet-brand-logo,
+.iamet-brand-intro .iamet-brand-logo { color: #f4f7ff; }
+.iamet-reference-home .iamet-tech-watermark { width: min(80vw,1000px); }
+.iamet-reference-home h1, .iamet-reference-home h2, .iamet-reference-home h3 { font-family: var(--font-display); }
+.iamet-reference-home .text-cyan-300, .iamet-reference-home .text-cyan-400 { color: #5594ff; }
+.iamet-reference-home #soluciones-iamet > div > div:first-child h1 { color: #8ab4ff; }
+body:has(.iamet-reference-home) header nav > a[aria-current="page"],
+body:has(.iamet-reference-home) header nav > div > button[aria-expanded="true"] { color: #79a9ff; border-color: #1264e8; }
+.iamet-intro-logo .iamet-logo-symbol path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: iamet-logo-draw 1.4s ease-out forwards; }
+.iamet-intro-logo .iamet-logo-core { filter: drop-shadow(0 0 5px rgba(18,100,232,.3)); }
+@media (prefers-reduced-motion: reduce) {
+  .iamet-intro-logo .iamet-logo-symbol path { animation: none; stroke-dashoffset: 0; }
+}
+.iamet-reference-home .iamet-brand-logo { color: #f4f7ff; }
+
+.iamet-reference-home .iamet-tech-watermark { opacity: .055; }

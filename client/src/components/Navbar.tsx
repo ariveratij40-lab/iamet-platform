@@ -1,3 +1,4 @@
+import IametTechLogoV2 from "./v2/IametTechLogoV2";
 import { useState, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -218,7 +219,7 @@ export default function Navbar() {
           }}
         >
           <Link href="/" onClick={closeMobile}>
-            <img src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png" alt="IAMET" className="h-8 w-auto object-contain" />
+            <IametTechLogoV2 className="h-8 w-[114px]" />
           </Link>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg" style={{ color: "var(--color-iamet-text-muted)" }} aria-label="Menú">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -244,7 +245,7 @@ export default function Navbar() {
               {/* Header */}
               <div className="flex items-center justify-between px-4 h-14 flex-shrink-0" style={{ borderBottom: "1px solid var(--color-iamet-sidebar-border, var(--color-iamet-border-subtle))" }}>
                 <Link href="/" onClick={closeMobile}>
-                  <img src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png" alt="IAMET" className="h-8 w-auto object-contain" />
+                  <IametTechLogoV2 className="h-8 w-[114px]" />
                 </Link>
                 <button onClick={closeMobile} style={{ color: "var(--color-iamet-text-muted)" }}><X className="w-5 h-5" /></button>
               </div>
@@ -390,7 +391,7 @@ export default function Navbar() {
             {expanded && (
               <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.2 }} className="flex-1 pl-4 overflow-hidden">
                 <Link href="/" onClick={() => { setExpanded(false); setActiveSubmenu(null); }}>
-                  <img src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png" alt="IAMET" className="h-8 w-auto object-contain hover:opacity-90 transition-opacity" />
+                  <IametTechLogoV2 className="h-8 w-[114px]" />
                 </Link>
               </motion.div>
             )}

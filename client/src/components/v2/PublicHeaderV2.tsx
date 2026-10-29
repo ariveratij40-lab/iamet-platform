@@ -1,12 +1,10 @@
+import IametTechLogoV2 from "./IametTechLogoV2";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowRight, Languages, Menu, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import SolutionsMenuV2 from "./SolutionsMenuV2";
-
-const LOGO =
-  "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logos/logo-iamet-v2-final.png";
 
 export default function PublicHeaderV2() {
   const [location] = useLocation();
@@ -43,11 +41,7 @@ export default function PublicHeaderV2() {
           aria-label={es ? "IAMET — Inicio" : "IAMET — Home"}
           className="flex shrink-0 items-center rounded focus-visible:outline-2 focus-visible:outline-blue-600"
         >
-          <img
-            src={LOGO}
-            alt="IAMET"
-            className="h-[46.8px] w-auto object-contain"
-          />
+          <IametTechLogoV2 className="h-[46.8px] w-[167px]" />
         </Link>
 
         <nav

@@ -65,7 +65,7 @@ export default function BrandIntroV2() {
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="iamet-brand-intro fixed inset-0 z-[100] flex items-center justify-center bg-[#030c16] px-8"
+              className="iamet-brand-intro text-white fixed inset-0 z-[100] flex items-center justify-center bg-[#030c16] px-8"
               onKeyDown={event => {
                 if (event.key === "Escape") close();
                 if (event.key === "Tab") {
