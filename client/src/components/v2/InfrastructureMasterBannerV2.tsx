@@ -1,4 +1,3 @@
-import PanduitProductsV2 from "./PanduitProductsV2";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -227,7 +226,6 @@ export default function InfrastructureMasterBannerV2() {
           </motion.div>
         </div>
 
-        {infra && <PanduitProductsV2 />}
         <div className="mt-12 lg:mt-16">
           <div className="grid max-w-[680px] grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
             {capabilities.map((capability, i) => {
