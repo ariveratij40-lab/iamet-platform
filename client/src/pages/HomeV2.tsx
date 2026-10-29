@@ -1,3 +1,4 @@
+import BrandIntroV2 from "@/components/v2/BrandIntroV2";
 import TechnologyBackgroundV2 from "@/components/v2/TechnologyBackgroundV2";
 import { useLanguage } from "@/contexts/LanguageContext";
 import InfrastructureMasterBannerV2 from "@/components/v2/InfrastructureMasterBannerV2";
@@ -27,6 +28,7 @@ export default function HomeV2() {
       <HowWeWorkV2 />
       <WhyIAMETV2 />
       <CorporateClosingV2 />
+      <BrandIntroV2 />
     </div>
   );
 }
