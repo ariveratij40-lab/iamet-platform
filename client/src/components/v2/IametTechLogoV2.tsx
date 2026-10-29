@@ -37,6 +37,22 @@ export default function IametTechLogoV2({
           strokeWidth="10"
         />
       </g>
+      <g
+        className="iamet-logo-glint"
+        aria-hidden="true"
+        fill="none"
+        stroke="white"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="bevel"
+      >
+        <path pathLength="1" d="M46 20H94L110 36V104L94 120H46L30 104V36Z" />
+        <path
+          pathLength="1"
+          d="M30 45H12V30M30 70H6M30 95H12V110M110 45H128V30M110 70H134M110 95H128V110"
+        />
+        <path pathLength="1" d="M55 43H85M70 43V97M55 97H85" />
+      </g>
       <g className="iamet-logo-wordmark" transform="translate(174 38)">
         <g
           transform=""
