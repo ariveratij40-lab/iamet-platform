@@ -6,6 +6,7 @@ import {
   RadioTower,
   ShieldCheck,
   Zap,
+  Wrench,
 } from "lucide-react";
 
 const R2 = "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev";
@@ -230,11 +231,41 @@ export const solutions: Solution[] = [
     image: "/images/solutions/software-dashboards-iamet.png",
     icon: Bot,
   },
+  {
+    id: "polizas-servicios",
+    es: "Pólizas y servicios administrados",
+    en: "Maintenance and managed services",
+    titleEs: "Soporte y mantenimiento con un alcance definido.",
+    titleEn: "Support and maintenance with a defined scope.",
+    descEs:
+      "Definimos pólizas de mantenimiento, soporte y seguimiento para la infraestructura tecnológica de su empresa.",
+    descEn:
+      "We define maintenance, support and follow-up services for your company's technology infrastructure.",
+    capabilitiesEs: [
+      "Mantenimiento preventivo",
+      "Atención correctiva",
+      "Inventario de activos",
+      "Seguimiento de incidentes",
+      "Reportes de servicio",
+      "Alcance y horarios acordados",
+    ],
+    capabilitiesEn: [
+      "Preventive maintenance",
+      "Corrective service",
+      "Asset inventory",
+      "Incident follow-up",
+      "Service reports",
+      "Agreed scope and schedules",
+    ],
+    image: "/images/solutions/software-dashboards-iamet.png",
+    icon: Wrench,
+  },
 ];
 
 // Public solution routes use different slugs from the marketing catalog.
 export const solutionDestinations: Record<string, string> = {
   infraestructura: "/soluciones/infraestructura",
+  "polizas-servicios": "/soluciones/polizas-servicios",
   "edificios-inteligentes": "/soluciones/edificios-inteligentes",
   "seguridad-cctv": "/soluciones/cctv",
   "control-acceso": "/soluciones/control-acceso",

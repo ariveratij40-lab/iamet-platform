@@ -14,16 +14,15 @@ export default function PublicHeaderV2() {
   useEffect(() => setMobileOpen(false), [location]);
   const items = [
     { href: "/", label: es ? "Inicio" : "Home" },
+    { href: "/nosotros", label: es ? "Nosotros" : "About IAMET" },
     { href: "/soluciones", label: es ? "Soluciones" : "Solutions" },
-    { href: "/industrias", label: es ? "Industrias" : "Industries" },
-    { href: "/academy", label: "Academy" },
-    { href: "/tienda", label: es ? "Tienda" : "Store" },
-    { href: "/tech-advisor", label: es ? "Asesor virtual" : "Virtual advisor" },
+    { href: "/marcas", label: es ? "Marcas" : "Brands" },
+    { href: "/blog", label: "Blog" },
   ];
   const active = (href: string) =>
     location === href || (href !== "/" && location.startsWith(`${href}/`));
   const toggleLanguage = () => setLanguage(es ? "en" : "es");
-  const contact = es ? "Contáctanos" : "Contact us";
+  const contact = es ? "Cotizar proyecto" : "Request a quote";
 
   return (
     <header
@@ -81,8 +80,8 @@ export default function PublicHeaderV2() {
             {language.toUpperCase()}
           </button>
           <Link
-            href="/contacto"
-            aria-current={active("/contacto") ? "page" : undefined}
+            href="/cotizacion"
+            aria-current={active("/cotizacion") ? "page" : undefined}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             {contact}
@@ -155,7 +154,7 @@ export default function PublicHeaderV2() {
                 {es ? "English" : "Español"}
               </button>
               <Link
-                href="/contacto"
+                href="/cotizacion"
                 onClick={() => setMobileOpen(false)}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700"
               >

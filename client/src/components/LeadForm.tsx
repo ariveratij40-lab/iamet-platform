@@ -1,8 +1,19 @@
 import { useAttribution } from "@/hooks/useAttribution";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Send, Loader2, Building2, User, Mail, Phone, Factory, Users, MessageSquare } from "lucide-react";
+import {
+  CheckCircle2,
+  Send,
+  Loader2,
+  Building2,
+  User,
+  Mail,
+  Phone,
+  Factory,
+  Users,
+  MessageSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 
@@ -11,11 +22,21 @@ interface LeadFormProps {
   verticalSlug?: string;
   source?: "form" | "agent" | "advisor" | "academy";
   compact?: boolean;
+  context?: string;
+  submitLabel?: string;
 }
 
 const INDUSTRIES = [
-  "Manufactura", "Retail / Comercio", "Salud", "Gobierno", "Logística y Transporte",
-  "Educación", "Financiero / Banca", "Hotelería y Turismo", "Construcción", "Otro",
+  "Manufactura",
+  "Retail / Comercio",
+  "Salud",
+  "Gobierno",
+  "Logística y Transporte",
+  "Educación",
+  "Financiero / Banca",
+  "Hotelería y Turismo",
+  "Construcción",
+  "Otro",
 ];
 
 const COMPANY_SIZES = [
@@ -26,7 +47,15 @@ const COMPANY_SIZES = [
   { value: "500+", label: "Más de 500 empleados" },
 ];
 
-export default function LeadForm({ onSuccess, verticalSlug, source = "form", compact = false }: LeadFormProps) {
+export default function LeadForm({
+  onSuccess,
+  verticalSlug,
+  source = "form",
+  compact = false,
+  context,
+  submitLabel = "Solicitar asesoría",
+}: LeadFormProps) {
+  const formId = useId();
   const attribution = useAttribution();
   const { trackEvent } = useAnalytics();
   const [form, setForm] = useState({
@@ -44,7 +73,10 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
   const createLead = trpc.leads.create.useMutation({
     onSuccess: () => {
       setSubmitted(true);
-      trackEvent("lead_captured", { vertical: verticalSlug ?? "general", sessionId: attribution.sessionId ?? "" });
+      trackEvent("lead_captured", {
+        vertical: verticalSlug ?? "general",
+        sessionId: attribution.sessionId ?? "",
+      });
       onSuccess?.();
     },
   });
@@ -55,14 +87,23 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
     createLead.mutate({
       ...attribution,
       ...form,
+      problemDescription: [context, form.problemDescription]
+        .filter(Boolean)
+        .join("\n\n"),
       companySize: form.companySize || undefined,
       verticalSlug,
       source,
     });
   };
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const set =
+    (field: string) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) =>
+      setForm(prev => ({ ...prev, [field]: e.target.value }));
 
   if (submitted) {
     return (
@@ -70,7 +111,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-        className="neumorphic rounded-2xl p-8 text-center space-y-4"
+        className="rounded-2xl border border-blue-300/20 bg-[#10283d] p-8 text-center text-white space-y-4"
       >
         <div className="w-16 h-16 rounded-full bg-[var(--color-iamet-accent-muted)] flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-8 h-8 text-[var(--color-iamet-accent)]" />
@@ -80,27 +121,38 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
             ¡Mensaje recibido!
           </h3>
           <p className="text-sm text-[var(--color-iamet-text-muted)]">
-            Un especialista de IAMET revisará su solicitud y dará seguimiento a su requerimiento.
+            Un especialista de IAMET revisará su solicitud y dará seguimiento a
+            su requerimiento.
           </p>
         </div>
         {score !== null && (
           <div className="neumorphic-inset rounded-xl p-4">
-            <p className="text-xs text-[var(--color-iamet-text-subtle)] mb-1">Perfil de prioridad</p>
+            <p className="text-xs text-[var(--color-iamet-text-subtle)] mb-1">
+              Perfil de prioridad
+            </p>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-2 rounded-full bg-[var(--color-iamet-bg-tertiary)] overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${score}%` }}
-                  transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                  transition={{
+                    duration: 0.8,
+                    delay: 0.2,
+                    ease: [0.23, 1, 0.32, 1],
+                  }}
                   className="h-full rounded-full bg-gradient-to-r from-[var(--color-iamet-accent)] to-[var(--color-iamet-cyan)]"
                 />
               </div>
-              <span className="text-sm font-700 gradient-text">{score}/100</span>
+              <span className="text-sm font-700 gradient-text">
+                {score}/100
+              </span>
             </div>
             <p className="text-xs text-[var(--color-iamet-text-subtle)] mt-1">
-              {score >= 70 ? "Alta prioridad" :
-               score >= 40 ? "Prioridad media" :
-               "Prioridad estándar"}
+              {score >= 70
+                ? "Alta prioridad"
+                : score >= 40
+                  ? "Prioridad media"
+                  : "Prioridad estándar"}
             </p>
           </div>
         )}
@@ -108,63 +160,76 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
     );
   }
 
-  const inputClass = "w-full neumorphic-inset rounded-xl px-4 py-2.5 text-sm text-[var(--color-iamet-text)] placeholder:text-[var(--color-iamet-text-subtle)] outline-none focus:ring-1 focus:ring-[var(--color-iamet-accent)] transition-all duration-150 bg-transparent";
-  const labelClass = "flex items-center gap-1.5 text-xs font-medium text-[var(--color-iamet-text-muted)] mb-1.5";
+  const inputClass =
+    "w-full rounded-xl border border-blue-300/25 bg-[#0b1c2c] px-4 py-3 text-sm text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-150";
+  const labelClass =
+    "flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1.5";
 
   return (
-    <div className="neumorphic rounded-2xl p-6 space-y-5">
+    <div className="rounded-2xl border border-blue-300/20 bg-[#10283d] p-6 text-white space-y-5">
       {!compact && (
         <div className="space-y-1">
           <h3 className="font-display text-xl font-700 text-[var(--color-iamet-text)]">
             Hable con un especialista IAMET
           </h3>
           <p className="text-sm text-[var(--color-iamet-text-muted)]">
-            Cuéntenos sobre su empresa y el proyecto o necesidad que desea resolver.
+            Cuéntenos sobre su empresa y el proyecto o necesidad que desea
+            resolver.
           </p>
         </div>
       )}
 
-      {createLead.isError && <p role="alert" className="text-sm text-red-400">No pudimos enviar su solicitud. Intente de nuevo o escriba a contacto@iamet.mx.</p>}
+      {createLead.isError && (
+        <p role="alert" className="text-sm text-red-400">
+          No pudimos enviar su solicitud. Intente de nuevo o escriba a
+          contacto@iamet.mx.
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Company */}
           <div>
-            <label className={labelClass}>
+            <label htmlFor={`${formId}-company`} className={labelClass}>
               <Building2 className="w-3.5 h-3.5" /> Empresa *
             </label>
             <input
               type="text"
               placeholder="Nombre de su empresa"
+              id={`${formId}-company`}
               value={form.company}
               onChange={set("company")}
               required
+              minLength={2}
               className={inputClass}
             />
           </div>
 
           {/* Contact Name */}
           <div>
-            <label className={labelClass}>
+            <label htmlFor={`${formId}-contactName`} className={labelClass}>
               <User className="w-3.5 h-3.5" /> Nombre *
             </label>
             <input
               type="text"
               placeholder="Su nombre completo"
+              id={`${formId}-contactName`}
               value={form.contactName}
               onChange={set("contactName")}
               required
+              minLength={2}
               className={inputClass}
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className={labelClass}>
+            <label htmlFor={`${formId}-email`} className={labelClass}>
               <Mail className="w-3.5 h-3.5" /> Email *
             </label>
             <input
               type="email"
               placeholder="correo@empresa.com"
+              id={`${formId}-email`}
               value={form.email}
               onChange={set("email")}
               required
@@ -174,12 +239,13 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
 
           {/* Phone */}
           <div>
-            <label className={labelClass}>
+            <label htmlFor={`${formId}-phone`} className={labelClass}>
               <Phone className="w-3.5 h-3.5" /> Teléfono
             </label>
             <input
               type="tel"
               placeholder="Número de contacto"
+              id={`${formId}-phone`}
               value={form.phone}
               onChange={set("phone")}
               className={inputClass}
@@ -188,26 +254,40 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
 
           {/* Industry */}
           <div>
-            <label className={labelClass}>
+            <label htmlFor={`${formId}-industry`} className={labelClass}>
               <Factory className="w-3.5 h-3.5" /> Industria
             </label>
-            <select value={form.industry} onChange={set("industry")} className={inputClass}>
+            <select
+              id={`${formId}-industry`}
+              value={form.industry}
+              onChange={set("industry")}
+              className={inputClass}
+            >
               <option value="">Seleccionar industria</option>
-              {INDUSTRIES.map((i) => (
-                <option key={i} value={i}>{i}</option>
+              {INDUSTRIES.map(i => (
+                <option key={i} value={i}>
+                  {i}
+                </option>
               ))}
             </select>
           </div>
 
           {/* Company Size */}
           <div>
-            <label className={labelClass}>
+            <label htmlFor={`${formId}-companySize`} className={labelClass}>
               <Users className="w-3.5 h-3.5" /> Tamaño de empresa
             </label>
-            <select value={form.companySize} onChange={set("companySize")} className={inputClass}>
+            <select
+              id={`${formId}-companySize`}
+              value={form.companySize}
+              onChange={set("companySize")}
+              className={inputClass}
+            >
               <option value="">Seleccionar tamaño</option>
-              {COMPANY_SIZES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+              {COMPANY_SIZES.map(s => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
               ))}
             </select>
           </div>
@@ -215,10 +295,15 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
 
         {/* Problem Description */}
         <div>
-          <label className={labelClass}>
-            <MessageSquare className="w-3.5 h-3.5" /> ¿Cuál es su principal reto tecnológico?
+          <label
+            htmlFor={`${formId}-problemDescription`}
+            className={labelClass}
+          >
+            <MessageSquare className="w-3.5 h-3.5" /> ¿Cuál es su principal reto
+            tecnológico?
           </label>
           <textarea
+            id={`${formId}-problemDescription`}
             placeholder="Describa brevemente el problema o necesidad que desea resolver..."
             value={form.problemDescription}
             onChange={set("problemDescription")}
@@ -229,7 +314,12 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
 
         <Button
           type="submit"
-          disabled={createLead.isPending || !form.company || !form.contactName || !form.email}
+          disabled={
+            createLead.isPending ||
+            !form.company ||
+            !form.contactName ||
+            !form.email
+          }
           className="w-full bg-[var(--color-iamet-accent)] hover:bg-[var(--color-iamet-accent-hover)] text-white font-semibold btn-press glow-accent-sm disabled:opacity-50"
         >
           {createLead.isPending ? (
@@ -240,13 +330,14 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
           ) : (
             <>
               <Send className="w-4 h-4 mr-2" />
-              Solicitar asesoría
+              {submitLabel}
             </>
           )}
         </Button>
 
         <p className="text-xs text-center text-[var(--color-iamet-text-subtle)]">
-          Al enviar, acepta que IAMET le contacte para dar seguimiento a su solicitud.
+          Al enviar, acepta que IAMET le contacte para dar seguimiento a su
+          solicitud.
         </p>
       </form>
     </div>

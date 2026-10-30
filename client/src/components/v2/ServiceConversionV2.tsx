@@ -18,7 +18,7 @@ export function useServiceMetadata(name: string, description: string) {
       meta.name = "description";
       document.head.append(meta);
     }
-    document.title = `${name} para empresas | IAMET`;
+    document.title = `${name} | IAMET`;
     meta.content = description;
     return () => {
       document.title = previousTitle;
@@ -32,10 +32,12 @@ export default function ServiceConversionV2({
   slug,
   name,
   capabilities,
+  context,
 }: {
   slug: string;
   name: string;
   capabilities: string[];
+  context?: string;
 }) {
   const { language } = useLanguage();
   const es = language === "es";
@@ -133,7 +135,12 @@ export default function ServiceConversionV2({
               </a>
             </p>
           </div>
-          <LeadForm verticalSlug={slug} source="form" compact />
+          <LeadForm
+            verticalSlug={slug}
+            context={context}
+            source="form"
+            compact
+          />
         </div>
       </section>
       <section className="mx-auto max-w-[1000px] px-5 py-16">

@@ -3,6 +3,9 @@ import { Mail } from "lucide-react";
 import LeadForm from "@/components/LeadForm";
 
 export default function Contact() {
+  const params = new URLSearchParams(window.location.search);
+  const solution = params.get("solucion") || undefined;
+  const product = params.get("producto");
   return (
     <div className="min-h-screen bg-[var(--color-iamet-bg)] pt-24 pb-16">
       <div className="container">
@@ -36,7 +39,7 @@ export default function Contact() {
             transition={{ delay: 0.1 }}
             className="lg:col-span-3"
           >
-            <LeadForm source="form" />
+            <LeadForm source="form" verticalSlug={solution} context={product ? `Producto de interés: ${product}` : undefined} />
           </motion.div>
 
           {/* Info */}

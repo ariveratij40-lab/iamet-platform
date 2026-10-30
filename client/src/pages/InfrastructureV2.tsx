@@ -200,6 +200,7 @@ export default function InfrastructureV2() {
       </section>
       <ServiceConversionV2
         slug="infraestructura"
+        context="Marca de interés: Panduit. Solución: infraestructura física."
         name={es ? "Infraestructura" : "Infrastructure"}
         capabilities={
           es ? solutions[0].capabilitiesEs : solutions[0].capabilitiesEn

@@ -8,14 +8,14 @@ type Props = {
   brandLabel?: string;
   title: string;
   description: string;
-  image: string;
+  image?: string;
   contactHref: string;
   contactLabel: string;
   portfolioLabel: string;
   portfolioHref?: string;
   breadcrumbLabel: string;
   homeLabel: string;
-  partner?: { image: string; label: string };
+  partner?: { image?: string; label: string };
 };
 
 /** Shared service-page hero: message, project action, partner and portfolio anchor. */
@@ -23,11 +23,13 @@ export default function ServiceHeroV2(props: Props) {
   const reduceMotion = useReducedMotion();
   return (
     <section className="relative isolate overflow-hidden bg-[#031426] text-white">
-      <BannerMediaV2
-        image={props.image}
-        paused={false}
-        reduceMotion={Boolean(reduceMotion)}
-      />
+      {props.image && (
+        <BannerMediaV2
+          image={props.image}
+          paused={false}
+          reduceMotion={Boolean(reduceMotion)}
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-r from-[#031426] via-[#031426]/90 to-[#031426]/25 lg:via-[#031426]/65" />
       <div className="relative mx-auto flex min-h-[660px] max-w-[1440px] flex-col px-5 py-8 sm:px-8 lg:min-h-[740px] lg:px-12">
         <nav

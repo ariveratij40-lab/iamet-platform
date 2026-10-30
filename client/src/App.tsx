@@ -1,3 +1,7 @@
+import {useEffect} from "react";
+import CorporateFooterV2 from "./components/v2/CorporateFooterV2";
+import { AboutV2, BrandsV2, BrandLandingV2, QuoteV2 } from "./pages/CorporatePagesV2";
+import { BlogIndexV2, BlogPostV2 } from "./pages/BlogV2";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -55,7 +59,8 @@ import VerifyEmail from "./pages/VerifyEmail";
 function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const isMobile = useIsMobile();
-  const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia)$/.test(location);
+  useEffect(() => { if (!window.location.hash) window.scrollTo({top: 0, behavior: "instant"}); }, [location]);
+  const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
   if (isAdmin) {
@@ -73,6 +78,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     <>
       {isServiceLanding ? <ServiceLandingHeaderV2 /> : <PublicHeaderV2 />}
       <main>{children}</main>
+      {!isServiceLanding && <CorporateFooterV2 />}
     </>
   );
 }
@@ -82,6 +88,14 @@ function Router() {
     <AppShell>
       <Switch>
           <Route path="/" component={HomeV2} />
+          <Route path="/nosotros" component={AboutV2} />
+          <Route path="/marcas" component={BrandsV2} />
+          <Route path="/marcas/panduit" component={InfrastructureV2} />
+          <Route path="/marcas/:slug" component={BrandLandingV2} />
+          <Route path="/cotizacion" component={QuoteV2} />
+          <Route path="/blog" component={BlogIndexV2} />
+          <Route path="/blog/:slug" component={BlogPostV2} />
+          <Route path="/soluciones/polizas-servicios" component={ServiceLandingV2} />
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
           <Route path="/soluciones/infraestructura" component={InfrastructureV2} />
