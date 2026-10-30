@@ -235,10 +235,10 @@ export const solutions: Solution[] = [
 // Public solution routes use different slugs from the marketing catalog.
 export const solutionDestinations: Record<string, string> = {
   infraestructura: "/soluciones/infraestructura",
-  "edificios-inteligentes": "/contacto?solucion=edificios-inteligentes",
+  "edificios-inteligentes": "/soluciones/edificios-inteligentes",
   "seguridad-cctv": "/soluciones/cctv",
   "control-acceso": "/soluciones/control-acceso",
   rfid: "/soluciones/rfid",
-  energia: "/contacto",
+  energia: "/soluciones/energia",
   "desarrollo-ia": "/soluciones/software-ia",
 };

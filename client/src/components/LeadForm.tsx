@@ -1,3 +1,5 @@
+import { useAttribution } from "@/hooks/useAttribution";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Send, Loader2, Building2, User, Mail, Phone, Factory, Users, MessageSquare } from "lucide-react";
@@ -25,6 +27,8 @@ const COMPANY_SIZES = [
 ];
 
 export default function LeadForm({ onSuccess, verticalSlug, source = "form", compact = false }: LeadFormProps) {
+  const attribution = useAttribution();
+  const { trackEvent } = useAnalytics();
   const [form, setForm] = useState({
     company: "",
     contactName: "",
@@ -40,6 +44,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
   const createLead = trpc.leads.create.useMutation({
     onSuccess: () => {
       setSubmitted(true);
+      trackEvent("lead_captured", { vertical: verticalSlug ?? "general", sessionId: attribution.sessionId ?? "" });
       onSuccess?.();
     },
   });
@@ -48,6 +53,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
     e.preventDefault();
     if (!form.company || !form.contactName || !form.email) return;
     createLead.mutate({
+      ...attribution,
       ...form,
       companySize: form.companySize || undefined,
       verticalSlug,
@@ -118,6 +124,7 @@ export default function LeadForm({ onSuccess, verticalSlug, source = "form", com
         </div>
       )}
 
+      {createLead.isError && <p role="alert" className="text-sm text-red-400">No pudimos enviar su solicitud. Intente de nuevo o escriba a contacto@iamet.mx.</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Company */}

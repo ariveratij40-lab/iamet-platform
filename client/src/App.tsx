@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
 import HomeV2 from "./pages/HomeV2";
+import ServiceLandingV2 from "./pages/ServiceLandingV2";
 import InfrastructureV2 from "./pages/InfrastructureV2";
 import VerticalLanding from "./pages/VerticalLanding";
 import TechAdvisor from "./pages/TechAdvisor";
@@ -82,6 +83,12 @@ function Router() {
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
           <Route path="/soluciones/infraestructura" component={InfrastructureV2} />
+          <Route path="/soluciones/edificios-inteligentes" component={ServiceLandingV2} />
+          <Route path="/soluciones/cctv" component={ServiceLandingV2} />
+          <Route path="/soluciones/control-acceso" component={ServiceLandingV2} />
+          <Route path="/soluciones/rfid" component={ServiceLandingV2} />
+          <Route path="/soluciones/energia" component={ServiceLandingV2} />
+          <Route path="/soluciones/software-ia" component={ServiceLandingV2} />
           <Route path="/soluciones/:slug" component={VerticalLanding} />
           {/* Industrias */}
           <Route path="/industrias" component={Industrias} />

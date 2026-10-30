@@ -12,6 +12,7 @@ type Props = {
   contactHref: string;
   contactLabel: string;
   portfolioLabel: string;
+  portfolioHref?: string;
   breadcrumbLabel: string;
   homeLabel: string;
   partner?: { image: string; label: string };
@@ -51,15 +52,15 @@ export default function ServiceHeroV2(props: Props) {
             {props.description}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-5">
-            <Link
+            <a
               href={props.contactHref}
               className="inline-flex items-center gap-3 rounded-full bg-blue-600 px-6 py-4 text-sm font-semibold transition hover:bg-blue-500"
             >
               {props.contactLabel}
               <ArrowRight size={17} />
-            </Link>
+            </a>
             <a
-              href="#portafolio"
+              href={props.portfolioHref ?? "#portafolio"}
               className="inline-flex items-center gap-2 py-3 text-sm text-white underline-offset-4 hover:underline"
             >
               {props.portfolioLabel}

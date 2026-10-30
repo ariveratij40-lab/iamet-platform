@@ -1,3 +1,7 @@
+import ServiceConversionV2, {
+  useServiceMetadata,
+} from "@/components/v2/ServiceConversionV2";
+import { solutions } from "@/components/v2/solutionsData";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -73,6 +77,12 @@ export default function InfrastructureV2() {
   const { language } = useLanguage();
   const es = language === "es";
   const i = es ? 0 : 1;
+  useServiceMetadata(
+    es
+      ? "Infraestructura tecnológica Panduit"
+      : "Panduit technology infrastructure",
+    es ? solutions[0].descEs : solutions[0].descEn
+  );
   return (
     <div className="iamet-reference-home bg-[#f4f7fb] text-slate-900">
       <ServiceHeroV2
@@ -91,7 +101,7 @@ export default function InfrastructureV2() {
             : "We design and integrate copper cabling, fiber optics and telecommunications spaces with Panduit solutions, from the network outlet to the rack."
         }
         image="/images/solutions/panduit-high-density-cinematic.png"
-        contactHref="/contacto?solucion=infraestructura"
+        contactHref="#solicitar"
         contactLabel={es ? "Cotizar mi proyecto" : "Discuss my project"}
         portfolioLabel={
           es ? "Explorar portafolio Panduit" : "Explore the Panduit portfolio"
@@ -142,7 +152,10 @@ export default function InfrastructureV2() {
                 key={product.image}
                 className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
               >
-                <div className="flex h-52 items-center justify-center border-b border-slate-100 p-8" style={{ background: "#fff" }}>
+                <div
+                  className="flex h-52 items-center justify-center border-b border-slate-100 p-8"
+                  style={{ background: "#fff" }}
+                >
                   <img
                     src={`/products/panduit/${product.image}`}
                     alt={`Panduit ${product.title[i]} ${product.model}`}
@@ -179,6 +192,13 @@ export default function InfrastructureV2() {
           </p>
         </div>
       </section>
+      <ServiceConversionV2
+        slug="infraestructura"
+        name={es ? "Infraestructura" : "Infrastructure"}
+        capabilities={
+          es ? solutions[0].capabilitiesEs : solutions[0].capabilitiesEn
+        }
+      />
       <CorporateClosingV2 />
     </div>
   );
