@@ -40,6 +40,7 @@ import Soluciones from "./pages/Soluciones";
 import CancelarReunion from "./pages/CancelarReunion";
 import LandingPage from "./pages/LandingPage";
 import Navbar from "./components/Navbar";
+import ServiceLandingHeaderV2 from "./components/v2/ServiceLandingHeaderV2";
 import PublicHeaderV2 from "./components/v2/PublicHeaderV2";
 import { useIsMobile } from "./hooks/useMobile";
 import Login from "./pages/Login";
@@ -54,6 +55,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const isMobile = useIsMobile();
+  const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia)$/.test(location);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
   if (isAdmin) {
@@ -69,7 +71,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <PublicHeaderV2 />
+      {isServiceLanding ? <ServiceLandingHeaderV2 /> : <PublicHeaderV2 />}
       <main>{children}</main>
     </>
   );

@@ -1,3 +1,5 @@
+import InfrastructureServicesV2 from "@/components/v2/InfrastructureServicesV2";
+import InfrastructureStoryV2 from "@/components/v2/InfrastructureStoryV2";
 import ServiceConversionV2, {
   useServiceMetadata,
 } from "@/components/v2/ServiceConversionV2";
@@ -78,10 +80,10 @@ export default function InfrastructureV2() {
   const es = language === "es";
   const i = es ? 0 : 1;
   useServiceMetadata(
+    es ? "Integrador certificado Panduit" : "Panduit technology infrastructure",
     es
-      ? "Infraestructura tecnológica Panduit"
-      : "Panduit technology infrastructure",
-    es ? solutions[0].descEs : solutions[0].descEn
+      ? "Integrador certificado Panduit: instalación de cableado estructurado, fibra óptica, Data Center, ductería, escalerilla tipo malla, DCIM y pruebas con Fluke Networks."
+      : solutions[0].descEn
   );
   return (
     <div className="iamet-reference-home bg-[#f4f7fb] text-slate-900">
@@ -92,12 +94,12 @@ export default function InfrastructureV2() {
         }
         title={
           es
-            ? "Conectamos la base de su operación."
-            : "Connecting the foundation of your operation."
+            ? "Integrador certificado Panduit para su infraestructura."
+            : "Certified Panduit integrator for your infrastructure."
         }
         description={
           es
-            ? "Diseñamos e integramos cableado de cobre, fibra óptica y espacios de telecomunicaciones con soluciones Panduit, desde el punto de red hasta el rack."
+            ? "Diseñamos, instalamos y certificamos cableado estructurado y fibra óptica Panduit. Integramos la infraestructura física de su Data Center, desde las canalizaciones hasta el rack."
             : "We design and integrate copper cabling, fiber optics and telecommunications spaces with Panduit solutions, from the network outlet to the rack."
         }
         image="/images/solutions/panduit-high-density-cinematic.png"
@@ -115,6 +117,8 @@ export default function InfrastructureV2() {
             : "We integrate Panduit solutions for your infrastructure.",
         }}
       />
+      <InfrastructureServicesV2 />
+      <InfrastructureStoryV2 />
       <section
         id="portafolio"
         className="scroll-mt-24 px-5 py-16 sm:px-8 lg:px-12 lg:py-24"
