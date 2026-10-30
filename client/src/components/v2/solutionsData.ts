@@ -82,7 +82,7 @@ export const solutions: Solution[] = [
       "AV collaboration",
       "PoE infrastructure",
     ],
-    image: "/images/solutions/smart-building-cinematic.png",
+    image: "/images/solutions/smart-building-iamet.png",
     icon: Building2,
   },
   {
@@ -111,7 +111,7 @@ export const solutions: Solution[] = [
       "Integration",
       "Storage",
     ],
-    image: "/images/solutions/cctv-installation-cinematic.png",
+    image: "/images/solutions/cctv-installation-iamet.png",
     icon: ShieldCheck,
   },
   {
@@ -140,7 +140,7 @@ export const solutions: Solution[] = [
       "Visitors",
       "CCTV integration",
     ],
-    image: "/images/solutions/access-control-cinematic.png",
+    image: "/images/solutions/access-control-iamet.png",
     icon: Fingerprint,
   },
   {
@@ -169,7 +169,7 @@ export const solutions: Solution[] = [
       "RFID printing",
       "Zebra",
     ],
-    image: "/images/solutions/rfid-traceability-cinematic.png",
+    image: "/images/solutions/rfid-traceability-iamet.png",
     icon: RadioTower,
   },
   {
@@ -198,7 +198,7 @@ export const solutions: Solution[] = [
       "Monitoring",
       "Backup power",
     ],
-    image: "/images/solutions/energy-galaxy-vxl-cinematic.png",
+    image: "/images/solutions/energy-galaxy-vxl-iamet.png",
     icon: Zap,
   },
   {
@@ -227,7 +227,7 @@ export const solutions: Solution[] = [
       "Dashboards",
       "Data",
     ],
-    image: "/images/solutions/software-dashboards-cinematic.png",
+    image: "/images/solutions/software-dashboards-iamet.png",
     icon: Bot,
   },
 ];
