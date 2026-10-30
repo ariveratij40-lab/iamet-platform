@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
 import HomeV2 from "./pages/HomeV2";
+import InfrastructureV2 from "./pages/InfrastructureV2";
 import VerticalLanding from "./pages/VerticalLanding";
 import TechAdvisor from "./pages/TechAdvisor";
 import Academy from "./pages/Academy";
@@ -80,6 +81,7 @@ function Router() {
           <Route path="/" component={HomeV2} />
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
+          <Route path="/soluciones/infraestructura" component={InfrastructureV2} />
           <Route path="/soluciones/:slug" component={VerticalLanding} />
           {/* Industrias */}
           <Route path="/industrias" component={Industrias} />
