@@ -2,10 +2,32 @@ export const companyIdentity = {
   name: "IAMET",
   coverage: ["Tijuana", "Mexicali", "Tecate", "Ensenada"],
   vision:
-    "Ser una empresa líder que agregue valor a nuestros clientes, en asociación con marcas de calidad de clase mundial, garantizando la continuidad de las soluciones tecnológicas implementadas.",
+    "Ser una empresa líder en integración tecnológica, reconocida por combinar ingeniería e inteligencia artificial para desarrollar soluciones confiables y eficientes, en alianza con marcas de clase mundial, contribuyendo a la continuidad y evolución de las operaciones de nuestros clientes.",
   mission:
-    "Sorprender y superar las expectativas de nuestros socios de negocios, con una comunicación eficaz y utilizando herramientas que midan y den claridad a lo que hacemos, logrando la plenitud y satisfacción de nuestros clientes y equipos de trabajo.",
-  values: ["Pasión", "Disciplina", "Constancia", "Compromiso"],
+    "Integramos soluciones tecnológicas y brindamos servicios que agregan valor a la operación de nuestros clientes. Aplicamos ingeniería, inteligencia artificial y automatización para agilizar procesos y mejorar resultados, con comunicación clara, supervisión profesional y compromiso con la calidad.",
+  values: [
+    {
+      name: "Pasión",
+      description:
+        "Nos involucramos con entusiasmo en cada proyecto y buscamos nuevas formas de aportar valor.",
+    },
+    {
+      name: "Disciplina",
+      description:
+        "Trabajamos con orden y método, verificando la calidad de nuestros procesos y resultados.",
+    },
+    {
+      name: "Constancia",
+      description:
+        "Damos seguimiento a los proyectos y perseveramos en la mejora continua.",
+    },
+    {
+      name: "Compromiso",
+      description:
+        "Asumimos la responsabilidad de nuestras decisiones y cumplimos lo acordado con clientes, aliados y equipo de trabajo.",
+    },
+  ],
+  ai: "En IAMET incorporamos inteligencia artificial y automatización para apoyar el análisis de información, la documentación, el desarrollo de aplicaciones y el seguimiento de procesos. Combinamos estas herramientas con el criterio y la experiencia de nuestro equipo para reducir tareas repetitivas, facilitar decisiones y atender con mayor agilidad las necesidades de nuestros clientes.",
 };
 
 export const businessServices = [

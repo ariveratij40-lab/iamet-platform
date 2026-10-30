@@ -135,16 +135,39 @@ export function AboutV2() {
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {companyIdentity.values.map((value, index) => (
               <li
-                key={value}
+                key={value.name}
                 className="rounded-xl border border-blue-300/20 p-6"
               >
                 <span aria-hidden="true" className="text-xs text-blue-400">
                   0{index + 1}
                 </span>
-                <p className="mt-3 text-lg font-bold">{value}</p>
+                <p className="mt-3 text-lg font-bold">{value.name}</p>
+                <p className="mt-4 text-sm leading-7 text-slate-300">
+                  {value.description}
+                </p>
               </li>
             ))}
           </ul>
+        </section>
+        <section
+          className="mt-12 rounded-2xl border border-blue-400/30 bg-gradient-to-br from-[#10283d] to-[#0a1b32] p-7 sm:p-10"
+          aria-labelledby="iamet-ai"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[.2em] text-blue-400">
+            Ingeniería e inteligencia artificial
+          </p>
+          <h2 id="iamet-ai" className="mt-4 text-2xl font-bold sm:text-3xl">
+            Cómo aplicamos la inteligencia artificial
+          </h2>
+          <p className="mt-5 max-w-[900px] leading-8 text-slate-300">
+            {companyIdentity.ai}
+          </p>
+          <Link
+            href="/soluciones/software-ia"
+            className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-blue-300 hover:underline"
+          >
+            Conocer desarrollo y aplicaciones IA <ArrowRight size={16} />
+          </Link>
         </section>
         <section
           className="mt-12 rounded-2xl border border-blue-300/20 bg-[#10283d] p-7 sm:p-8"
