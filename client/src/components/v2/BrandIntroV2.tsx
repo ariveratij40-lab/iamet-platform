@@ -5,7 +5,7 @@ import { RotateCcw } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import IametTechLogoV2 from "./IametTechLogoV2";
 
-const SESSION_KEY = "iamet-brand-intro-v4";
+const SESSION_KEY = "iamet-brand-intro-v5";
 export default function BrandIntroV2() {
   const { language } = useLanguage();
   const es = language === "es";
@@ -65,7 +65,7 @@ export default function BrandIntroV2() {
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="iamet-brand-intro text-white fixed inset-0 z-[100] flex items-center justify-center bg-[#030c16] px-8"
+              className="iamet-brand-intro text-white fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#030c16] px-6"
               onKeyDown={event => {
                 if (event.key === "Escape") close();
                 if (event.key === "Tab") {
@@ -75,12 +75,49 @@ export default function BrandIntroV2() {
               }}
             >
               <div
+                className="iamet-intro-atmosphere pointer-events-none absolute inset-0"
+                aria-hidden="true"
+              >
+                <div className="iamet-intro-aura" />
+                <div className="iamet-intro-floor" />
+                <div className="iamet-intro-orbit iamet-intro-orbit-outer">
+                  <i />
+                </div>
+                <div className="iamet-intro-orbit iamet-intro-orbit-inner">
+                  <i />
+                </div>
+                <svg
+                  className="iamet-intro-circuits"
+                  viewBox="0 0 1440 900"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <g fill="none" stroke="currentColor" strokeWidth="1">
+                    <path d="M0 220H270L420 370H560M0 700H240L430 510H560M1440 170H1180L990 360H900M1440 710H1150L970 530H900M370 0V170L580 380M1090 900V720L900 530" />
+                  </g>
+                  <g
+                    className="iamet-intro-flow"
+                    fill="none"
+                    stroke="#77c7ff"
+                    strokeWidth="2"
+                  >
+                    <path d="M0 220H270L420 370H560M0 700H240L430 510H560M1440 170H1180L990 360H900M1440 710H1150L970 530H900" />
+                  </g>
+                </svg>
+                <div className="iamet-intro-light-sweep" />
+                <span className="iamet-intro-corner iamet-intro-corner-tl" />
+                <span className="iamet-intro-corner iamet-intro-corner-tr" />
+                <span className="iamet-intro-corner iamet-intro-corner-bl" />
+                <span className="iamet-intro-corner iamet-intro-corner-br" />
+              </div>
+              <div
                 className="iamet-intro-grid pointer-events-none absolute inset-0"
                 aria-hidden="true"
               />
-              <div className="relative w-full max-w-[520px]">
-                <p className="mb-10 text-center font-mono text-[10px] tracking-[.4em] text-cyan-500/70">
-                  INGENIERÍA · INTEGRACIÓN · TECNOLOGÍA
+              <div className="iamet-intro-content relative w-full max-w-[600px]">
+                <p className="mb-10 text-center text-[9px] font-semibold leading-6 tracking-[.22em] text-blue-200/75 sm:text-[10px] sm:tracking-[.35em]">
+                  {es
+                    ? "INGENIERÍA · INTEGRACIÓN · INTELIGENCIA ARTIFICIAL"
+                    : "ENGINEERING · INTEGRATION · ARTIFICIAL INTELLIGENCE"}
                 </p>
                 <div className="iamet-intro-logo px-3 sm:px-6">
                   <IametTechLogoV2 />
