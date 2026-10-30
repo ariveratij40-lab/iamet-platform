@@ -25,6 +25,7 @@ export default function InfrastructureMasterBannerV2() {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [autoplayPaused, setAutoplayPaused] = useState(Boolean(reduceMotion));
+  const [mediaPaused, setMediaPaused] = useState(Boolean(reduceMotion));
 
   const slideDuration =
     solutions[index].slideDurationMs ?? (solutions[index].video ? 12000 : 7000);
@@ -122,7 +123,7 @@ export default function InfrastructureMasterBannerV2() {
               image={active.image}
               video={active.video}
               cinematicDepth={active.id === "edificios-inteligentes"}
-              paused={autoplayPaused || hovered || focused}
+              paused={mediaPaused}
               reduceMotion={Boolean(reduceMotion)}
             />
           </motion.div>
@@ -280,6 +281,7 @@ export default function InfrastructureMasterBannerV2() {
             <button
               type="button"
               onClick={event => {
+                setMediaPaused(!autoplayPaused);
                 setAutoplayPaused(paused => !paused);
                 event.currentTarget.blur();
               }}
