@@ -1,3 +1,4 @@
+import InfrastructureVisualGuideV2 from "@/components/v2/InfrastructureVisualGuideV2";
 import InfrastructureServicesV2 from "@/components/v2/InfrastructureServicesV2";
 import InfrastructureStoryV2 from "@/components/v2/InfrastructureStoryV2";
 import ServiceConversionV2, {
@@ -117,6 +118,7 @@ export default function InfrastructureV2() {
             : "We integrate Panduit solutions for your infrastructure.",
         }}
       />
+      <InfrastructureVisualGuideV2 />
       <InfrastructureServicesV2 />
       <InfrastructureStoryV2 />
       <section

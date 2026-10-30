@@ -47,7 +47,7 @@ export default function InfrastructureStoryV2() {
             "Racks y distribución de conexiones",
             "Rutas organizadas para mantenimiento",
           ],
-          image: "/images/solutions/smart-building-iamet.png",
+          image: "/images/panduit-building/office-cabling.webp",
         },
         {
           id: "industria",
@@ -60,7 +60,7 @@ export default function InfrastructureStoryV2() {
             "Distribución de cobre para puntos de red",
             "Organización de cuartos de telecomunicaciones",
           ],
-          image: "/images/solutions/rfid-traceability-iamet.png",
+          image: "/images/panduit-building/telecom-room.webp",
         },
         {
           id: "data-center",
@@ -73,7 +73,7 @@ export default function InfrastructureStoryV2() {
             "Charolas y paneles de fibra óptica",
             "Racks y organización de cableado",
           ],
-          image: "/images/solutions/panduit-high-density-cinematic.png",
+          image: "/images/panduit-building/data-center.webp",
         },
       ]
     : [
@@ -88,7 +88,7 @@ export default function InfrastructureStoryV2() {
             "Racks and connection distribution",
             "Organized routes for maintenance",
           ],
-          image: "/images/solutions/smart-building-iamet.png",
+          image: "/images/panduit-building/office-cabling.webp",
         },
         {
           id: "industria",
@@ -101,7 +101,7 @@ export default function InfrastructureStoryV2() {
             "Copper network distribution",
             "Organized telecommunications rooms",
           ],
-          image: "/images/solutions/rfid-traceability-iamet.png",
+          image: "/images/panduit-building/telecom-room.webp",
         },
         {
           id: "data-center",
@@ -114,7 +114,7 @@ export default function InfrastructureStoryV2() {
             "Fiber trays and adapter panels",
             "Racks and cable management",
           ],
-          image: "/images/solutions/panduit-high-density-cinematic.png",
+          image: "/images/panduit-building/data-center.webp",
         },
       ];
   const icons = [Cable, Network, Layers];
@@ -193,7 +193,7 @@ export default function InfrastructureStoryV2() {
                 >
                   <img
                     src={item.image}
-                    alt={item.name}
+                    alt={`${item.name} · Ilustración de aplicación Panduit`}
                     className="h-full max-h-[480px] w-full object-cover object-right"
                     loading="lazy"
                   />
