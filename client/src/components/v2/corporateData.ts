@@ -1,3 +1,13 @@
+export const companyIdentity = {
+  name: "IAMET",
+  coverage: ["Tijuana", "Mexicali", "Tecate", "Ensenada"],
+  vision:
+    "Ser una empresa líder que agregue valor a nuestros clientes, en asociación con marcas de calidad de clase mundial, garantizando la continuidad de las soluciones tecnológicas implementadas.",
+  mission:
+    "Sorprender y superar las expectativas de nuestros socios de negocios, con una comunicación eficaz y utilizando herramientas que midan y den claridad a lo que hacemos, logrando la plenitud y satisfacción de nuestros clientes y equipos de trabajo.",
+  values: ["Pasión", "Disciplina", "Constancia", "Compromiso"],
+};
+
 export const businessServices = [
   {
     slug: "infraestructura",

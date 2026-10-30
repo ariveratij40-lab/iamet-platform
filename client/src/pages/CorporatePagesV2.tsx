@@ -1,6 +1,10 @@
 import { Link, useParams } from "wouter";
 import { ArrowRight } from "lucide-react";
-import { brands, businessServices } from "@/components/v2/corporateData";
+import {
+  brands,
+  businessServices,
+  companyIdentity,
+} from "@/components/v2/corporateData";
 import ServiceHeroV2 from "@/components/v2/ServiceHeroV2";
 import ServiceConversionV2, {
   useServiceMetadata,
@@ -84,7 +88,7 @@ export function CorporateOverviewV2() {
 export function AboutV2() {
   useServiceMetadata(
     "Quiénes somos",
-    "IAMET: integración y servicios de soluciones en tecnología para empresas."
+    "IAMET: integración y servicios tecnológicos en Tijuana, Mexicali, Tecate y Ensenada. Conozca nuestra misión, visión y valores."
   );
   return (
     <div className="iamet-reference-home min-h-screen bg-[#061524] text-white">
@@ -101,6 +105,73 @@ export function AboutV2() {
           los proyectos de infraestructura, seguridad, energía, identificación,
           aplicaciones y continuidad operativa de nuestros clientes.
         </p>
+        <section
+          className="mt-12 grid gap-6 md:grid-cols-2"
+          aria-label="Misión y visión de IAMET"
+        >
+          <article className="rounded-2xl border border-blue-300/20 bg-[#10283d] p-7 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[.2em] text-blue-400">
+              Nuestro propósito
+            </p>
+            <h2 className="mt-4 text-2xl font-bold">Misión</h2>
+            <p className="mt-5 leading-8 text-slate-300">
+              {companyIdentity.mission}
+            </p>
+          </article>
+          <article className="rounded-2xl border border-blue-300/20 bg-[#10283d] p-7 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[.2em] text-blue-400">
+              Hacia dónde vamos
+            </p>
+            <h2 className="mt-4 text-2xl font-bold">Visión</h2>
+            <p className="mt-5 leading-8 text-slate-300">
+              {companyIdentity.vision}
+            </p>
+          </article>
+        </section>
+        <section className="mt-12" aria-labelledby="iamet-values">
+          <h2 id="iamet-values" className="text-2xl font-bold">
+            Nuestros valores
+          </h2>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {companyIdentity.values.map((value, index) => (
+              <li
+                key={value}
+                className="rounded-xl border border-blue-300/20 p-6"
+              >
+                <span aria-hidden="true" className="text-xs text-blue-400">
+                  0{index + 1}
+                </span>
+                <p className="mt-3 text-lg font-bold">{value}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section
+          className="mt-12 rounded-2xl border border-blue-300/20 bg-[#10283d] p-7 sm:p-8"
+          aria-labelledby="iamet-coverage"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[.2em] text-blue-400">
+            Baja California
+          </p>
+          <h2 id="iamet-coverage" className="mt-4 text-2xl font-bold">
+            Nuestra cobertura
+          </h2>
+          <p className="mt-5 leading-8 text-slate-300">
+            Atendemos proyectos en{" "}
+            {companyIdentity.coverage.slice(0, -1).join(", ")} y{" "}
+            {companyIdentity.coverage.at(-1)}.
+          </p>
+          <ul className="mt-6 flex flex-wrap gap-3">
+            {companyIdentity.coverage.map(city => (
+              <li
+                key={city}
+                className="rounded-full border border-blue-400/30 px-5 py-2 text-sm text-blue-200"
+              >
+                {city}
+              </li>
+            ))}
+          </ul>
+        </section>
         <h2 className="mt-12 text-2xl font-bold">Nuestra forma de trabajar</h2>
         <p className="mt-5 max-w-[800px] leading-8 text-slate-300">
           Partimos de la necesidad del cliente, definimos el alcance técnico e
@@ -228,9 +299,9 @@ export function QuoteV2() {
           Solicite una propuesta para su proyecto.
         </h1>
         <p className="mt-6 max-w-[700px] leading-8 text-slate-300">
-          Indique la solución, la marca de interés y lo que necesita resolver.
-          Revisaremos el alcance para preparar la propuesta; el envío no genera
-          un precio automático.
+          Atendemos Tijuana, Mexicali, Tecate y Ensenada. Indique la solución,
+          la marca de interés y lo que necesita resolver. Revisaremos el alcance
+          para preparar la propuesta; el envío no genera un precio automático.
         </p>
         <div className="mt-10 grid gap-8 lg:grid-cols-[.7fr_1.3fr]">
           <div className="space-y-6">

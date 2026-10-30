@@ -38,7 +38,7 @@ Existing CRM stages: new, contacted, qualified, proposal, won, lost. Production 
 
 The blog starts with seven original evergreen guides, one per business service, with category filtering and links to quote requests. These are guides, not invented news or product release announcements. Further news requires sourced editorial content. There is no automatic publishing schedule or new CMS in this change.
 
-Pending company-provided content: institutional values, mission/vision if used, actual service coverage, contact details beyond the existing email and current certification evidence. No values, years of operation, service regions, partner levels or certifications for additional brands were invented.
+Company-provided mission, vision and values (Pasión, Disciplina, Constancia, Compromiso) are published in /nosotros. Confirmed coverage: Tijuana, Mexicali, Tecate and Ensenada. Pending: contact details beyond the existing email and current certification evidence. No years of operation, additional service regions, partner levels or certifications for additional brands were invented.
 
 Manufacturer references used for high-level brand scope:
 - https://www.panduit.com/

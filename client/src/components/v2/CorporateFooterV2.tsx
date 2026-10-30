@@ -1,3 +1,4 @@
+import { companyIdentity } from "./corporateData";
 import { Link } from "wouter";
 export default function CorporateFooterV2() {
   return (
@@ -7,6 +8,9 @@ export default function CorporateFooterV2() {
           <p className="font-bold">IAMET</p>
           <p className="mt-2 text-sm text-slate-400">
             Integración y servicios de soluciones en tecnología.
+          </p>
+          <p className="mt-3 text-xs leading-6 text-slate-400">
+            {companyIdentity.coverage.join(" · ")}
           </p>
           <a
             className="mt-3 inline-block text-sm text-blue-300"

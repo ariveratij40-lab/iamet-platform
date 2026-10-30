@@ -1,3 +1,4 @@
+import { companyIdentity } from "./corporateData";
 import { useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import LeadForm from "@/components/LeadForm";
@@ -124,6 +125,10 @@ export default function ServiceConversionV2({
               {es
                 ? "Comparta sus datos y lo que necesita resolver. Nuestro equipo revisará el requerimiento para definir el siguiente paso con usted."
                 : "Share your details and requirements. Our team will review your request and define the next step with you."}
+            </p>
+            <p className="mt-6 text-sm leading-7 text-slate-300">
+              {es ? "Cobertura: " : "Service coverage: "}
+              {companyIdentity.coverage.join(" · ")}
             </p>
             <p className="mt-6 text-sm text-slate-400">
               {es ? "Contacto directo:" : "Direct contact:"}{" "}
