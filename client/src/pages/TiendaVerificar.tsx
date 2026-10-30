@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 
 export default function TiendaVerificar() {
   const [, navigate] = useLocation();
+  const returnTo=new URLSearchParams(window.location.search).get("returnTo");
+  const loginDestination=returnTo === "/garantias" ? "/tienda/login?returnTo=/garantias" : "/tienda/login";
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
   const verifyMutation = trpc.storeAuth.verifyEmail.useMutation({
     onSuccess: () => {
       setStatus("success");
-      setTimeout(() => navigate("/tienda/login"), 2500);
+      setTimeout(() => navigate(loginDestination), 2500);
     },
     onError: (e: { message: string }) => {
       setErrorMsg(e.message);
@@ -63,7 +65,7 @@ export default function TiendaVerificar() {
             <XCircle className="h-12 w-12 text-red-400 mx-auto" />
             <h2 className="text-xl font-bold text-white">Error de verificación</h2>
             <p className="text-sm text-slate-400">{errorMsg || "El enlace es inválido o ha expirado."}</p>
-            <Button onClick={() => navigate("/tienda/login")} className="w-full bg-cyan-500 hover:bg-cyan-600 text-black">
+            <Button onClick={() => navigate(loginDestination)} className="w-full bg-cyan-500 hover:bg-cyan-600 text-black">
               Ir al login
             </Button>
           </>

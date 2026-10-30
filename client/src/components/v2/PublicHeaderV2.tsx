@@ -18,6 +18,7 @@ export default function PublicHeaderV2() {
     { href: "/soluciones", label: es ? "Soluciones" : "Solutions" },
     { href: "/marcas", label: es ? "Marcas" : "Brands" },
     { href: "/blog", label: "Blog" },
+    { href: "/garantias", label: es ? "Garantías" : "Warranty" },
   ];
   const active = (href: string) =>
     location === href || (href !== "/" && location.startsWith(`${href}/`));
@@ -48,7 +49,7 @@ export default function PublicHeaderV2() {
 
         <nav
           aria-label={es ? "Navegación principal" : "Main navigation"}
-          className="ml-auto hidden h-full items-center gap-5 lg:flex xl:gap-7"
+          className="ml-auto hidden h-full items-center gap-5 xl:flex xl:gap-7"
         >
           {items.map(item =>
             item.href === "/soluciones" || item.href === "/industrias" ? (
@@ -69,7 +70,7 @@ export default function PublicHeaderV2() {
           )}
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-4 border-l border-slate-200 pl-5 lg:flex xl:pl-7">
+        <div className="hidden shrink-0 items-center gap-4 border-l border-slate-200 pl-5 xl:flex xl:pl-7">
           <button
             type="button"
             onClick={toggleLanguage}
@@ -92,7 +93,7 @@ export default function PublicHeaderV2() {
         <button
           id="public-menu-toggle"
           type="button"
-          className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 lg:hidden"
+          className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 xl:hidden"
           onClick={() => setMobileOpen(open => !open)}
           aria-label={
             es
@@ -117,7 +118,7 @@ export default function PublicHeaderV2() {
       {mobileOpen && (
         <div
           id="public-mobile-menu"
-          className="absolute inset-x-0 top-full max-h-[calc(100dvh-80px)] overflow-y-auto border-b border-t border-slate-200 bg-white px-5 py-4 shadow-lg lg:hidden"
+          className="absolute inset-x-0 top-full max-h-[calc(100dvh-80px)] overflow-y-auto border-b border-t border-slate-200 bg-white px-5 py-4 shadow-lg xl:hidden"
         >
           <nav
             aria-label={es ? "Navegación móvil" : "Mobile navigation"}

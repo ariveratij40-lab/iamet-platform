@@ -29,6 +29,7 @@ export default function CorporateFooterV2() {
             ["/marcas", "Marcas"],
             ["/blog", "Blog"],
             ["/cotizacion", "Cotización"],
+              ["/garantias", "Garantías y mi cuenta"],
             ["/contacto", "Contacto"],
             ["/industrias", "Industrias"],
             ["/tienda", "Tienda"],

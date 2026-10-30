@@ -134,7 +134,7 @@ async function startServer() {
       },
       credentials: true, // Necesario para cookies de sesión OAuth
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Store-Token"],
     })
   );
 

@@ -1,3 +1,5 @@
+import Warranties from "./pages/Warranties";
+import AdminWarranties from "./pages/AdminWarranties";
 import {useEffect} from "react";
 import CorporateFooterV2 from "./components/v2/CorporateFooterV2";
 import { AboutV2, BrandsV2, BrandLandingV2, QuoteV2 } from "./pages/CorporatePagesV2";
@@ -93,6 +95,7 @@ function Router() {
           <Route path="/marcas/panduit" component={InfrastructureV2} />
           <Route path="/marcas/:slug" component={BrandLandingV2} />
           <Route path="/cotizacion" component={QuoteV2} />
+          <Route path="/garantias" component={Warranties} />
           <Route path="/blog" component={BlogIndexV2} />
           <Route path="/blog/:slug" component={BlogPostV2} />
           <Route path="/soluciones/polizas-servicios" component={ServiceLandingV2} />
@@ -138,6 +141,7 @@ function Router() {
           <Route path="/admin/tienda">{() => <AdminGuard><AdminTienda /></AdminGuard>}</Route>
           <Route path="/admin/reuniones">{() => <AdminGuard><AdminReuiones /></AdminGuard>}</Route>
           <Route path="/admin/seguimientos">{() => <AdminGuard><AdminSeguimientos /></AdminGuard>}</Route>
+          <Route path="/admin/garantias">{() => <AdminGuard><AdminWarranties /></AdminGuard>}</Route>
           <Route path="/admin/crm">{() => <AdminGuard><AdminCRM /></AdminGuard>}</Route>
           <Route path="/admin/intelligence">{() => <AdminGuard><AdminIntelligence /></AdminGuard>}</Route>
           <Route path="/admin/agent">{() => <AdminGuard><AdminAgent /></AdminGuard>}</Route>

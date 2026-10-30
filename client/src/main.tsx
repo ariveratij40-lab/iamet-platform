@@ -1,3 +1,4 @@
+import {getStoreToken} from "./hooks/useStoreSession";
 import { trpc } from "@/lib/trpc";
 import { getSubscriberToken } from "@/hooks/useSubscriberAuth";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
@@ -9,6 +10,11 @@ import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient();
+// Account transitions must not reuse another customer's cached tickets or invoices.
+window.addEventListener("store-session-change", () => queryClient.clear());
+window.addEventListener("storage", event => {
+  if (event.key === "iamet_store_token" || event.key === "iamet_store_user") queryClient.clear();
+});
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -46,7 +52,7 @@ const trpcClient = trpc.createClient({
       transformer: superjson,
       headers() {
         const subToken = getSubscriberToken();
-        return subToken ? { Authorization: `Bearer ${subToken}` } : {};
+        return {...(subToken ? { Authorization: `Bearer ${subToken}` } : {}), ...(getStoreToken() ? {"X-Store-Token": getStoreToken()!} : {})};
       },
       fetch(input, init) {
         return globalThis.fetch(input, {

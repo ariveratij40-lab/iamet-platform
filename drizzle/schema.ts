@@ -588,3 +588,41 @@ export const subscriberSessions = pgTable("subscriber_sessions", {
 });
 export type SubscriberSession = typeof subscriberSessions.$inferSelect;
 export type InsertSubscriberSession = typeof subscriberSessions.$inferInsert;
+
+// Customer warranty portal. Invoice data stays private in the database, never public storage.
+export const customerOrders = pgTable("customer_orders", {
+  id: serial("id").primaryKey(),
+  storeUserId: integer("store_user_id").notNull().references(() => storeUsers.id),
+  reference: varchar("reference", {length:64}).notNull().unique(),
+  kind: varchar("kind", {length:24}).notNull(),
+  description: text("description").notNull(),
+  status: varchar("status", {length:24}).notNull().default("received"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export const warrantyTickets = pgTable("warranty_tickets", {
+  id: serial("id").primaryKey(),
+  storeUserId: integer("store_user_id").notNull().references(() => storeUsers.id),
+  reference: varchar("reference", {length:40}).notNull().unique(),
+  product: varchar("product", {length:180}).notNull(),
+  description: text("description").notNull(),
+  purchaseReference: varchar("purchase_reference", {length:120}),
+  status: varchar("status", {length:32}).notNull().default("received"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export const warrantyInvoices = pgTable("warranty_invoices", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull().unique().references(() => warrantyTickets.id, {onDelete:"cascade"}),
+  filename: varchar("filename", {length:180}).notNull(),
+  mimeType: varchar("mime_type", {length:40}).notNull(),
+  data: text("data").notNull(),
+});
+export const warrantyUpdates = pgTable("warranty_updates", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull().references(() => warrantyTickets.id, {onDelete:"cascade"}),
+  author: varchar("author", {length:16}).notNull(),
+  message: text("message").notNull(),
+  status: varchar("status", {length:32}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

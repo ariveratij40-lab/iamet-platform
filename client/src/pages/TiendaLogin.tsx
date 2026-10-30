@@ -46,7 +46,10 @@ export function clearStoreSession() {
 
 export default function TiendaLogin() {
   const [, navigate] = useLocation();
-  const [mode, setMode] = useState<Mode>("login");
+  const params=new URLSearchParams(window.location.search);
+  const returnTo=params.get("returnTo");
+  const destination=returnTo?.startsWith("/garantias") ? "/garantias#portal" : returnTo === "/tienda/perfil" ? returnTo : "/tienda";
+  const [mode, setMode] = useState<Mode>(params.get("mode")==="register"?"register":"login");
   const [showPass, setShowPass] = useState(false);
   const [showPass2, setShowPass2] = useState(false);
 
@@ -61,7 +64,8 @@ export default function TiendaLogin() {
     onSuccess: (data) => {
       saveStoreSession(data.token, data.user);
       toast.success(`¡Bienvenido, ${data.user.name}!`);
-      navigate("/tienda");
+      window.dispatchEvent(new Event("store-session-change"));
+      navigate(destination);
     },
     onError: (e) => toast.error(e.message),
   });
@@ -96,6 +100,7 @@ export default function TiendaLogin() {
       phone: regForm.phone.trim() || undefined,
       company: regForm.company.trim() || undefined,
       origin: window.location.origin,
+      returnTo: destination.startsWith("/garantias") ? "/garantias" : "/tienda",
     });
   };
 
@@ -117,9 +122,9 @@ export default function TiendaLogin() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 mb-4">
               <ShoppingBag className="h-8 w-8 text-cyan-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white">IAMET Tienda</h1>
+            <h1 className="text-2xl font-bold text-white">Cuenta de cliente IAMET</h1>
             <p className="text-sm text-slate-400 mt-1">
-              {mode === "login" && "Inicia sesión para acceder al catálogo"}
+              {mode === "login" && "Acceda a garantías, pedidos, órdenes y cotizaciones"}
               {mode === "register" && "Crea tu cuenta para solicitar cotizaciones"}
               {mode === "forgot" && "Recupera tu contraseña"}
               {mode === "forgot_sent" && "Revisa tu correo"}
@@ -380,7 +385,7 @@ export default function TiendaLogin() {
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-600 mt-4">
-          IAMET Evolución Tecnológica · Tienda en línea
+          IAMET · Portal de clientes
         </p>
       </div>
     </div>

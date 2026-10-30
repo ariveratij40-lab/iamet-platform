@@ -16,8 +16,11 @@ function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-function makeVerifyUrl(origin: string, token: string) {
-  return `${origin}/tienda/verificar-email?token=${token}`;
+function makeVerifyUrl(origin: string, token: string, returnTo?: "/garantias" | "/tienda") {
+  const url=new URL(`${origin}/tienda/verificar-email`);
+  url.searchParams.set("token", token);
+  if(returnTo)url.searchParams.set("returnTo",returnTo);
+  return url.toString();
 }
 
 function makeResetUrl(origin: string, token: string) {
@@ -35,6 +38,7 @@ export const storeAuthRouter = router({
         phone: z.string().optional(),
         company: z.string().optional(),
         origin: z.string().url(),
+        returnTo: z.enum(["/garantias", "/tienda"]).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -66,7 +70,7 @@ export const storeAuthRouter = router({
         tokenExpiry,
       });
 
-      const verifyUrl = makeVerifyUrl(input.origin, verificationToken);
+      const verifyUrl = makeVerifyUrl(input.origin, verificationToken, input.returnTo);
 
       await sendVerificationEmail({
         to: input.email,

@@ -33,6 +33,7 @@ const menuItems = [
   { icon: CalendarDays, label: "Reuniones", path: "/admin/reuniones" },
   { icon: Mail, label: "Seguimientos", path: "/admin/seguimientos" },
   { icon: TrendingUp, label: "CRM", path: "/admin/crm" },
+  { icon: ShoppingBag, label: "Garantías y órdenes", path: "/admin/garantias" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
