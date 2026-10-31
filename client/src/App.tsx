@@ -15,6 +15,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import HomeV2 from "./pages/HomeV2";
 const ServiceLandingV2 = lazy(() => import("./pages/ServiceLandingV2"));
+const StructuredCablingV2 = lazy(() => import("./pages/StructuredCablingV2"));
 const InfrastructureV2 = lazy(() => import("./pages/InfrastructureV2"));
 const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
 const TechAdvisor = lazy(() => import("./pages/TechAdvisor"));
@@ -60,7 +61,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const isMobile = useIsMobile();
   useEffect(() => { if (!window.location.hash) window.scrollTo({top: 0, behavior: "instant"}); }, [location]);
-  const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
+  const isServiceLanding = /^\/soluciones\/(infraestructura|cableado-estructurado|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
   if (location === "/admin/crm" || location === "/admin/garantias" || location === "/admin/campanas") return <>{children}</>;
@@ -105,6 +106,7 @@ function Router() {
           <Route path="/soluciones/polizas-servicios" component={ServiceLandingV2} />
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
+          <Route path="/soluciones/cableado-estructurado" component={StructuredCablingV2} />
           <Route path="/soluciones/infraestructura" component={InfrastructureV2} />
           <Route path="/soluciones/edificios-inteligentes" component={ServiceLandingV2} />
           <Route path="/soluciones/cctv" component={ServiceLandingV2} />

@@ -25,6 +25,9 @@ interface LeadFormProps {
   compact?: boolean;
   context?: string;
   submitLabel?: string;
+  hideBusinessDetails?: boolean;
+  problemLabel?: string;
+  problemPlaceholder?: string;
 }
 
 const INDUSTRIES = [
@@ -55,6 +58,9 @@ export default function LeadForm({
   compact = false,
   context,
   submitLabel = "Solicitar asesoría",
+  hideBusinessDetails = false,
+  problemLabel = "¿Cuál es su principal reto tecnológico?",
+  problemPlaceholder,
 }: LeadFormProps) {
   const formId = useId();
   const attribution = useAttribution();
@@ -352,45 +358,49 @@ export default function LeadForm({
             />
           </div>
 
-          {/* Industry */}
-          <div>
-            <label htmlFor={`${formId}-industry`} className={labelClass}>
-              <Factory className="w-3.5 h-3.5" /> Industria
-            </label>
-            <select
-              id={`${formId}-industry`}
-              value={form.industry}
-              onChange={set("industry")}
-              className={inputClass}
-            >
-              <option value="">Seleccionar industria</option>
-              {INDUSTRIES.map(i => (
-                <option key={i} value={i}>
-                  {i}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!hideBusinessDetails && (
+            <>
+              {/* Industry */}
+              <div>
+                <label htmlFor={`${formId}-industry`} className={labelClass}>
+                  <Factory className="w-3.5 h-3.5" /> Industria
+                </label>
+                <select
+                  id={`${formId}-industry`}
+                  value={form.industry}
+                  onChange={set("industry")}
+                  className={inputClass}
+                >
+                  <option value="">Seleccionar industria</option>
+                  {INDUSTRIES.map(i => (
+                    <option key={i} value={i}>
+                      {i}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Company Size */}
-          <div>
-            <label htmlFor={`${formId}-companySize`} className={labelClass}>
-              <Users className="w-3.5 h-3.5" /> Tamaño de empresa
-            </label>
-            <select
-              id={`${formId}-companySize`}
-              value={form.companySize}
-              onChange={set("companySize")}
-              className={inputClass}
-            >
-              <option value="">Seleccionar tamaño</option>
-              {COMPANY_SIZES.map(s => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Company Size */}
+              <div>
+                <label htmlFor={`${formId}-companySize`} className={labelClass}>
+                  <Users className="w-3.5 h-3.5" /> Tamaño de empresa
+                </label>
+                <select
+                  id={`${formId}-companySize`}
+                  value={form.companySize}
+                  onChange={set("companySize")}
+                  className={inputClass}
+                >
+                  <option value="">Seleccionar tamaño</option>
+                  {COMPANY_SIZES.map(s => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Problem Description */}
@@ -399,12 +409,14 @@ export default function LeadForm({
             htmlFor={`${formId}-problemDescription`}
             className={labelClass}
           >
-            <MessageSquare className="w-3.5 h-3.5" /> ¿Cuál es su principal reto
-            tecnológico?
+            <MessageSquare className="w-3.5 h-3.5" /> {problemLabel}
           </label>
           <textarea
             id={`${formId}-problemDescription`}
-            placeholder="Describa brevemente el problema o necesidad que desea resolver..."
+            placeholder={
+              problemPlaceholder ??
+              "Describa brevemente el problema o necesidad que desea resolver..."
+            }
             value={form.problemDescription}
             onChange={set("problemDescription")}
             rows={3}
