@@ -1,21 +1,10 @@
 import BannerMediaV2 from "./BannerMediaV2";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  ArrowLeft,
-  Pause,
-  Play,
-  ArrowRight,
-  Cable,
-  Network,
-  PanelsTopLeft,
-  Server,
-} from "lucide-react";
+import { ArrowLeft, Pause, Play, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { solutions, solutionDestinations } from "./solutionsData";
-
-const infrastructureIcons = [Server, Network, Cable, PanelsTopLeft];
 
 export default function InfrastructureMasterBannerV2() {
   const { language } = useLanguage();
@@ -48,16 +37,9 @@ export default function InfrastructureMasterBannerV2() {
     : es
       ? active.es
       : active.en;
-  const capabilities = infra
-    ? es
-      ? [
-          "Paneles angulados",
-          "Patch cords 28 AWG",
-          "Racks y organización",
-          "Fibra y charolas",
-        ]
-      : ["Data Center", "Structured cabling", "Fiber optics", "MDF / IDF"]
-    : (es ? active.capabilitiesEs : active.capabilitiesEn).slice(0, 4);
+  const capabilities = (
+    es ? active.capabilitiesEs : active.capabilitiesEn
+  ).slice(0, 4);
   const select = (nextIndex: number) => {
     setAutoplayPaused(true);
     setIndex(nextIndex);
@@ -234,26 +216,42 @@ export default function InfrastructureMasterBannerV2() {
                 </div>
               </div>
             )}
+            {infra && (
+              <div className="mt-5 max-w-[560px]">
+                <p className="text-lg font-semibold leading-7 text-white sm:text-xl">
+                  {es
+                    ? "Cableado estructurado y fibra óptica"
+                    : "Structured cabling and fiber optics"}
+                </p>
+                <p className="mt-2 text-sm leading-7 text-white/80 sm:text-base">
+                  {es
+                    ? "Diseño · Instalación · Certificación · DCIM · Mantenimiento"
+                    : "Design · Installation · Certification · DCIM · Maintenance"}
+                </p>
+              </div>
+            )}
           </motion.div>
         </div>
 
         <div className="mt-12 lg:mt-16">
-          <div className="grid max-w-[680px] grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
-            {capabilities.map((capability, i) => {
-              const Icon = infra ? infrastructureIcons[i] : active.icon;
-              return (
-                <div
-                  key={capability}
-                  className="flex min-w-0 items-start gap-3"
-                >
-                  <Icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
-                  <p className="text-xs font-medium leading-5 text-white/75">
-                    {capability}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          {!infra && (
+            <div className="grid max-w-[680px] grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
+              {capabilities.map(capability => {
+                const Icon = active.icon;
+                return (
+                  <div
+                    key={capability}
+                    className="flex min-w-0 items-start gap-3"
+                  >
+                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                    <p className="text-xs font-medium leading-5 text-white/75">
+                      {capability}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="mt-7 flex items-center gap-3 sm:mt-10">
             <span className="text-xs font-semibold tabular-nums text-white/70">
