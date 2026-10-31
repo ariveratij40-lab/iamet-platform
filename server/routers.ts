@@ -1,3 +1,4 @@
+import {visitorAssistantRouter} from "./routers/visitorAssistant";
 import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
 import { TRPCError } from "@trpc/server";
 import { storeAuthRouter as newStoreAuthRouter } from "./routers/storeAuth";
@@ -937,6 +938,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   adminStoreV2: adminStoreRouter,
   storeAuth: newStoreAuthRouter,
   warranty: warrantyRouter,
+  visitorAssistant: visitorAssistantRouter,
 
   // ─── Smart Calendar ──────────────────────────────────────────────────────────────────────────────
   calendar: router({

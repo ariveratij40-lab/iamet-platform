@@ -1,3 +1,4 @@
+import VisitorAssistantV2 from "./components/v2/VisitorAssistantV2";
 import Warranties from "./pages/Warranties";
 import AdminWarranties from "./pages/AdminWarranties";
 import {useEffect} from "react";
@@ -81,6 +82,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       {isServiceLanding ? <ServiceLandingHeaderV2 /> : <PublicHeaderV2 />}
       <main>{children}</main>
       {!isServiceLanding && <CorporateFooterV2 />}
+      <VisitorAssistantV2 />
     </>
   );
 }

@@ -375,7 +375,7 @@ export function QuoteV2() {
           </div>
           <LeadForm
             submitLabel="Solicitar cotización"
-            source="form"
+            source={params.get("origen") === "asistente" ? "agent" : "form"}
             verticalSlug={service || undefined}
             context={`Solicitud de cotización. Solución: ${businessServices.find(s => s.slug === service)?.name ?? "Por definir"}. Marca: ${brands.find(b => b.slug === brand)?.name ?? "Por definir"}.`}
             compact
