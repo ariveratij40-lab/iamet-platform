@@ -1,3 +1,4 @@
+import { emailBrandLogoUrl } from "./brand";
 import { Resend } from "resend";
 import { ENV } from "./_core/env";
 
@@ -34,8 +35,8 @@ function buildVerificationEmailHtml(params: {
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);padding:32px 40px;text-align:center;">
-              <img src="https://iamettech-ssx5e88n.manus.space/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
-                   alt="IAMET Evolución Tecnológica"
+              <img src="${emailBrandLogoUrl()}"
+                   alt="IAMET · Integración Tecnológica"
                    height="48"
                    style="height:48px;width:auto;object-fit:contain;" />
             </td>
@@ -79,7 +80,7 @@ function buildVerificationEmailHtml(params: {
           <tr>
             <td style="background:#0d0d14;padding:20px 40px;border-top:1px solid #1e2030;text-align:center;">
               <p style="margin:0;font-size:12px;color:#475569;">
-                © 2025 IAMET Evolución Tecnológica — Integrador de Soluciones Tecnológicas
+                © 2025 IAMET · Integración Tecnológica — Integrador de Soluciones Tecnológicas
               </p>
             </td>
           </tr>
@@ -114,8 +115,8 @@ function buildPasswordResetEmailHtml(params: {
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);padding:32px 40px;text-align:center;">
-              <img src="https://iamettech-ssx5e88n.manus.space/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
-                   alt="IAMET Evolución Tecnológica"
+              <img src="${emailBrandLogoUrl()}"
+                   alt="IAMET · Integración Tecnológica"
                    height="48"
                    style="height:48px;width:auto;object-fit:contain;" />
             </td>
@@ -159,7 +160,7 @@ function buildPasswordResetEmailHtml(params: {
           <tr>
             <td style="background:#0d0d14;padding:20px 40px;border-top:1px solid #1e2030;text-align:center;">
               <p style="margin:0;font-size:12px;color:#475569;">
-                © 2025 IAMET Evolución Tecnológica — Integrador de Soluciones Tecnológicas
+                © 2025 IAMET · Integración Tecnológica — Integrador de Soluciones Tecnológicas
               </p>
             </td>
           </tr>
@@ -283,7 +284,7 @@ function buildQuoteNotificationHtml(params: {
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);padding:28px 40px;">
-            <img src="https://iamettech-ssx5e88n.manus.space/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
+            <img src="${emailBrandLogoUrl()}"
                  alt="IAMET" height="40" style="height:40px;width:auto;" />
             <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.85);font-weight:600;">
               Nueva solicitud de cotización recibida
@@ -332,7 +333,7 @@ function buildQuoteNotificationHtml(params: {
         <tr>
           <td style="background:#0d0d14;padding:16px 40px;border-top:1px solid #1e2030;text-align:center;">
             <p style="margin:0;font-size:12px;color:#475569;">
-              © 2025 IAMET Evolución Tecnológica — Notificación automática del sistema
+              © 2025 IAMET · Integración Tecnológica — Notificación automática del sistema
             </p>
           </td>
         </tr>
@@ -389,7 +390,7 @@ function buildMeetingConfirmationHtml(params: {
   cancelToken: string;
   cancelUrl: string;
 }): string {
-  const logoUrl = "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logo-iamet-2026.png";
+  const logoUrl = emailBrandLogoUrl();
   const dateFormatted = new Date(params.date + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return `<!DOCTYPE html>
@@ -402,7 +403,7 @@ function buildMeetingConfirmationHtml(params: {
       <!-- Header -->
       <tr><td style="background:linear-gradient(135deg,#0d1b2a 0%,#1a2744 100%);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;border-bottom:1px solid #1e3a5f;">
         <img src="${logoUrl}" alt="IAMET" style="height:48px;margin-bottom:16px;" />
-        <p style="color:#64b5f6;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0;">Evolución Tecnológica</p>
+        <p style="color:#64b5f6;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0;">Integración Tecnológica</p>
       </td></tr>
       <!-- Body -->
       <tr><td style="background:#0d1b2a;padding:40px;">
@@ -439,7 +440,7 @@ function buildMeetingConfirmationHtml(params: {
       </td></tr>
       <!-- Footer -->
       <tr><td style="background:#060d18;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border-top:1px solid #1e3a5f;">
-        <p style="color:#37474f;font-size:12px;margin:0;">IAMET Evolución Tecnológica · Monterrey, México · <a href="https://iamet.mx" style="color:#546e7a;">iamet.mx</a></p>
+        <p style="color:#37474f;font-size:12px;margin:0;">IAMET · Integración Tecnológica · Monterrey, México · <a href="https://iamet.mx" style="color:#546e7a;">iamet.mx</a></p>
       </td></tr>
     </table>
   </td></tr>
@@ -454,7 +455,7 @@ function buildMeetingCancellationHtml(params: {
   startTime: string;
   topic: string;
 }): string {
-  const logoUrl = "https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/logo-iamet-2026.png";
+  const logoUrl = emailBrandLogoUrl();
   const dateFormatted = new Date(params.date + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   return `<!DOCTYPE html>
 <html lang="es">
@@ -465,7 +466,7 @@ function buildMeetingCancellationHtml(params: {
     <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
       <tr><td style="background:linear-gradient(135deg,#0d1b2a 0%,#1a2744 100%);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;border-bottom:1px solid #1e3a5f;">
         <img src="${logoUrl}" alt="IAMET" style="height:48px;margin-bottom:16px;" />
-        <p style="color:#64b5f6;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0;">Evolución Tecnológica</p>
+        <p style="color:#64b5f6;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:0;">Integración Tecnológica</p>
       </td></tr>
       <tr><td style="background:#0d1b2a;padding:40px;text-align:center;">
         <div style="font-size:48px;margin-bottom:16px;">❌</div>
@@ -475,7 +476,7 @@ function buildMeetingCancellationHtml(params: {
         <p style="color:#546e7a;font-size:13px;margin:0;">Para cualquier duda escríbenos a <a href="mailto:contacto@iamet.mx" style="color:#64b5f6;">contacto@iamet.mx</a></p>
       </td></tr>
       <tr><td style="background:#060d18;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border-top:1px solid #1e3a5f;">
-        <p style="color:#37474f;font-size:12px;margin:0;">IAMET Evolución Tecnológica · Monterrey, México</p>
+        <p style="color:#37474f;font-size:12px;margin:0;">IAMET · Integración Tecnológica · Monterrey, México</p>
       </td></tr>
     </table>
   </td></tr>
@@ -505,7 +506,7 @@ export async function sendMeetingConfirmationEmail(params: {
     const resend = getResend();
     // Email al cliente
     const { error: clientError } = await resend.emails.send({
-      from: "IAMET Evolución Tecnológica <noreply@iamet.mx>",
+      from: "IAMET · Integración Tecnológica <noreply@iamet.mx>",
       to: [params.clientEmail],
       subject: `✅ Reunión confirmada: ${params.startTime} hrs del ${new Date(params.date + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}`,
       html: buildMeetingConfirmationHtml({ ...params, cancelUrl }),
@@ -544,7 +545,7 @@ export async function sendMeetingCancellationEmail(params: {
   try {
     const resend = getResend();
     const { error } = await resend.emails.send({
-      from: "IAMET Evolución Tecnológica <noreply@iamet.mx>",
+      from: "IAMET · Integración Tecnológica <noreply@iamet.mx>",
       to: [params.clientEmail],
       subject: `Reunión cancelada — ${params.date} ${params.startTime} hrs`,
       html: buildMeetingCancellationHtml(params),

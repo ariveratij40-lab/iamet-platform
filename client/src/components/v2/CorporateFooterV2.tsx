@@ -1,3 +1,4 @@
+import IametTechLogoV2 from "./IametTechLogoV2";
 import { companyIdentity } from "./corporateData";
 import { Link } from "wouter";
 export default function CorporateFooterV2() {
@@ -5,7 +6,10 @@ export default function CorporateFooterV2() {
     <footer className="border-t border-white/10 bg-[#06111e] px-5 py-10 text-white">
       <div className="mx-auto flex max-w-[1344px] flex-col justify-between gap-6 md:flex-row">
         <div>
-          <p className="font-bold">IAMET</p>
+          <IametTechLogoV2 className="max-w-[200px] !text-white" />
+          <p className="mt-1 text-[10px] tracking-[.2em] text-slate-300">
+            INTEGRACIÓN TECNOLÓGICA
+          </p>
           <p className="mt-2 text-sm text-slate-400">
             Integración y servicios de soluciones en tecnología.
           </p>
@@ -29,7 +33,7 @@ export default function CorporateFooterV2() {
             ["/marcas", "Marcas"],
             ["/blog", "Blog"],
             ["/cotizacion", "Cotización"],
-              ["/garantias", "Garantías y mi cuenta"],
+            ["/garantias", "Garantías y mi cuenta"],
             ["/contacto", "Contacto"],
             ["/industrias", "Industrias"],
             ["/academy", "Academy"],

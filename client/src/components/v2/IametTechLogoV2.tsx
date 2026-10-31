@@ -1,4 +1,7 @@
-/** Approved Processor identity. Lettering is drawn as paths, not a font substitute. */
+import { useId } from "react";
+import { iametDevopsCycle, iametDevopsCore } from "@shared/iamet-brand";
+
+/** Approved solid DevOps identity. Keep the original IAMET lettering paths. */
 export default function IametTechLogoV2({
   className = "",
   symbolOnly = false,
@@ -6,17 +9,31 @@ export default function IametTechLogoV2({
   className?: string;
   symbolOnly?: boolean;
 }) {
+  const maskId = `iamet-core-${useId().replace(/:/g, "")}`;
   return (
     <svg
       viewBox={symbolOnly ? "0 0 140 140" : "0 0 520 146"}
       role="img"
-      aria-label="IAMET — Integración de soluciones tecnológicas"
+      aria-label="IAMET — Integración tecnológica"
       className={`iamet-brand-logo w-full ${className}`}
     >
+      <defs>
+        <mask
+          id={maskId}
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width="140"
+          height="140"
+        >
+          <rect width="140" height="140" fill="white" />
+          <rect x="57" y="42" width="26" height="56" fill="black" />
+        </mask>
+      </defs>
       <g
         className="iamet-logo-symbol"
         fill="none"
-        stroke="#1264E8"
+        stroke="var(--iamet-symbol-color, #2166FF)"
         strokeWidth="8"
         strokeLinecap="square"
         strokeLinejoin="bevel"
@@ -24,36 +41,22 @@ export default function IametTechLogoV2({
         <path
           pathLength="1"
           className="iamet-logo-frame"
-          d="M46 20H94L110 36V104L94 120H46L30 104V36Z"
+          d={iametDevopsCycle}
+          mask={`url(#${maskId})`}
         />
-        <path
-          pathLength="1"
-          className="iamet-logo-connections"
-          d="M30 45H12V30M30 70H6M30 95H12V110M110 45H128V30M110 70H134M110 95H128V110"
-        />
-        <path
-          pathLength="1"
-          className="iamet-logo-core"
-          d="M55 43H85M70 43V97M55 97H85"
-          stroke="currentColor"
-          strokeWidth="10"
-        />
+        <path pathLength="1" className="iamet-logo-core" d={iametDevopsCore} />
       </g>
       <g
         className="iamet-logo-glint"
         aria-hidden="true"
         fill="none"
         stroke="white"
-        strokeWidth="4"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="bevel"
       >
-        <path pathLength="1" d="M46 20H94L110 36V104L94 120H46L30 104V36Z" />
-        <path
-          pathLength="1"
-          d="M30 45H12V30M30 70H6M30 95H12V110M110 45H128V30M110 70H134M110 95H128V110"
-        />
-        <path pathLength="1" d="M55 43H85M70 43V97M55 97H85" />
+        <path pathLength="1" d={iametDevopsCycle} mask={`url(#${maskId})`} />
+        <path pathLength="1" d={iametDevopsCore} />
       </g>
       <g
         className="iamet-logo-wordmark"

@@ -862,3 +862,11 @@ body:has(.iamet-reference-home) header a[href="/acceso"]:hover { background: #15
 .iamet-public-header a[href="/acceso"]:hover, .iamet-public-header button:hover { background: #15344b; }
 .iamet-public-header .border-slate-100, .iamet-public-header .border-slate-200 { border-color: #21374e; }
 .iamet-public-header a.bg-blue-600 { color: white; }
+
+/* Approved DevOps blue on dark surfaces, with the same original wordmark. */
+.iamet-public-header .iamet-brand-logo,
+.iamet-crm .iamet-brand-logo,
+.iamet-brand-intro .iamet-brand-logo,
+.iamet-reference-home .iamet-brand-logo {
+  --iamet-symbol-color: #4D8FFF;
+}

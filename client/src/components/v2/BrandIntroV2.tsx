@@ -5,7 +5,7 @@ import { RotateCcw } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import IametTechLogoV2 from "./IametTechLogoV2";
 
-const SESSION_KEY = "iamet-brand-intro-v5";
+const SESSION_KEY = "iamet-brand-intro-devops-v1";
 export default function BrandIntroV2() {
   const { language } = useLanguage();
   const es = language === "es";
@@ -121,6 +121,7 @@ export default function BrandIntroV2() {
                 </p>
                 <div className="iamet-intro-logo px-3 sm:px-6">
                   <IametTechLogoV2 />
+                  <p className="mt-3 text-center text-xs tracking-[.25em] text-slate-300 sm:text-base">INTEGRACIÓN TECNOLÓGICA</p>
                 </div>
                 <div className="mx-auto mt-12 max-w-[320px]" aria-hidden="true">
                   <div className="mb-3 flex justify-between font-mono text-[10px] tracking-[.18em] text-cyan-200/60">

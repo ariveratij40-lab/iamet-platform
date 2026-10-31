@@ -1,3 +1,4 @@
+import { emailBrandLogoUrl } from "./brand";
 /**
  * reminders.ts — Recordatorios Inteligentes de Reuniones
  *
@@ -58,7 +59,7 @@ function buildGoogleCalendarLink(meeting: MeetingWithDetails): string {
   const startStr = `${dateStr}T${meeting.startTime.replace(":", "")}00`;
   const endStr = `${dateStr}T${meeting.endTime.replace(":", "")}00`;
   const title = encodeURIComponent(`Reunión IAMET — ${meeting.topic}`);
-  const details = encodeURIComponent(`Reunión con ${meeting.engineerName} de IAMET Evolución Tecnológica.\nTema: ${meeting.topic}`);
+  const details = encodeURIComponent(`Reunión con ${meeting.engineerName} de IAMET · Integración Tecnológica.\nTema: ${meeting.topic}`);
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}`;
 }
 
@@ -74,7 +75,7 @@ function buildIcsContent(meeting: MeetingWithDetails): string {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//IAMET Evolución Tecnológica//ES",
+    "PRODID:-//IAMET · Integración Tecnológica//ES",
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${now}`,
@@ -140,7 +141,7 @@ function buildReminderHtml(opts: {
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,${headerColor} 0%,${headerColor}cc 100%);padding:28px 40px;text-align:center;">
-            <img src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/Logo%20IAMET%202026%20Transparente%20.jpg"
+            <img src="${emailBrandLogoUrl()}"
                  alt="IAMET" height="44" style="height:44px;width:auto;" />
             <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.9);font-weight:600;letter-spacing:0.03em;">
               ⏰ RECORDATORIO DE REUNIÓN
@@ -215,7 +216,7 @@ function buildReminderHtml(opts: {
         <tr>
           <td style="background:#0d0d14;padding:16px 40px;border-top:1px solid #1e2030;text-align:center;">
             <p style="margin:0;font-size:12px;color:#475569;">
-              © 2025 IAMET Evolución Tecnológica — Ciudad de México
+              © 2025 IAMET · Integración Tecnológica — Ciudad de México
             </p>
           </td>
         </tr>

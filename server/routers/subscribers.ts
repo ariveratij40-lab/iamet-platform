@@ -1,3 +1,4 @@
+import { emailBrandLogoUrl } from "../brand";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
@@ -76,8 +77,8 @@ function buildSubscriberVerificationHtml(params: {
         <table width="560" cellpadding="0" cellspacing="0" style="background:#131319;border-radius:16px;border:1px solid #1e2030;overflow:hidden;max-width:560px;width:100%;">
           <tr>
             <td style="background:linear-gradient(135deg,#1d4ed8 0%,#1e40af 100%);padding:32px 40px;text-align:center;">
-              <img src="https://iamettech-ssx5e88n.manus.space/manus-storage/logo-iamet-v2-final_a0aa3f89.png"
-                   alt="IAMET Evolución Tecnológica" height="48"
+              <img src="${emailBrandLogoUrl()}"
+                   alt="IAMET · Integración Tecnológica" height="48"
                    style="height:48px;width:auto;object-fit:contain;" />
             </td>
           </tr>
@@ -113,7 +114,7 @@ function buildSubscriberVerificationHtml(params: {
           <tr>
             <td style="background:#0d0d14;padding:20px 40px;border-top:1px solid #1e2030;text-align:center;">
               <p style="margin:0;font-size:12px;color:#475569;">
-                © 2025 IAMET Evolución Tecnológica — Integrador de Soluciones Tecnológicas
+                © 2025 IAMET · Integración Tecnológica — Integrador de Soluciones Tecnológicas
               </p>
             </td>
           </tr>

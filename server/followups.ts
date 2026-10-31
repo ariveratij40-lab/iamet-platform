@@ -1,3 +1,4 @@
+import { emailBrandLogoUrl } from "./brand";
 /**
  * followups.ts — Motor de Seguimiento Automático de Leads (IA Comercial)
  *
@@ -310,13 +311,13 @@ export async function processLeadFollowups(): Promise<{ processed: number; sent:
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: #0a0f1e; padding: 20px; text-align: center;">
-                  <img src="https://pub-a53f56c4762c4171a999b79e28d1d8a4.r2.dev/Logo%20IAMET%202026%20Transparente%20.jpg" alt="IAMET" height="50" />
+                  <img src="${emailBrandLogoUrl()}" alt="IAMET" height="50" />
                 </div>
                 <div style="padding: 30px; background: #ffffff;">
                   ${htmlBody}
                   <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
                   <p style="font-size: 12px; color: #999;">
-                    IAMET Evolución Tecnológica — Ciudad de México<br>
+                    IAMET · Integración Tecnológica — Ciudad de México<br>
                     <a href="https://iamettech-ssx5e88n.manus.space">iamettech-ssx5e88n.manus.space</a>
                   </p>
                 </div>
