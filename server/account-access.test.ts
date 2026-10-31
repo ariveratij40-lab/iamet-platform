@@ -4,10 +4,11 @@ import {
   staffDestination,
 } from "../shared/account-access";
 describe("Account access destinations", () => {
-  it("directs customers to their portal and preserves allowed shopping destinations", () => {
+  it("directs customers to their service portal while the storefront is paused", () => {
     expect(customerDestination(null)).toBe("/garantias#portal");
     expect(customerDestination("/garantias")).toBe("/garantias#portal");
-    expect(customerDestination("/tienda/perfil")).toBe("/tienda/perfil");
+    expect(customerDestination("/tienda/perfil")).toBe("/garantias#portal");
+    expect(customerDestination("/tienda")).toBe("/garantias#portal");
     expect(customerDestination("/admin/crm")).toBe("/garantias#portal");
   });
   it("preserves administrative destinations without redirecting to login again", () => {

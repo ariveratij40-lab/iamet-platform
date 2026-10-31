@@ -1,3 +1,4 @@
+import { customerDestination } from "@shared/account-access";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -58,11 +59,7 @@ export default function TiendaLogin() {
   const [, navigate] = useLocation();
   const params = new URLSearchParams(window.location.search);
   const returnTo = params.get("returnTo");
-  const destination = returnTo?.startsWith("/garantias")
-    ? "/garantias#portal"
-    : returnTo === "/tienda/perfil"
-      ? returnTo
-      : "/tienda";
+  const destination = customerDestination(returnTo);
   const [mode, setMode] = useState<Mode>(
     params.get("mode") === "register"
       ? "register"

@@ -188,7 +188,6 @@ export default function Navbar() {
     { label: t.nav.industries,  icon: Globe,        href: "/industrias" },
     { label: t.nav.techAdvisor, icon: Zap,          href: "/tech-advisor" },
     { label: t.nav.academy,     icon: BookOpen,     href: "/academy" },
-    { label: t.nav.store,       icon: ShoppingCart, href: "/tienda" },
     { label: t.nav.contact,     icon: Phone,        href: "/contacto" },
   ];
 

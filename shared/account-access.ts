@@ -1,6 +1,6 @@
 // Redirects are restricted to known local areas; never trust a returnTo URL.
-export function customerDestination(returnTo: string | null): string {
-  if (returnTo === "/tienda" || returnTo === "/tienda/perfil") return returnTo;
+export function customerDestination(_returnTo: string | null): string {
+  // The storefront is paused; every customer enters the active service portal.
   return "/garantias#portal";
 }
 export function staffDestination(returnTo: string | null): string {

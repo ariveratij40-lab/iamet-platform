@@ -238,8 +238,8 @@ function WarrantyCustomerArea() {
         >
           Mis pedidos y órdenes
         </button>
-        <Link href="/tienda/perfil" className="px-5 py-3 text-blue-300">
-          Mis cotizaciones
+        <Link href="/cotizacion" className="px-5 py-3 text-blue-300">
+          Solicitar cotización
         </Link>
       </div>
       {tab === "orders" ? (

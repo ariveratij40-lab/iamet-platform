@@ -8,7 +8,7 @@ import { BlogIndexV2, BlogPostV2 } from "./pages/BlogV2";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, useLocation } from "wouter";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
@@ -21,8 +21,6 @@ import TechAdvisor from "./pages/TechAdvisor";
 import Academy from "./pages/Academy";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminConsole from "./pages/AdminConsole";
-import Tienda from "./pages/Tienda";
-import ProductoDetalle from "./pages/ProductoDetalle";
 import TiendaVerificar from "./pages/TiendaVerificar";
 import AdminTienda from "./pages/AdminTienda";
 import AdminReuiones from "./pages/AdminReuiones";
@@ -38,7 +36,6 @@ import AdminSimulator from "./pages/AdminSimulator";
 import AdminQA from "./pages/AdminQA";
 import AdminHealth from "./pages/AdminHealth";
 import AdminUsers from "./pages/AdminUsers";
-import TiendaPerfil from "./pages/TiendaPerfil";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
 import Contact from "./pages/Contact";
 import Industrias from "./pages/Industrias";
@@ -121,13 +118,13 @@ function Router() {
           <Route path="/academy" component={Academy} />
           <Route path="/contacto" component={Contact} />
           {/* Tienda */}
-          <Route path="/tienda" component={Tienda} />
+          <Route path="/tienda">{() => <Redirect to="/cotizacion" />}</Route>
           <Route path="/tienda/login" component={CustomerAccessRoute} />
           <Route path="/tienda/verificar" component={TiendaVerificar} />
           <Route path="/tienda/verificar-email" component={TiendaVerificar} />
           <Route path="/tienda/nueva-contrasena" component={TiendaNuevaContrasena} />
-          <Route path="/tienda/perfil" component={TiendaPerfil} />
-          <Route path="/tienda/:slug" component={ProductoDetalle} />
+          <Route path="/tienda/perfil">{() => <Redirect to="/garantias#portal" />}</Route>
+          <Route path="/tienda/:slug">{() => <Redirect to="/cotizacion" />}</Route>
           {/* Landing Factory — 14 verticales enriquecidas */}
           <Route path="/landing/:vertical" component={LandingPage} />
           {/* Cancelar reunión — ruta pública */}

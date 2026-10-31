@@ -32,7 +32,6 @@ export default function CorporateFooterV2() {
               ["/garantias", "Garantías y mi cuenta"],
             ["/contacto", "Contacto"],
             ["/industrias", "Industrias"],
-            ["/tienda", "Tienda"],
             ["/academy", "Academy"],
             ["/tech-advisor", "Asesor virtual"],
           ].map(([href, label]) => (
