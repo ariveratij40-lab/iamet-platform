@@ -77,7 +77,8 @@ restore_on_error() {
 }
 trap restore_on_error ERR
 CUTOVER=1
-sudo install -m 644 deployment/vps-v2/nginx.conf "$NGINX"
+python3 deployment/vps-v2/render-nginx.py "$BACKUP/nginx.conf" "$BACKUP/nginx-v2.conf"
+sudo install -m 644 "$BACKUP/nginx-v2.conf" "$NGINX"
 docker exec global_nginx nginx -t
 docker exec global_nginx nginx -s reload
 sleep 2

@@ -44,7 +44,7 @@ El script realiza estos pasos en orden:
 4. Construye una imagen etiquetada con el commit actual y solicita la nueva contraseña administrativa.
 5. Arranca infraestructura aislada, inicializa la base y arranca la aplicación con controles de salud.
 6. Comprueba login real, cookie local, permisos del CRM comercial nuevo, tablero del asistente y rutas públicas. El proveedor IA no se invoca en esta comprobación.
-7. Comprueba comunicación Nginx→aplicación, instala el nuevo vhost, valida y recarga Nginx.
+7. Comprueba comunicación Nginx→aplicación, genera el vhost desde el respaldo que ya funcionaba (conservando sus rutas y opciones TLS), cambia el upstream, valida y recarga Nginx.
 8. Verifica HTTPS y que /api/health entregue el identificador de la versión nueva; si falla el cambio, restaura el vhost anterior automáticamente.
 
 El script se detiene ante errores; no ignora migraciones fallidas. Si se detiene antes del cambio de Nginx, el sitio antiguo sigue siendo el público. Después de crear contenedores/volúmenes v2, **no repita la instalación a ciegas ni elimine datos**: comparta la última etapa y el error para continuar desde ese punto. El archivo .env.v2 conserva las credenciales necesarias para recuperar esa ejecución.
@@ -99,3 +99,15 @@ schema.sql es una **línea base nueva** exportada de drizzle/schema.ts más las 
 Validación local: TypeScript, compilación de cliente/servidor, sintaxis de scripts y pruebas PostgreSQL compatibles con PGlite para el esquema completo, acceso local al CRM, separación de tokens de clientes, permisos, garantías y registro de conversaciones. Las pruebas de CRM nuevo cubren estadísticas vacías, prospectos, etapas, notas, filtros, paginación y acceso administrativo. La construcción Docker y el cambio real de Nginx se verifican en el VPS por el script; no se ha ejecutado el despliegue desde esta sesión.
 
 Referencias de compatibilidad: [ciclo de soporte de Node.js](https://github.com/nodejs/Release/blob/main/README.md) y [arranque con comprobaciones de salud en Docker Compose](https://docs.docker.com/compose/how-tos/startup-order/).
+
+## Continuar si la instalación terminó pero el cambio de Nginx falló
+
+Si los contenedores v2 están sanos y el login/CRM ya pasaron, no vuelva a ejecutar deploy.sh. Actualice únicamente los scripts y ejecute:
+
+```bash
+cd /opt/apps/iamet/v2-staging
+git pull --ff-only origin feature/iamet-v2
+bash deployment/vps-v2/activate.sh
+```
+
+activate.sh conserva la imagen instalada (release-id), la base, la cuenta y sus contraseñas. Reconstruye el vhost a partir del respaldo original, sustituyendo solo el upstream IAMET y añadiendo el aviso noindex si falta. No necesita options-ssl-nginx.conf ni ssl-dhparams.pem salvo que el vhost anterior ya los utilizara. Si la verificación falla, restaura la configuración activa antes del intento. La plantilla nginx.conf queda como referencia; los scripts no la instalan directamente.
