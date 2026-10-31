@@ -47,6 +47,8 @@ services:
       dockerfile: deployment/vps-v2/Dockerfile
     container_name: iamet_v2_app_staging
     restart: unless-stopped
+    volumes:
+      - google_ads_state:/app/var/google-ads
     env_file: .env.v2
     environment:
       NODE_ENV: production
@@ -86,3 +88,5 @@ volumes:
     name: iamet_v2_pg_staging
   redis_v2:
     name: iamet_v2_redis_staging
+  google_ads_state:
+    name: iamet_v2_google_ads_state

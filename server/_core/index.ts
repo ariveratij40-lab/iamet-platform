@@ -1,3 +1,4 @@
+import { registerGoogleAdsOAuth } from "../google-ads-oauth";
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
@@ -168,6 +169,8 @@ async function startServer() {
 
   // ─── OAuth routes ─────────────────────────────────────────────────────────
   registerOAuthRoutes(app);
+  app.use("/api/google-ads", authLimiter);
+  registerGoogleAdsOAuth(app);
 
   // ─── Auth local (JWT + bcrypt, sin Manus OAuth) ───────────────────────────
   app.use("/api/auth", localAuthRouter);

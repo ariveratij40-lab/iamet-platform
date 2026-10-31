@@ -158,3 +158,47 @@ La tienda y las fichas de producto públicas redirigen a /cotizacion. El portal 
 Los formularios de servicios consultan /api/auth/profile para completar nombre, correo, empresa y teléfono disponibles. El servidor identifica al cliente por X-Store-Token válido y correo verificado, o al administrador por su sesión local activa; no acepta IDs de usuario del formulario ni datos de identidad del localStorage. Devuelve solo campos de contacto y usa Cache-Control: no-store. Administradores solo aportan nombre y correo porque su perfil no contiene empresa/teléfono. Industria, tamaño de empresa y requerimiento siguen siendo manuales.
 
 La respuesta se solicita sin caché compartida, se cancela al desmontar o cambiar sesión y no sobrescribe campos editados. Al cambiar de cuenta/cerrar sesión se limpian los datos de contacto del formulario; los visitantes sin sesión pueden completarlo manualmente. Editar una cotización no modifica el perfil. No requiere migraciones ni crea cuentas o cotizaciones automáticamente.
+
+## Google Ads: informes privados
+
+La sección `/admin/campanas` es exclusiva de administradores. Usa OAuth con
+estado de un solo uso ligado a la sesión y PKCE. Solo se invoca `googleAds:search`;
+no se modifican campañas, presupuestos ni anuncios. El permiso `adwords` de Google
+es amplio; para restringir también en Google puede autorizar un usuario con rol
+Solo lectura. No se necesita un developer token en el acceso actual por proyecto.
+
+En el VPS, después de guardar el JSON web en
+`/opt/apps/iamet/secrets/google-ads-client.json` con permisos 600:
+
+```bash
+cd /opt/apps/iamet/v2-staging
+git pull --ff-only origin feature/iamet-v2
+python3 deployment/vps-v2/configure-google-ads.py
+bash deployment/vps-v2/update.sh
+```
+
+El instalador conserva `.env.v2`, agrega ID/secreto del cliente, cuenta
+`3771755064` y una clave aleatoria AES-256. No imprime secretos. La URI autorizada
+ha de ser exactamente `https://staging.iamet.mx/api/google-ads/oauth/callback`.
+Luego entre a Mi cuenta como administrador → Campañas → Conectar Google Ads y
+seleccione la cuenta de Google autorizada como usuario de prueba.
+
+El permiso renovable se cifra en el volumen privado `iamet_v2_google_ads_state`,
+propiedad del usuario del contenedor. No se altera el esquema de PostgreSQL.
+Conserve la clave `GOOGLE_ADS_ENCRYPTION_KEY` junto con los respaldos privados;
+perderla requiere volver a conectar. No elimine el volumen al actualizar.
+Los respaldos automáticos existentes de PostgreSQL no incluyen este volumen:
+si se pierde basta volver a autorizar Google. Desconectar borra el permiso local,
+pero no revoca el acceso en Google; puede revocarlo en la cuenta de Google.
+
+La caché en memoria dura 5 minutos por período (7/30/90 días). Se consulta al abrir
+la sección o pulsar Consultar de nuevo; no existe sincronización desatendida ni
+histórico local de métricas. Se pagina hasta 200000 filas por consulta y se rechazan
+informes incompletos. Se usa moneda y zona horaria de la cuenta, incluyendo hoy.
+Google puede ajustar métricas recientes y conversiones retroactivamente.
+
+Los resultados de campañas y páginas de destino proceden de Google Ads. No se
+presentan como leads reales del CRM ni se calcula ROI. La atribución de leads y
+ventas necesita un paso adicional de medición y vinculación. El modo Prueba de
+OAuth puede caducar el permiso renovable a los 7 días; antes de operación continua
+se debe completar la preparación para producción de OAuth.

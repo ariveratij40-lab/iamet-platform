@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   ArrowUpRight,
+  BarChart3,
   LayoutDashboard,
   LogOut,
   ShieldCheck,
@@ -48,6 +49,7 @@ export default function AdminWorkspaceV2({
         >
           {[
             { href: "/admin/crm", label: "CRM", Icon: LayoutDashboard },
+            { href: "/admin/campanas", label: "Campañas", Icon: BarChart3 },
             {
               href: "/admin/garantias",
               label: "Garantías y órdenes",

@@ -18,6 +18,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/deployment/vps-v2/schema.sql ./deployment/vps-v2/schema.sql
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN mkdir -p /app/var/google-ads && chown -R nodejs:nodejs /app/var && chmod 700 /app/var/google-ads
 USER nodejs
 ENV NODE_ENV=production
 EXPOSE 3000

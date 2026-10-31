@@ -1,3 +1,4 @@
+import { googleAdsRouter } from "./routers/googleAds";
 import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
 import {visitorAssistantRouter} from "./routers/visitorAssistant";
 import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
@@ -942,6 +943,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   warranty: warrantyRouter,
   visitorAssistant: visitorAssistantRouter,
   crmV2: crmV2Router,
+  googleAds: googleAdsRouter,
 
   // ─── Smart Calendar ──────────────────────────────────────────────────────────────────────────────
   calendar: router({

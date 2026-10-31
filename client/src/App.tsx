@@ -1,3 +1,4 @@
+import AdminCampaignsV2 from "./pages/AdminCampaignsV2";
 import VisitorAssistantV2 from "./components/v2/VisitorAssistantV2";
 import Warranties from "./pages/Warranties";
 import AdminWarranties from "./pages/AdminWarranties";
@@ -62,7 +63,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
-  if (location === "/admin/crm" || location === "/admin/garantias") return <>{children}</>;
+  if (location === "/admin/crm" || location === "/admin/garantias" || location === "/admin/campanas") return <>{children}</>;
 
   if (location === "/admin/login") return <><PublicHeaderV2 /><main>{children}</main></>;
 
@@ -145,6 +146,7 @@ function Router() {
           <Route path="/admin/reuniones">{() => <AdminGuard><AdminReuiones /></AdminGuard>}</Route>
           <Route path="/admin/seguimientos">{() => <AdminGuard><AdminSeguimientos /></AdminGuard>}</Route>
           <Route path="/admin/garantias">{() => <AdminGuard allowedRoles={["admin"]}><AdminWarranties /></AdminGuard>}</Route>
+          <Route path="/admin/campanas">{() => <AdminGuard allowedRoles={["admin"]}><AdminCampaignsV2 /></AdminGuard>}</Route>
           <Route path="/admin/crm">{() => <AdminGuard allowedRoles={["admin"]}><AdminCRM /></AdminGuard>}</Route>
           <Route path="/admin/intelligence">{() => <AdminGuard><AdminIntelligence /></AdminGuard>}</Route>
           <Route path="/admin/agent">{() => <AdminGuard><AdminAgent /></AdminGuard>}</Route>
