@@ -1,3 +1,4 @@
+import { getAccountProfile } from "../account-profile";
 import { authenticateAccount, AccountAccessError } from "../account-access";
 /**
  * Router de autenticación local IAMET
@@ -48,6 +49,19 @@ function getSessionToken(req: Request): string | null {
 }
 
 const isProduction = process.env.NODE_ENV === "production";
+
+// Return only contact fields from the authenticated account; never accept a user ID.
+localAuthRouter.get("/profile", async (req: Request, res: Response) => {
+  res.setHeader("Cache-Control", "no-store");
+  try {
+    const header = req.headers["x-store-token"];
+    if (header !== undefined && typeof header !== "string") return res.json({ profile: null });
+    const profile = await getAccountProfile({ customerToken: typeof header === "string" ? header : undefined, staffToken: getSessionToken(req) ?? undefined });
+    return res.json({ profile });
+  } catch {
+    return res.status(503).json({ error: "No se pudo cargar el perfil." });
+  }
+});
 
 // One public sign-in form; identity and permissions are decided by the server.
 localAuthRouter.post("/access", loginLimiter, async (req: Request, res: Response) => {

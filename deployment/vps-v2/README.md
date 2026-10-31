@@ -152,3 +152,9 @@ Un enlace de recuperación válido y no expirado también prueba el acceso al bu
 ## Tienda virtual en pausa
 
 La tienda y las fichas de producto públicas redirigen a /cotizacion. El portal de clientes ofrece «Solicitar cotización» al formulario de servicios, sin catálogo ni carrito. Se retira Tienda del pie público, del menú heredado y del sitemap. /tienda/perfil redirige al portal activo de garantías, pedidos y órdenes; los accesos antiguos después de iniciar sesión también terminan en ese portal. Las rutas de registro, verificación y recuperación bajo /tienda permanecen activas porque forman parte de las cuentas de cliente. El código y los datos comerciales anteriores se conservan para retomar la tienda posteriormente. Este cambio no implementa un historial de propuestas de servicios en el portal: las solicitudes del formulario actual se gestionan en el CRM.
+
+## Datos de perfil en cotizaciones
+
+Los formularios de servicios consultan /api/auth/profile para completar nombre, correo, empresa y teléfono disponibles. El servidor identifica al cliente por X-Store-Token válido y correo verificado, o al administrador por su sesión local activa; no acepta IDs de usuario del formulario ni datos de identidad del localStorage. Devuelve solo campos de contacto y usa Cache-Control: no-store. Administradores solo aportan nombre y correo porque su perfil no contiene empresa/teléfono. Industria, tamaño de empresa y requerimiento siguen siendo manuales.
+
+La respuesta se solicita sin caché compartida, se cancela al desmontar o cambiar sesión y no sobrescribe campos editados. Al cambiar de cuenta/cerrar sesión se limpian los datos de contacto del formulario; los visitantes sin sesión pueden completarlo manualmente. Editar una cotización no modifica el perfil. No requiere migraciones ni crea cuentas o cotizaciones automáticamente.

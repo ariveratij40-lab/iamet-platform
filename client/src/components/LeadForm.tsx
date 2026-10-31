@@ -1,6 +1,7 @@
+import { getStoreToken } from "@/hooks/useStoreSession";
 import { useAttribution } from "@/hooks/useAttribution";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle2,
@@ -67,6 +68,97 @@ export default function LeadForm({
     companySize: "" as "1-10" | "11-50" | "51-200" | "201-500" | "500+" | "",
     problemDescription: "",
   });
+  const edited = useRef(new Set<string>());
+  const hadProfile = useRef(false);
+  const profileIdentity = useRef<string | null>(null);
+  const [profileFilled, setProfileFilled] = useState(false);
+  useEffect(() => {
+    const fields = ["company", "contactName", "email", "phone"] as const;
+    let controller: AbortController | undefined;
+    let active = true;
+    function clearContact() {
+      edited.current.clear();
+      hadProfile.current = false;
+      profileIdentity.current = null;
+      setProfileFilled(false);
+      setForm(previous => ({
+        ...previous,
+        company: "",
+        contactName: "",
+        email: "",
+        phone: "",
+      }));
+    }
+    async function loadProfile(clearFirst = false) {
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      if (clearFirst) clearContact();
+      try {
+        const token = getStoreToken();
+        const response = await fetch("/api/auth/profile", {
+          credentials: "include",
+          cache: "no-store",
+          headers: token ? { "X-Store-Token": token } : {},
+          signal: current.signal,
+        });
+        if (!response.ok) return;
+        const { profile } = await response.json();
+        if (!active || current.signal.aborted) return;
+        if (!profile) {
+          if (hadProfile.current) clearContact();
+          return;
+        }
+        const identity = `${profile.kind}:${profile.id}`;
+        if (profileIdentity.current && profileIdentity.current !== identity)
+          clearContact();
+        profileIdentity.current = identity;
+        const contact = {
+          company: profile.company ?? "",
+          contactName: profile.name ?? "",
+          email: profile.email ?? "",
+          phone: profile.phone ?? "",
+        };
+        setForm(previous => {
+          const next = { ...previous };
+          for (const key of fields)
+            if (!edited.current.has(key) && !previous[key])
+              next[key] = contact[key];
+          return next;
+        });
+        hadProfile.current = true;
+        setProfileFilled(true);
+      } catch {
+        /* The form remains usable manually if the profile is unavailable. */
+      }
+    }
+    const sessionChanged = () => {
+      void loadProfile(true);
+    };
+    const storageChanged = (event: StorageEvent) => {
+      if (
+        !event.key ||
+        ["iamet_store_token", "iamet_store_user", "iamet_local_user"].includes(
+          event.key
+        )
+      )
+        sessionChanged();
+    };
+    const focused = () => {
+      void loadProfile();
+    };
+    void loadProfile();
+    window.addEventListener("store-session-change", sessionChanged);
+    window.addEventListener("storage", storageChanged);
+    window.addEventListener("focus", focused);
+    return () => {
+      active = false;
+      controller?.abort();
+      window.removeEventListener("store-session-change", sessionChanged);
+      window.removeEventListener("storage", storageChanged);
+      window.removeEventListener("focus", focused);
+    };
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
 
@@ -102,8 +194,10 @@ export default function LeadForm({
       e: React.ChangeEvent<
         HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
       >
-    ) =>
+    ) => {
+      edited.current.add(field);
       setForm(prev => ({ ...prev, [field]: e.target.value }));
+    };
 
   if (submitted) {
     return (
@@ -183,6 +277,12 @@ export default function LeadForm({
         <p role="alert" className="text-sm text-red-400">
           No pudimos enviar su solicitud. Intente de nuevo o escriba a
           contacto@iamet.mx.
+        </p>
+      )}
+      {profileFilled && (
+        <p className="text-xs leading-5 text-blue-200">
+          Completamos los datos disponibles de su cuenta. Puede revisarlos y
+          editarlos para esta solicitud.
         </p>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
