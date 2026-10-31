@@ -111,3 +111,16 @@ bash deployment/vps-v2/activate.sh
 ```
 
 activate.sh conserva la imagen instalada (release-id), la base, la cuenta y sus contraseñas. Reconstruye el vhost a partir del respaldo original, sustituyendo solo el upstream IAMET y añadiendo el aviso noindex si falta. No necesita options-ssl-nginx.conf ni ssl-dhparams.pem salvo que el vhost anterior ya los utilizara. Si la verificación falla, restaura la configuración activa antes del intento. La plantilla nginx.conf queda como referencia; los scripts no la instalan directamente.
+
+## Actualizar solo la aplicación: acceso común «Mi cuenta»
+
+El menú público y los encabezados de soluciones enlazan a /acceso. La misma pantalla permite elegir Clientes o Equipo IAMET. Clientes conserva su autenticación verificada y accede al portal de garantías/pedidos/órdenes; Equipo IAMET usa la sesión local de administrador y accede al CRM. Cada API mantiene la comprobación de permisos en el servidor. No se unen tablas de usuarios ni se asignan permisos por correo, elección de perfil o datos del navegador. Los enlaces anteriores /admin/login y /tienda/login siguen funcionando; registro y recuperación de clientes conservan sus procesos de verificación de correo. No hay autorregistro de administradores. Los destinos returnTo se restringen a rutas locales permitidas.
+
+Para actualizar una instalación v2 que ya está activa, conservando cuentas y datos:
+
+```bash
+cd /opt/apps/iamet/v2-staging
+git pull --ff-only origin feature/iamet-v2 && bash deployment/vps-v2/update.sh
+```
+
+update.sh construye solo la aplicación, respalda la base v2 y sustituye su contenedor. No ejecuta inicialización ni migraciones y no reemplaza el vhost TLS. Valida Nginx y lo recarga para resolver el nuevo contenedor. Si falla la aplicación o la comprobación pública, vuelve a la imagen anterior; la base permanece intacta. No usar este script para cambios de esquema sin una migración incremental específica.

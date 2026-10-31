@@ -818,3 +818,12 @@ body:has(.iamet-reference-home) .iamet-brand-tagline { color: #9ab6df; }
 .iamet-crm meter::-webkit-meter-bar { background: #1e293b; border: 0; border-radius: 8px; }
 .iamet-crm meter::-webkit-meter-optimum-value { background: #3b82f6; border-radius: 8px; }
 .iamet-crm meter::-moz-meter-bar { background: #3b82f6; border-radius: 8px; }
+
+.iamet-account {
+  --color-iamet-text: #f1f5f9;
+  --foreground: #e2e8f0;
+  --muted-foreground: #94a3b8;
+}
+.iamet-account .iamet-brand-logo { color: #f1f5f9; }
+body:has(.iamet-reference-home) header a[href="/acceso"] { color: #b9dcff; border-color: #31506a; }
+body:has(.iamet-reference-home) header a[href="/acceso"]:hover { background: #15344b; }

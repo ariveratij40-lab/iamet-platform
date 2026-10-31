@@ -49,7 +49,7 @@ export default function TiendaLogin() {
   const params=new URLSearchParams(window.location.search);
   const returnTo=params.get("returnTo");
   const destination=returnTo?.startsWith("/garantias") ? "/garantias#portal" : returnTo === "/tienda/perfil" ? returnTo : "/tienda";
-  const [mode, setMode] = useState<Mode>(params.get("mode")==="register"?"register":"login");
+  const [mode, setMode] = useState<Mode>(params.get("mode")==="register"?"register":params.get("mode")==="forgot"?"forgot":"login");
   const [showPass, setShowPass] = useState(false);
   const [showPass2, setShowPass2] = useState(false);
 

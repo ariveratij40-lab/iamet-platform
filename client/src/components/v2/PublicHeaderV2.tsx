@@ -1,7 +1,7 @@
 import IametTechLogoV2 from "./IametTechLogoV2";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { ArrowRight, Languages, Menu, X } from "lucide-react";
+import { ArrowRight, Languages, Menu, X, UserRound } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import SolutionsMenuV2 from "./SolutionsMenuV2";
@@ -35,7 +35,7 @@ export default function PublicHeaderV2() {
         }
       }}
     >
-      <div className="mx-auto flex h-20 max-w-[1440px] items-center gap-6 px-5 lg:px-8 xl:gap-10">
+      <div className="mx-auto flex h-20 max-w-[1440px] items-center gap-2 px-5 sm:gap-4 lg:px-8 xl:gap-6">
         <Link
           href="/"
           aria-label={es ? "IAMET — Inicio" : "IAMET — Home"}
@@ -81,6 +81,13 @@ export default function PublicHeaderV2() {
             {language.toUpperCase()}
           </button>
           <Link
+            href="/acceso"
+            className="inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-md border border-blue-300/30 px-3 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+          >
+            <UserRound className="h-4 w-4" />
+            {es ? "Mi cuenta" : "My account"}
+          </Link>
+          <Link
             href="/cotizacion"
             aria-current={active("/cotizacion") ? "page" : undefined}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-blue-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
@@ -90,10 +97,17 @@ export default function PublicHeaderV2() {
           </Link>
         </div>
 
+        <Link
+          href="/acceso"
+          aria-label={es ? "Mi cuenta" : "My account"}
+          className="ml-auto inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-slate-200 text-blue-600 xl:hidden"
+        >
+          <UserRound className="h-5 w-5" />
+        </Link>
         <button
           id="public-menu-toggle"
           type="button"
-          className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 xl:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 xl:hidden"
           onClick={() => setMobileOpen(open => !open)}
           aria-label={
             es
@@ -145,6 +159,14 @@ export default function PublicHeaderV2() {
                 </Link>
               )
             )}
+            <Link
+              href="/acceso"
+              onClick={() => setMobileOpen(false)}
+              className="mt-4 flex min-h-12 items-center gap-2 rounded-md border border-blue-200 px-3 text-sm font-semibold text-blue-600"
+            >
+              <UserRound className="h-4 w-4" />
+              {es ? "Mi cuenta" : "My account"}
+            </Link>
             <div className="mt-4 flex items-center justify-between gap-4">
               <button
                 type="button"

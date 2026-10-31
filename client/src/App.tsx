@@ -39,7 +39,6 @@ import AdminQA from "./pages/AdminQA";
 import AdminHealth from "./pages/AdminHealth";
 import AdminUsers from "./pages/AdminUsers";
 import TiendaPerfil from "./pages/TiendaPerfil";
-import TiendaLogin from "./pages/TiendaLogin";
 import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
 import Contact from "./pages/Contact";
 import Industrias from "./pages/Industrias";
@@ -51,7 +50,7 @@ import ServiceLandingHeaderV2 from "./components/v2/ServiceLandingHeaderV2";
 import PublicHeaderV2 from "./components/v2/PublicHeaderV2";
 import { useIsMobile } from "./hooks/useMobile";
 import Login from "./pages/Login";
-import AdminLogin from "./pages/AdminLogin";
+import AccountAccessV2, { CustomerAccessRoute } from "./pages/AccountAccessV2";
 import { AdminGuard } from "./components/AdminGuard";
 import Register from "./pages/Register";
 import SubscriberLogin from "./pages/SubscriberLogin";
@@ -66,7 +65,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
-  if (location === "/admin/crm" || location === "/admin/login") return <>{children}</>;
+  if (location === "/admin/crm") return <>{children}</>;
+
+  if (location === "/admin/login") return <><PublicHeaderV2 /><main>{children}</main></>;
 
   if (isAdmin) {
     return (
@@ -121,7 +122,7 @@ function Router() {
           <Route path="/contacto" component={Contact} />
           {/* Tienda */}
           <Route path="/tienda" component={Tienda} />
-          <Route path="/tienda/login" component={TiendaLogin} />
+          <Route path="/tienda/login" component={CustomerAccessRoute} />
           <Route path="/tienda/verificar" component={TiendaVerificar} />
           <Route path="/tienda/verificar-email" component={TiendaVerificar} />
           <Route path="/tienda/nueva-contrasena" component={TiendaNuevaContrasena} />
@@ -138,7 +139,8 @@ function Router() {
           <Route path="/verificar-email" component={VerifyEmail} />
           {/* Login local */}
           <Route path="/login" component={Login} />
-          <Route path="/admin/login" component={AdminLogin} />
+          <Route path="/admin/login" component={AccountAccessV2} />
+          <Route path="/acceso" component={AccountAccessV2} />
           {/* Admin — protegido con AdminGuard */}
           <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
           <Route path="/admin/monitor">{() => <AdminGuard><AdminConsole /></AdminGuard>}</Route>
