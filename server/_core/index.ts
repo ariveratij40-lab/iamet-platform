@@ -75,7 +75,9 @@ const apiLimiter = rateLimit({
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Límite de solicitudes alcanzado. Intenta de nuevo en un minuto." },
+  message: {
+    error: "Límite de solicitudes alcanzado. Intenta de nuevo en un minuto.",
+  },
   skip: () => process.env.NODE_ENV === "development",
 });
 
@@ -88,12 +90,17 @@ const agentLimiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Has enviado demasiados mensajes. Espera unos minutos e intenta de nuevo." },
+  message: {
+    error:
+      "Has enviado demasiados mensajes. Espera unos minutos e intenta de nuevo.",
+  },
   skip: () => process.env.NODE_ENV === "development",
 });
 
 async function startServer() {
   const app = express();
+  // VPS has exactly one reverse proxy and does not publish the app port.
+  if (process.env.TRUST_PROXY_HOPS === "1") app.set("trust proxy", 1);
   const server = createServer(app);
 
   // ─── Helmet — Headers de seguridad HTTP ────────────────────────────────────
@@ -119,8 +126,7 @@ async function startServer() {
   // Permitir dominios de Manus (sandbox de desarrollo y sitios publicados)
   // y el dominio de staging del VPS si está configurado en VITE_APP_URL
   const isAllowedDynamicOrigin = (origin: string) =>
-    /\.manus\.computer$/.test(origin) ||
-    /\.manus\.space$/.test(origin);
+    /\.manus\.computer$/.test(origin) || /\.manus\.space$/.test(origin);
 
   app.use(
     cors({
@@ -134,7 +140,12 @@ async function startServer() {
       },
       credentials: true, // Necesario para cookies de sesión OAuth
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Store-Token"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "X-Store-Token",
+      ],
     })
   );
 
@@ -163,7 +174,11 @@ async function startServer() {
 
   // ─── Health check (sin rate limiting — usado por Docker healthcheck) ──────
   app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, ts: Date.now() });
+    res.json({
+      ok: true,
+      ts: Date.now(),
+      release: process.env.DEPLOY_RELEASE ?? null,
+    });
   });
 
   // ─── Heartbeat: Seguimiento automático de leads (cada hora) ──────────────
@@ -224,10 +239,7 @@ async function startServer() {
 
   // Limiter para el agente IA — evita abuso de LLM y costos excesivos
   app.use(
-    [
-      "/api/trpc/agent.sendMessage",
-      "/api/trpc/agent.startSession",
-    ],
+    ["/api/trpc/agent.sendMessage", "/api/trpc/agent.startSession"],
     agentLimiter
   );
 
@@ -259,12 +271,19 @@ async function startServer() {
   }
 
   // ─── Seed Calendar Data ─────────────────────────────────────────────────────
-  try {
-    await seedEngineers();
-    await seedAvailabilitySlots();
-    console.log('[Calendar] Ingenieros y slots de disponibilidad inicializados');
-  } catch (e) {
-    console.warn('[Calendar] Seed omitido (tabla no existe aún o ya sembrado):', (e as Error).message);
+  if (process.env.SEED_CALENDAR_DATA !== "false") {
+    try {
+      await seedEngineers();
+      await seedAvailabilitySlots();
+      console.log(
+        "[Calendar] Ingenieros y slots de disponibilidad inicializados"
+      );
+    } catch (e) {
+      console.warn(
+        "[Calendar] Seed omitido (tabla no existe aún o ya sembrado):",
+        (e as Error).message
+      );
+    }
   }
 
   server.listen(port, () => {

@@ -141,6 +141,9 @@ localAuthRouter.get("/me", async (req: Request, res: Response) => {
 // ─── POST /api/auth/create-admin ──────────────────────────────────────────────
 // Solo funciona si NO existe ningún admin con contraseña local
 localAuthRouter.post("/create-admin", loginLimiter, async (req: Request, res: Response) => {
+  if (process.env.ALLOW_ADMIN_BOOTSTRAP === "false") {
+    return res.status(403).json({ error: "La cuenta administradora se configura desde el servidor." });
+  }
   try {
     const { email, password, name } = req.body ?? {};
 

@@ -8,4 +8,4 @@ Disallow: /tienda/login
 Disallow: /tienda/verificar
 Disallow: /tienda/nueva-contrasena
 
-Sitemap: https://iamettech-ssx5e88n.manus.space/sitemap.xml
+Sitemap: https://staging.iamet.mx/sitemap.xml

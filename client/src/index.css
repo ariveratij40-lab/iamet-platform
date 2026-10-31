@@ -804,3 +804,17 @@ body:has(.iamet-reference-home) .iamet-brand-tagline { color: #9ab6df; }
 @keyframes iamet-intro-light-pass { 0% {transform:scaleX(.05);opacity:0;} 40% {opacity:.85;} 100% {transform:scaleX(1);opacity:0;} }
 @media (max-width:640px) { .iamet-intro-orbit-outer { width:110vw;margin-left:-55vw;margin-top:-55vw; } .iamet-intro-orbit-inner {width:85vw;margin-left:-42.5vw;margin-top:-42.5vw;} .iamet-intro-circuits {opacity:.55;} .iamet-intro-floor {background-size:48px 48px;} }
 @media (prefers-reduced-motion:reduce) { .iamet-intro-atmosphere * {animation:none!important;} .iamet-intro-flow,.iamet-intro-light-sweep {display:none;} }
+
+/* The private CRM keeps a consistent dark palette independently of the public theme. */
+.iamet-crm {
+  --color-iamet-text: #f1f5f9;
+  --foreground: #e2e8f0;
+  --muted-foreground: #94a3b8;
+  --background: #0b1829;
+  --border: #26384f;
+}
+.iamet-crm .iamet-brand-logo { color: #f1f5f9; }
+.iamet-crm meter { border: 0; border-radius: 8px; background: #1e293b; }
+.iamet-crm meter::-webkit-meter-bar { background: #1e293b; border: 0; border-radius: 8px; }
+.iamet-crm meter::-webkit-meter-optimum-value { background: #3b82f6; border-radius: 8px; }
+.iamet-crm meter::-moz-meter-bar { background: #3b82f6; border-radius: 8px; }

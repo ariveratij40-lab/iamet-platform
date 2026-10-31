@@ -27,7 +27,7 @@ import TiendaVerificar from "./pages/TiendaVerificar";
 import AdminTienda from "./pages/AdminTienda";
 import AdminReuiones from "./pages/AdminReuiones";
 import AdminSeguimientos from "./pages/AdminSeguimientos";
-import AdminCRM from "./pages/AdminCRM";
+import AdminCRM from "./pages/AdminCRMV2";
 import AdminIntelligence from "./pages/AdminIntelligence";
 import AdminAgent from "./pages/AdminAgent";
 import AdminKnowledge from "./pages/AdminKnowledge";
@@ -65,6 +65,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => { if (!window.location.hash) window.scrollTo({top: 0, behavior: "instant"}); }, [location]);
   const isServiceLanding = /^\/soluciones\/(infraestructura|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
+
+  if (location === "/admin/crm" || location === "/admin/login") return <>{children}</>;
 
   if (isAdmin) {
     return (
@@ -144,7 +146,7 @@ function Router() {
           <Route path="/admin/reuniones">{() => <AdminGuard><AdminReuiones /></AdminGuard>}</Route>
           <Route path="/admin/seguimientos">{() => <AdminGuard><AdminSeguimientos /></AdminGuard>}</Route>
           <Route path="/admin/garantias">{() => <AdminGuard><AdminWarranties /></AdminGuard>}</Route>
-          <Route path="/admin/crm">{() => <AdminGuard><AdminCRM /></AdminGuard>}</Route>
+          <Route path="/admin/crm">{() => <AdminGuard allowedRoles={["admin"]}><AdminCRM /></AdminGuard>}</Route>
           <Route path="/admin/intelligence">{() => <AdminGuard><AdminIntelligence /></AdminGuard>}</Route>
           <Route path="/admin/agent">{() => <AdminGuard><AdminAgent /></AdminGuard>}</Route>
           <Route path="/admin/knowledge">{() => <AdminGuard><AdminKnowledge /></AdminGuard>}</Route>

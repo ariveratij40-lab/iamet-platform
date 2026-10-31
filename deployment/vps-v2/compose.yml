@@ -1,0 +1,88 @@
+name: iamet-v2-staging
+services:
+  iamet_v2_db:
+    image: postgres:16-alpine
+    container_name: iamet_v2_db_staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: iamet_v2_staging
+      POSTGRES_USER: iamet_v2
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run prepare-env first}
+    volumes:
+      - pg_v2:/var/lib/postgresql/data
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U iamet_v2 -d iamet_v2_staging"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  iamet_v2_redis:
+    image: redis:7-alpine
+    container_name: iamet_v2_redis_staging
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Run prepare-env first}
+    command:
+      [
+        sh,
+        -c,
+        'exec redis-server --requirepass "$$REDIS_PASSWORD" --maxmemory 128mb --maxmemory-policy allkeys-lru',
+      ]
+    volumes:
+      - redis_v2:/data
+    networks: [private]
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  app:
+    image: iamet-v2-staging:${RELEASE_ID:?Set RELEASE_ID}
+    build:
+      context: ../..
+      dockerfile: deployment/vps-v2/Dockerfile
+    container_name: iamet_v2_app_staging
+    restart: unless-stopped
+    env_file: .env.v2
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DEPLOY_RELEASE: ${RELEASE_ID}
+      VITE_APP_URL: https://staging.iamet.mx
+      DATABASE_URL: postgresql://iamet_v2:${POSTGRES_PASSWORD}@iamet_v2_db:5432/iamet_v2_staging
+      REDIS_URL: redis://:${REDIS_PASSWORD}@iamet_v2_redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Run prepare-env first}
+      ALLOW_ADMIN_BOOTSTRAP: "false"
+      TRUST_PROXY_HOPS: "1"
+      SEED_CALENDAR_DATA: "false"
+      CRM_ENGINE: "v2"
+    depends_on:
+      iamet_v2_db: { condition: service_healthy }
+      iamet_v2_redis: { condition: service_healthy }
+    networks: [private, infra_network]
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
+networks:
+  private:
+    name: iamet_v2_private
+  infra_network:
+    external: true
+volumes:
+  pg_v2:
+    name: iamet_v2_pg_staging
+  redis_v2:
+    name: iamet_v2_redis_staging

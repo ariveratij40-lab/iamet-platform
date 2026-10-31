@@ -1,3 +1,4 @@
+import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
 import {visitorAssistantRouter} from "./routers/visitorAssistant";
 import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
 import { TRPCError } from "@trpc/server";
@@ -258,6 +259,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
+        if (process.env.CRM_ENGINE === "v2") return { id: await captureCrmV2Lead(input) };
         const leadId = await createLead(input);
         // Trigger: timeline + scoring + followups (fire-and-forget)
         Promise.all([
@@ -939,6 +941,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   storeAuth: newStoreAuthRouter,
   warranty: warrantyRouter,
   visitorAssistant: visitorAssistantRouter,
+  crmV2: crmV2Router,
 
   // ─── Smart Calendar ──────────────────────────────────────────────────────────────────────────────
   calendar: router({
