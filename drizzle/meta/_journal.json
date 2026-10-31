@@ -43,6 +43,13 @@
       "when": 1793384449185,
       "tag": "0005_customer-warranties",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793405543829,
+      "tag": "0006_assistant-conversations",
+      "breakpoints": true
     }
   ]
 }

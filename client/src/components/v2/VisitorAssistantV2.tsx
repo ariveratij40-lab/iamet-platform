@@ -74,6 +74,10 @@ function VisitorAssistantContent({ path }: { path: string }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
+  const conversation = useRef<{ id: string; token: string } | undefined>(
+    undefined
+  );
+  const [recorded, setRecorded] = useState<boolean | null>(null);
   const [mode, setMode] = useState<"ai" | "guide" | null>(null);
   const feed = useRef<HTMLDivElement>(null);
   const field = useRef<HTMLInputElement>(null);
@@ -100,17 +104,21 @@ function VisitorAssistantContent({ path }: { path: string }) {
     setMessages(next);
     try {
       const result = await request.mutateAsync({
+        conversation: conversation.current,
         messages: next.slice(-8),
         contextPath: path,
       });
       setMessages([...next, { role: "assistant", content: result.reply }]);
       setActions(result.actions);
       setMode(result.mode);
+      if (result.conversation) conversation.current = result.conversation;
+      setRecorded(result.recorded);
     } catch {
       const result = visitorGuidance(content, path);
       setMessages([...next, { role: "assistant", content: result.reply }]);
       setActions(result.actions);
       setMode("guide");
+      setRecorded(false);
     } finally {
       busyRef.current = false;
       setBusy(false);
@@ -169,6 +177,8 @@ function VisitorAssistantContent({ path }: { path: string }) {
                 disabled={busy}
                 aria-label="Nueva conversación"
                 onClick={() => {
+                  conversation.current = undefined;
+                  setRecorded(null);
                   setMessages([
                     { role: "assistant", content: assistantWelcome },
                   ]);
@@ -251,6 +261,12 @@ function VisitorAssistantContent({ path }: { path: string }) {
               </div>
             )}
           </div>
+          <p className="px-4 py-2 text-[11px] leading-4 text-slate-300">
+            {recorded === false
+              ? "Esta respuesta no se guardó en el CRM. "
+              : "Las conversaciones se registran para seguimiento y mejora del servicio. "}
+            No comparta contraseñas ni datos sensibles.
+          </p>
           <form
             className="flex shrink-0 gap-2 border-t border-blue-300/15 p-3"
             onSubmit={e => {

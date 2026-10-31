@@ -1,6 +1,13 @@
+import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { getDb } from "../db";
+import {
+  assistantConversations as conversations,
+  assistantTurns as turns,
+} from "../../drizzle/schema";
+import { recordAssistantTurn } from "../assistant-history";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { router, publicProcedure } from "../_core/trpc";
+import { router, publicProcedure, adminProcedure } from "../_core/trpc";
 import { ENV } from "../_core/env";
 import { invokeLLM } from "../_core/llm";
 import {
@@ -31,9 +38,99 @@ const visitorProcedure = publicProcedure.use(({ ctx, next }) => {
   return next();
 });
 export const visitorAssistantRouter = router({
+  dashboard: adminProcedure
+    .input(
+      z.object({
+        days: z.union([z.literal(7), z.literal(30), z.literal(90)]).default(30),
+        page: z.number().int().min(0).default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "SERVICE_UNAVAILABLE",
+          message: "Base de datos no disponible",
+        });
+      const since = new Date(Date.now() - input.days * 86400000);
+      const filter = gte(turns.createdAt, since);
+      const [totals] = await db
+        .select({
+          conversations: sql<number>`count(distinct ${turns.conversationId})::int`,
+          exchanges: sql<number>`count(*)::int`,
+          ai: sql<number>`count(*) filter (where ${turns.mode} = 'ai')::int`,
+          guide: sql<number>`count(*) filter (where ${turns.mode} = 'guide')::int`,
+        })
+        .from(turns)
+        .where(filter);
+      const topics = await db
+        .select({ topic: turns.topic, count: sql<number>`count(*)::int` })
+        .from(turns)
+        .where(filter)
+        .groupBy(turns.topic)
+        .orderBy(sql`count(*) desc`);
+      const daily = await db
+        .select({
+          day: sql<string>`to_char(${turns.createdAt}, 'YYYY-MM-DD')`,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(turns)
+        .where(filter)
+        .groupBy(sql`to_char(${turns.createdAt}, 'YYYY-MM-DD')`)
+        .orderBy(sql`to_char(${turns.createdAt}, 'YYYY-MM-DD')`);
+      const items = await db
+        .select({
+          id: conversations.id,
+          page: conversations.page,
+          createdAt: conversations.createdAt,
+          updatedAt: conversations.updatedAt,
+          exchanges: sql<number>`count(${turns.id})::int`,
+        })
+        .from(conversations)
+        .innerJoin(turns, eq(turns.conversationId, conversations.id))
+        .where(filter)
+        .groupBy(conversations.id)
+        .orderBy(desc(conversations.updatedAt))
+        .limit(20)
+        .offset(input.page * 20);
+      return { totals, topics, daily, items };
+    }),
+  transcript: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE" });
+      const [conversation] = await db
+        .select({
+          id: conversations.id,
+          page: conversations.page,
+          createdAt: conversations.createdAt,
+        })
+        .from(conversations)
+        .where(eq(conversations.id, input.id));
+      if (!conversation) throw new TRPCError({ code: "NOT_FOUND" });
+      const messages = await db
+        .select({
+          id: turns.id,
+          question: turns.question,
+          answer: turns.answer,
+          mode: turns.mode,
+          createdAt: turns.createdAt,
+        })
+        .from(turns)
+        .where(eq(turns.conversationId, input.id))
+        .orderBy(turns.id);
+      return { conversation, messages };
+    }),
   chat: visitorProcedure
     .input(
       z.object({
+        conversation: z
+          .object({
+            id: z.string().uuid(),
+            token: z.string().regex(/^[a-f0-9]{64}$/),
+          })
+          .optional(),
         messages: z
           .array(
             z.object({
@@ -58,7 +155,29 @@ export const visitorAssistantRouter = router({
           message: "Escriba su consulta para continuar.",
         });
       const guidance = visitorGuidance(last.content, input.contextPath);
-      if (!ENV.llmApiKey) return { ...guidance, mode: "guide" as const };
+      const finish = async (result: {
+        reply: string;
+        actions: typeof guidance.actions;
+        mode: "ai" | "guide";
+      }) => {
+        try {
+          const conversation = await recordAssistantTurn({
+            conversation: input.conversation,
+            page: input.contextPath,
+            question: last.content,
+            answer: result.reply,
+            mode: result.mode,
+            topic:
+              guidance.actions
+                .find(a => a.href.startsWith("/cotizacion?solucion="))
+                ?.href.split("solucion=")[1] ?? "general",
+          });
+          return { ...result, conversation, recorded: !!conversation };
+        } catch {
+          return { ...result, conversation: null, recorded: false };
+        }
+      };
+      if (!ENV.llmApiKey) return finish({ ...guidance, mode: "guide" });
       try {
         const result = await invokeLLM({
           messages: [
@@ -75,14 +194,14 @@ export const visitorAssistantRouter = router({
         });
         const content = result.choices?.[0]?.message?.content;
         const reply = typeof content === "string" ? content.trim() : "";
-        if (!reply) return { ...guidance, mode: "guide" as const };
-        return {
+        if (!reply) return finish({ ...guidance, mode: "guide" });
+        return finish({
           reply: reply.slice(0, 2200),
           actions: guidance.actions,
-          mode: "ai" as const,
-        };
+          mode: "ai",
+        });
       } catch {
-        return { ...guidance, mode: "guide" as const };
+        return finish({ ...guidance, mode: "guide" });
       }
     }),
 });

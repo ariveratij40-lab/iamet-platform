@@ -626,3 +626,21 @@ export const warrantyUpdates = pgTable("warranty_updates", {
   status: varchar("status", {length:32}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Public assistant transcripts; readable only through administrative procedures.
+export const assistantConversations = pgTable("assistant_conversations", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+  page: varchar("page", { length: 180 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export const assistantTurns = pgTable("assistant_turns", {
+  id: serial("id").primaryKey(),
+  conversationId: varchar("conversation_id", { length: 36 }).notNull().references(() => assistantConversations.id, { onDelete: "cascade" }),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  mode: varchar("mode", { length: 10 }).notNull(),
+  topic: varchar("topic", { length: 80 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
