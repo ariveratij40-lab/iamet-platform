@@ -13,3 +13,7 @@ If the server has no model key or the model fails, it returns mode=guide with de
 Quote links include origen=asistente and the service slug when detected. QuoteV2 then submits LeadForm with source=agent. Contact details are collected on the existing quote form and remain subject to that form's CRM/backend setup; the chat does not create leads or send messages to IAMET staff on its own. Warranty requests route to /garantias and the authenticated customer flow.
 
 Validation: pnpm check; pnpm exec vitest run server/visitor-assistant.test.ts server/warranty.test.ts; pnpm build. Browser verification covers guide fallback, contextual service-to-quote routing, mobile panel bounds, Escape, and exclusion from the private portal. No VPS deployment was performed.
+
+## Invitación discreta
+
+El botón utiliza el símbolo de procesador IAMET. Tras 20 segundos en una página pública se muestra una invitación adaptada a la solución, sin abrir el chat ni mover el foco. Se muestra una sola vez por sesión de pestaña; abrir el asistente o descartar el saludo también suprime futuras invitaciones. Se usa sessionStorage con respaldo en memoria si el navegador bloquea el almacenamiento. No se guarda la conversación. El brillo respeta la preferencia de movimiento reducido.

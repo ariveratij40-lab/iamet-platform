@@ -1,12 +1,14 @@
 /** Approved Processor identity. Lettering is drawn as paths, not a font substitute. */
 export default function IametTechLogoV2({
   className = "",
+  symbolOnly = false,
 }: {
   className?: string;
+  symbolOnly?: boolean;
 }) {
   return (
     <svg
-      viewBox="0 0 520 146"
+      viewBox={symbolOnly ? "0 0 140 140" : "0 0 520 146"}
       role="img"
       aria-label="IAMET — Integración de soluciones tecnológicas"
       className={`iamet-brand-logo w-full ${className}`}
@@ -53,7 +55,11 @@ export default function IametTechLogoV2({
         />
         <path pathLength="1" d="M55 43H85M70 43V97M55 97H85" />
       </g>
-      <g className="iamet-logo-wordmark" transform="translate(174 38)">
+      <g
+        className="iamet-logo-wordmark"
+        transform="translate(174 38)"
+        display={symbolOnly ? "none" : undefined}
+      >
         <g
           transform=""
           fill="none"

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { MessageCircle, Send, X, RotateCcw, Loader2 } from "lucide-react";
+import { Send, X, RotateCcw, Loader2 } from "lucide-react";
+import IametTechLogoV2 from "./IametTechLogoV2";
+import { businessServices } from "@shared/iamet-profile";
 import { trpc } from "@/lib/trpc";
 import { useAttribution } from "@/hooks/useAttribution";
 import {
@@ -9,6 +11,33 @@ import {
   visitorGuidance,
   type VisitorAction,
 } from "@shared/visitor-assistant";
+const greetingKey = "iamet-assistant-greeted-v1";
+let greetedThisSession = false;
+function hasGreeted() {
+  try {
+    return greetedThisSession || sessionStorage.getItem(greetingKey) === "1";
+  } catch {
+    return greetedThisSession;
+  }
+}
+function rememberGreeting() {
+  greetedThisSession = true;
+  try {
+    sessionStorage.setItem(greetingKey, "1");
+  } catch {
+    /* Storage may be disabled. */
+  }
+}
+function greetingFor(path: string) {
+  if (path.includes("infraestructura") || path === "/marcas/panduit")
+    return "¿Necesita cableado estructurado o certificación con Fluke? Puedo orientarle.";
+  const service = businessServices.find(service => path === service.href);
+  if (service)
+    return `¿Busca ${service.name.toLowerCase()}? Conozca cómo podemos ayudarle.`;
+  if (path === "/cotizacion")
+    return "¿Necesita ayuda para elegir una solución? Puedo orientarle antes de solicitar su cotización.";
+  return "Hola, soy el asistente virtual de IAMET. ¿Qué solución necesita su empresa?";
+}
 type Message = { role: "assistant" | "user"; content: string };
 export default function VisitorAssistantV2() {
   const [path] = useLocation();
@@ -20,6 +49,24 @@ export default function VisitorAssistantV2() {
 }
 function VisitorAssistantContent({ path }: { path: string }) {
   const [open, setOpen] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(false);
+  useEffect(() => {
+    if (open || hasGreeted()) return;
+    const timer = window.setTimeout(() => {
+      if (hasGreeted()) return;
+      rememberGreeting();
+      setShowGreeting(true);
+    }, 20000);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+  function dismissGreeting() {
+    rememberGreeting();
+    setShowGreeting(false);
+  }
+  function launch() {
+    dismissGreeting();
+    setOpen(true);
+  }
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: assistantWelcome },
   ]);
@@ -76,6 +123,29 @@ function VisitorAssistantContent({ path }: { path: string }) {
         if (e.key === "Escape") close();
       }}
     >
+      {!open && showGreeting && (
+        <aside
+          aria-label="Invitación del asistente IAMET"
+          className="relative mb-3 w-[min(310px,calc(100vw-32px))] rounded-2xl border border-blue-300/25 bg-[#10283d] p-4 pr-10 shadow-xl"
+        >
+          <p role="status" className="text-sm leading-6">
+            {greetingFor(path)}
+          </p>
+          <button
+            onClick={launch}
+            className="mt-2 text-sm font-semibold text-blue-200 underline underline-offset-4"
+          >
+            Conversar con IAMET →
+          </button>
+          <button
+            aria-label="Descartar saludo del asistente"
+            onClick={dismissGreeting}
+            className="absolute right-2 top-2 rounded p-1 hover:bg-white/10"
+          >
+            <X size={18} />
+          </button>
+        </aside>
+      )}
       {open && (
         <section
           role="dialog"
@@ -215,10 +285,19 @@ function VisitorAssistantContent({ path }: { path: string }) {
           ref={launcher}
           aria-label={open ? "Cerrar asistente IAMET" : "Abrir asistente IAMET"}
           aria-expanded={open}
-          onClick={() => (open ? close() : setOpen(true))}
+          onClick={() => (open ? close() : launch())}
           className="flex h-12 items-center gap-2 rounded-full border border-blue-300/20 bg-blue-600 px-4 text-sm font-semibold shadow-xl transition hover:bg-blue-500"
         >
-          <MessageCircle size={20} />
+          <span className="relative flex h-8 w-8 items-center justify-center">
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full bg-blue-200/20 motion-safe:animate-pulse"
+            />
+            <IametTechLogoV2
+              symbolOnly
+              className="relative h-8 !w-8 text-white [&_.iamet-logo-symbol]:!stroke-blue-100"
+            />
+          </span>
           <span>{open ? "Cerrar" : "¿Le orientamos?"}</span>
         </button>
       </div>
