@@ -27,7 +27,7 @@ export default function PublicHeaderV2() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-[0_2px_12px_rgba(15,23,42,.03)]"
+      className="iamet-public-header sticky top-0 z-50 w-full border-b border-white/10 bg-[#05101d] text-slate-200 shadow-[0_2px_12px_rgba(0,0,0,.12)]"
       onKeyDown={event => {
         if (event.key === "Escape") {
           setMobileOpen(false);

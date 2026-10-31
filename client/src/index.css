@@ -827,4 +827,20 @@ body:has(.iamet-reference-home) .iamet-brand-tagline { color: #9ab6df; }
 .iamet-account .iamet-brand-logo { color: #f1f5f9; }
 body:has(.iamet-reference-home) header a[href="/acceso"] { color: #b9dcff; border-color: #31506a; }
 body:has(.iamet-reference-home) header a[href="/acceso"]:hover { background: #15344b; }
-body:has(.iamet-account) header .iamet-brand-logo { color: #111f34; }
+
+
+/* Keep the public navigation consistent across home, access and service pages. */
+.iamet-public-header { background: rgba(5,16,29,.96); border-color: rgba(98,153,190,.18); backdrop-filter: blur(18px); }
+.iamet-public-header .iamet-brand-logo { color: #f4f7ff; }
+.iamet-public-header .iamet-brand-tagline { color: #a2b4ca; }
+.iamet-public-header nav a, .iamet-public-header button { color: #b5c5d8; }
+.iamet-public-header nav a[aria-current="page"],
+.iamet-public-header nav button[aria-expanded="true"] { color: #45d3ef; border-color: #45d3ef; }
+.iamet-public-header [id$="-links"], .iamet-public-header #public-mobile-menu { background: #0c1d2e; border-color: #21374e; }
+.iamet-public-header [id$="-links"] a { color: #b5c5d8; }
+.iamet-public-header nav a:hover, .iamet-public-header nav a:focus-visible,
+.iamet-public-header [id$="-links"] a:hover, .iamet-public-header [id$="-links"] a:focus-visible { background: #15344b; color: #55d6f0; }
+.iamet-public-header a[href="/acceso"] { color: #b9dcff; border-color: #31506a; }
+.iamet-public-header a[href="/acceso"]:hover, .iamet-public-header button:hover { background: #15344b; }
+.iamet-public-header .border-slate-100, .iamet-public-header .border-slate-200 { border-color: #21374e; }
+.iamet-public-header a.bg-blue-600 { color: white; }
