@@ -232,6 +232,7 @@ async function startServer() {
       "/api/trpc/store.submitQuote",
       "/api/trpc/storeAuth.register",
       "/api/trpc/storeAuth.resend",
+      "/api/trpc/storeAuth.resendVerification",
       "/api/trpc/advisor.startSession",
     ],
     formLimiter

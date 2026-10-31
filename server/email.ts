@@ -182,14 +182,14 @@ export async function sendPasswordResetEmail(params: {
 
   if (!ENV.resendApiKey) {
     console.warn("[Email] RESEND_API_KEY no configurada — no se enviará correo de reset a:", to);
-    console.info("[Email] URL de reset (dev):", resetUrl);
+
     return { ok: false, error: "RESEND_API_KEY no configurada" };
   }
 
   try {
     const resend = getResend();
     const { data, error } = await resend.emails.send({
-      from: "IAMET Tienda <noreply@iamet.mx>",
+      from: ENV.emailFrom,
       to: [to],
       subject: "Recupera tu contraseña — Tienda IAMET",
       html: buildPasswordResetEmailHtml({ name, resetUrl }),
@@ -219,16 +219,16 @@ export async function sendVerificationEmail(params: {
 
   if (!ENV.resendApiKey) {
     console.warn("[Email] RESEND_API_KEY no configurada — no se enviará correo a:", to);
-    console.info("[Email] URL de verificación (dev):", verifyUrl);
+
     return { ok: false, error: "RESEND_API_KEY no configurada" };
   }
 
   try {
     const resend = getResend();
     const { data, error } = await resend.emails.send({
-      from: "IAMET Tienda <noreply@iamet.mx>",
+      from: ENV.emailFrom,
       to: [to],
-      subject: "Verifica tu correo — Tienda IAMET",
+      subject: "Confirme su cuenta — IAMET",
       html: buildVerificationEmailHtml({ name, verifyUrl }),
     });
 
@@ -237,7 +237,11 @@ export async function sendVerificationEmail(params: {
       return { ok: false, error: error.message };
     }
 
-    console.info("[Email] Correo de verificación enviado a:", to, "id:", data?.id);
+    if (!data?.id) {
+      console.error("[Email] Resend no devolvió identificador de envío");
+      return { ok: false, error: "Respuesta de correo incompleta" };
+    }
+    console.info("[Email] Verificación aceptada por Resend. id:", data.id);
     return { ok: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -355,7 +359,7 @@ export async function sendQuoteNotificationEmail(params: {
   try {
     const resend = getResend();
     const { data, error } = await resend.emails.send({
-      from: "IAMET Tienda <noreply@iamet.mx>",
+      from: ENV.emailFrom,
       to: ["alvaro.rivera@iamet.mx"],
       subject: `Nueva cotización ${params.refCode} — ${params.visitorName}${params.company ? ` (${params.company})` : ""}`,
       html: buildQuoteNotificationHtml(params),

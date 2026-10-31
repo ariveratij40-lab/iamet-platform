@@ -128,3 +128,19 @@ update.sh construye solo la aplicación, respalda la base v2 y sustituye su cont
 ## Área de garantías y órdenes
 
 /admin/garantias y /admin/crm usan el mismo marco de administración v2 (logo, navegación, paleta y cierre de sesión). Ambas rutas omiten el menú lateral heredado y requieren rol admin. Garantías incluye indicadores de los últimos 200 tickets y órdenes (no totales históricos), búsqueda local y filtros por estado, estados vacíos, consulta de factura y seguimiento, y registro de pedidos/órdenes para clientes existentes. El estado inicial del editor de un ticket es su estado actual, evitando reabrirlo accidentalmente al responder. Este ajuste de interfaz no modifica el esquema ni los permisos de los endpoints; se publica con update.sh conservando los datos.
+
+## Confirmación de registro por correo
+
+El registro conserva la cuenta pendiente aunque el proveedor rechace el envío, pero devuelve emailSent=false y muestra esa situación en pantalla. emailSent=true significa aceptación por el proveedor, no entrega confirmada en la bandeja de entrada. La cuenta requiere verificar el enlace antes de entrar. Los enlaces se construyen con VITE_APP_URL del servidor, no con el origen proporcionado por el navegador.
+
+/tienda/login?mode=resend&returnTo=%2Fgarantias permite reenviar una confirmación con correo y contraseña. Requiere credenciales correctas y aplica una espera de 60 segundos por cuenta mediante actualización condicional en la base. Mantiene el enlace anterior mientras sea válido. No muestra tokens ni detalles internos del proveedor. No cambia las tablas ni verifica manualmente cuentas para saltarse el correo.
+
+Después de actualizar, se puede revisar el proveedor sin enviar correos ni imprimir claves:
+
+```bash
+docker exec iamet_v2_app_staging node scripts/check-email.mjs
+```
+
+EMAIL_FROM permite configurar el remitente; el valor por defecto es IAMET <noreply@iamet.mx>. El diagnóstico comprueba si Resend permite consultar el dominio remitente. Una clave con permiso solo de envío puede rechazar esa consulta y seguir siendo apta para enviar. Comprobar entonces el estado del dominio y los eventos del mensaje en el panel de Resend. El código no cambia DNS, claves ni permisos del proveedor automáticamente.
+
+Referencias: [errores del proveedor](https://resend.com/docs/api-reference/errors) y [consulta de dominios](https://resend.com/docs/api-reference/domains/list-domains).

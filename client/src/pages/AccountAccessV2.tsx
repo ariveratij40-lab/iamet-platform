@@ -7,7 +7,7 @@ import TiendaLogin from "./TiendaLogin";
 
 export function CustomerAccessRoute() {
   const mode = new URLSearchParams(window.location.search).get("mode");
-  return mode === "register" || mode === "forgot" ? (
+  return mode === "register" || mode === "forgot" || mode === "resend" ? (
     <TiendaLogin />
   ) : (
     <AccountAccessV2 />
@@ -151,6 +151,14 @@ export default function AccountAccessV2() {
             )}
           </button>
         </form>
+        {error.toLowerCase().includes("verifi") && (
+          <Link
+            href="/tienda/login?mode=resend&returnTo=%2Fgarantias"
+            className="mt-4 block text-sm font-semibold text-blue-300 hover:underline"
+          >
+            Reenviar confirmación de correo
+          </Link>
+        )}
         <Link
           href="/tienda/login?mode=forgot&returnTo=%2Fgarantias"
           className="mt-5 block text-sm text-blue-300 hover:underline"
