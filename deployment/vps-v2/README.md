@@ -124,3 +124,7 @@ git pull --ff-only origin feature/iamet-v2 && bash deployment/vps-v2/update.sh
 ```
 
 update.sh construye solo la aplicación, respalda la base v2 y sustituye su contenedor. No ejecuta inicialización ni migraciones y no reemplaza el vhost TLS. Valida Nginx y lo recarga para resolver el nuevo contenedor. Si falla la aplicación o la comprobación pública, vuelve a la imagen anterior; la base permanece intacta. No usar este script para cambios de esquema sin una migración incremental específica.
+
+## Área de garantías y órdenes
+
+/admin/garantias y /admin/crm usan el mismo marco de administración v2 (logo, navegación, paleta y cierre de sesión). Ambas rutas omiten el menú lateral heredado y requieren rol admin. Garantías incluye indicadores de los últimos 200 tickets y órdenes (no totales históricos), búsqueda local y filtros por estado, estados vacíos, consulta de factura y seguimiento, y registro de pedidos/órdenes para clientes existentes. El estado inicial del editor de un ticket es su estado actual, evitando reabrirlo accidentalmente al responder. Este ajuste de interfaz no modifica el esquema ni los permisos de los endpoints; se publica con update.sh conservando los datos.

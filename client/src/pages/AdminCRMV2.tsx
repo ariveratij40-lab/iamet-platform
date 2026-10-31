@@ -1,17 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useLocalAuth } from "@/hooks/useLocalAuth";
-import IametTechLogoV2 from "@/components/v2/IametTechLogoV2";
+import AdminWorkspaceV2 from "@/components/v2/AdminWorkspaceV2";
 import AssistantCRM from "@/components/AssistantCRM";
 import { leadStages, type LeadStage } from "@shared/crm";
-import {
-  LayoutDashboard,
-  Users,
-  MessagesSquare,
-  ArrowUpRight,
-  LogOut,
-} from "lucide-react";
+import { LayoutDashboard, Users, MessagesSquare } from "lucide-react";
 const label = (status: string) =>
   leadStages.find(s => s.value === status)?.label ?? status;
 const sourceLabel = (source: string) =>
@@ -143,7 +135,6 @@ function LeadDetail({ id, close }: { id: number; close: () => void }) {
   );
 }
 export default function AdminCRMV2() {
-  const { user, logout } = useLocalAuth();
   const [tab, setTab] = useState<"overview" | "leads" | "assistant">(
     "overview"
   );
@@ -168,349 +159,307 @@ export default function AdminCRMV2() {
     { id: "assistant", label: "Asistente virtual", Icon: MessagesSquare },
   ] as const;
   return (
-    <div className="iamet-crm min-h-screen bg-[#07111f] text-slate-100">
-      <header className="border-b border-white/10 bg-[#0b1829]">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4">
-          <Link href="/" aria-label="IAMET · Ir al sitio">
-            <IametTechLogoV2 className="!w-36 text-white" />
-          </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="hidden text-slate-400 sm:inline">
-              {user?.email}
-            </span>
-            <Link href="/" className="flex items-center gap-1 text-blue-200">
-              Ver sitio <ArrowUpRight size={15} />
-            </Link>
-            <button
-              onClick={async () => {
-                await logout();
-                window.location.href = "/admin/login";
-              }}
-              aria-label="Cerrar sesión"
-              className="rounded-lg border border-white/10 p-2"
-            >
-              <LogOut size={17} />
-            </button>
-          </div>
+    <AdminWorkspaceV2>
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[.24em] text-blue-400">
+            IAMET · Gestión comercial
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            CRM de IAMET
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Prospectos, seguimiento y conversaciones en un solo lugar.
+          </p>
         </div>
-      </header>
-      <div className="mx-auto max-w-7xl px-5 py-8">
-        <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[.24em] text-blue-400">
-              IAMET · Gestión comercial
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              CRM de IAMET
-            </h1>
-            <p className="mt-2 text-sm text-slate-400">
-              Prospectos, seguimiento y conversaciones en un solo lugar.
-            </p>
-          </div>
-          <Link
-            href="/admin/garantias"
-            className="rounded-xl border border-slate-700 px-4 py-2 text-sm"
+      </div>
+      <nav
+        aria-label="Secciones del CRM"
+        className="mb-6 flex flex-wrap gap-2 border-b border-white/10 pb-4"
+      >
+        {navigation.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            aria-current={tab === id ? "page" : undefined}
+            onClick={() => setTab(id)}
+            className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold ${tab === id ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
           >
-            Garantías y órdenes →
-          </Link>
-        </div>
-        <nav
-          aria-label="Secciones del CRM"
-          className="mb-6 flex flex-wrap gap-2 border-b border-white/10 pb-4"
-        >
-          {navigation.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              aria-current={tab === id ? "page" : undefined}
-              onClick={() => setTab(id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold ${tab === id ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
-            >
-              <Icon size={17} />
-              {label}
-            </button>
-          ))}
-        </nav>
-        {tab !== "assistant" && (
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <label className="text-sm text-slate-300">
-              Registros creados en los últimos{" "}
-              <select
-                className={`${control} ml-2`}
-                value={days}
-                onChange={e => {
-                  setDays(Number(e.target.value) as 7 | 30 | 90);
-                  setPage(0);
-                }}
-              >
-                <option value={7}>7 días</option>
-                <option value={30}>30 días</option>
-                <option value={90}>90 días</option>
-              </select>
-            </label>
-            <button
-              className="text-sm text-blue-300 underline"
-              onClick={() => {
-                overview.refetch();
-                if (tab === "leads") prospects.refetch();
-              }}
-            >
-              Actualizar
-            </button>
-          </div>
-        )}
-        {tab === "overview" && (
-          <div className="space-y-6">
-            {overview.isLoading && <p role="status">Cargando resumen…</p>}
-            {overview.error && (
-              <p role="alert" className="text-red-300">
-                No se pudo cargar el resumen. Verifique la conexión del
-                servidor.
-              </p>
-            )}
-            {overview.data && (
-              <>
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                  {[
-                    ["Prospectos recibidos", total],
-                    [
-                      "En seguimiento",
-                      count("contacted") +
-                        count("qualified") +
-                        count("proposal"),
-                    ],
-                    ["Ganados", count("closed_won")],
-                    ["Por atender", count("new")],
-                  ].map(([label, value]) => (
-                    <article
-                      key={label}
-                      className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5"
-                    >
-                      <p className="text-sm text-slate-400">{label}</p>
-                      <p className="mt-3 text-4xl font-semibold">{value}</p>
-                    </article>
-                  ))}
-                </div>
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
-                    <h2 className="mb-5 text-lg font-semibold">
-                      Etapas del embudo
-                    </h2>
-                    <div className="space-y-4">
-                      {leadStages.map(s => (
-                        <div key={s.value}>
-                          <div className="mb-1 flex justify-between text-sm">
-                            <span>{s.label}</span>
-                            <span>{count(s.value)}</span>
-                          </div>
-                          <meter
-                            aria-label={s.label}
-                            min={0}
-                            max={Math.max(total, 1)}
-                            value={count(s.value)}
-                            className="h-2 w-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                  <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
-                    <h2 className="mb-5 text-lg font-semibold">
-                      Origen de los prospectos
-                    </h2>
-                    {overview.data.sources.length ? (
-                      overview.data.sources.map((s: any) => (
-                        <div
-                          key={s.source}
-                          className="flex justify-between border-b border-white/10 py-3 text-sm"
-                        >
-                          <span>{sourceLabel(s.source)}</span>
-                          <strong>{s.count}</strong>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm leading-6 text-slate-400">
-                        Aún no hay prospectos. Las solicitudes de cotización del
-                        sitio aparecerán aquí cuando se reciban.
-                      </p>
-                    )}
-                    <p className="mt-5 text-xs leading-5 text-slate-500">
-                      Las conversaciones anónimas se consultan en Asistente
-                      virtual. Un chat no se cuenta automáticamente como
-                      prospecto.
-                    </p>
-                  </section>
-                </div>
-                <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
-                  <h2 className="mb-4 text-lg font-semibold">
-                    Últimos prospectos
-                  </h2>
-                  {overview.data.latest.length ? (
-                    overview.data.latest.map((l: any) => (
-                      <button
-                        key={l.id}
-                        onClick={() => {
-                          setSelected(l.id);
-                          setTab("leads");
-                        }}
-                        className="flex w-full items-center justify-between gap-4 border-t border-white/10 py-4 text-left"
-                      >
-                        <span>
-                          <strong className="block text-sm">{l.company}</strong>
-                          <span className="text-xs text-slate-400">
-                            {l.contactName}
-                          </span>
-                        </span>
-                        <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-200">
-                          {label(l.status)}
-                        </span>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-400">
-                      El nuevo CRM está listo para recibir sus primeros
-                      prospectos.
-                    </p>
-                  )}
-                </section>
-              </>
-            )}
-          </div>
-        )}
-        {tab === "leads" && (
-          <div className="space-y-5">
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                setSearch(draftSearch.trim());
+            <Icon size={17} />
+            {label}
+          </button>
+        ))}
+      </nav>
+      {tab !== "assistant" && (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <label className="text-sm text-slate-300">
+            Registros creados en los últimos{" "}
+            <select
+              className={`${control} ml-2`}
+              value={days}
+              onChange={e => {
+                setDays(Number(e.target.value) as 7 | 30 | 90);
                 setPage(0);
               }}
-              className="flex flex-wrap gap-3"
             >
-              <input
-                aria-label="Buscar prospectos"
-                value={draftSearch}
-                onChange={e => setDraftSearch(e.target.value)}
-                maxLength={150}
-                placeholder="Empresa, contacto o correo"
-                className={`${control} min-w-0 flex-1`}
-              />
-              <select
-                aria-label="Filtrar etapa"
-                value={status}
-                onChange={e => {
-                  setStatus(e.target.value as LeadStage | "");
-                  setPage(0);
-                }}
-                className={control}
-              >
-                <option value="">Todas las etapas</option>
-                {leadStages.map(s => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
+              <option value={7}>7 días</option>
+              <option value={30}>30 días</option>
+              <option value={90}>90 días</option>
+            </select>
+          </label>
+          <button
+            className="text-sm text-blue-300 underline"
+            onClick={() => {
+              overview.refetch();
+              if (tab === "leads") prospects.refetch();
+            }}
+          >
+            Actualizar
+          </button>
+        </div>
+      )}
+      {tab === "overview" && (
+        <div className="space-y-6">
+          {overview.isLoading && <p role="status">Cargando resumen…</p>}
+          {overview.error && (
+            <p role="alert" className="text-red-300">
+              No se pudo cargar el resumen. Verifique la conexión del servidor.
+            </p>
+          )}
+          {overview.data && (
+            <>
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {[
+                  ["Prospectos recibidos", total],
+                  [
+                    "En seguimiento",
+                    count("contacted") + count("qualified") + count("proposal"),
+                  ],
+                  ["Ganados", count("closed_won")],
+                  ["Por atender", count("new")],
+                ].map(([label, value]) => (
+                  <article
+                    key={label}
+                    className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5"
+                  >
+                    <p className="text-sm text-slate-400">{label}</p>
+                    <p className="mt-3 text-4xl font-semibold">{value}</p>
+                  </article>
                 ))}
-              </select>
-              <button className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold">
-                Buscar
-              </button>
-            </form>
-            {prospects.isLoading && <p role="status">Cargando prospectos…</p>}
-            {prospects.error && (
-              <p role="alert" className="text-red-300">
-                No se pudieron cargar los prospectos.
-              </p>
-            )}
-            {prospects.data && (
-              <>
-                <div className="overflow-x-auto rounded-2xl border border-white/10">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-[#102039]">
-                      <tr>
-                        {[
-                          "Empresa / contacto",
-                          "Origen",
-                          "Etapa",
-                          "Fecha",
-                          "Ficha",
-                        ].map(h => (
-                          <th
-                            key={h}
-                            className="p-4 font-medium text-slate-300"
-                          >
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {prospects.data.items.map((l: any) => (
-                        <tr key={l.id} className="border-t border-white/10">
-                          <td className="p-4">
-                            <strong>{l.company}</strong>
-                            <p className="mt-1 text-xs text-slate-400">
-                              {l.contactName}
-                            </p>
-                          </td>
-                          <td className="p-4">{sourceLabel(l.source)}</td>
-                          <td className="p-4">{label(l.status)}</td>
-                          <td className="whitespace-nowrap p-4 text-slate-400">
-                            {new Date(l.createdAt).toLocaleDateString("es-MX")}
-                          </td>
-                          <td className="p-4">
-                            <button
-                              onClick={() => setSelected(l.id)}
-                              className="text-blue-300 underline"
-                            >
-                              Abrir
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {!prospects.data.items.length && (
-                    <p className="p-6 text-sm text-slate-400">
-                      No hay prospectos que coincidan con estos filtros.
+              </div>
+              <div className="grid gap-5 lg:grid-cols-2">
+                <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
+                  <h2 className="mb-5 text-lg font-semibold">
+                    Etapas del embudo
+                  </h2>
+                  <div className="space-y-4">
+                    {leadStages.map(s => (
+                      <div key={s.value}>
+                        <div className="mb-1 flex justify-between text-sm">
+                          <span>{s.label}</span>
+                          <span>{count(s.value)}</span>
+                        </div>
+                        <meter
+                          aria-label={s.label}
+                          min={0}
+                          max={Math.max(total, 1)}
+                          value={count(s.value)}
+                          className="h-2 w-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+                <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
+                  <h2 className="mb-5 text-lg font-semibold">
+                    Origen de los prospectos
+                  </h2>
+                  {overview.data.sources.length ? (
+                    overview.data.sources.map((s: any) => (
+                      <div
+                        key={s.source}
+                        className="flex justify-between border-b border-white/10 py-3 text-sm"
+                      >
+                        <span>{sourceLabel(s.source)}</span>
+                        <strong>{s.count}</strong>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm leading-6 text-slate-400">
+                      Aún no hay prospectos. Las solicitudes de cotización del
+                      sitio aparecerán aquí cuando se reciban.
                     </p>
                   )}
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm text-slate-400">
-                  <span>
-                    {prospects.data.total} prospectos · Página {page + 1}
-                  </span>
-                  <div className="flex gap-4">
+                  <p className="mt-5 text-xs leading-5 text-slate-500">
+                    Las conversaciones anónimas se consultan en Asistente
+                    virtual. Un chat no se cuenta automáticamente como
+                    prospecto.
+                  </p>
+                </section>
+              </div>
+              <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
+                <h2 className="mb-4 text-lg font-semibold">
+                  Últimos prospectos
+                </h2>
+                {overview.data.latest.length ? (
+                  overview.data.latest.map((l: any) => (
                     <button
-                      disabled={!page}
-                      onClick={() => setPage(p => p - 1)}
-                      className="disabled:opacity-30"
+                      key={l.id}
+                      onClick={() => {
+                        setSelected(l.id);
+                        setTab("leads");
+                      }}
+                      className="flex w-full items-center justify-between gap-4 border-t border-white/10 py-4 text-left"
                     >
-                      Anterior
+                      <span>
+                        <strong className="block text-sm">{l.company}</strong>
+                        <span className="text-xs text-slate-400">
+                          {l.contactName}
+                        </span>
+                      </span>
+                      <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-200">
+                        {label(l.status)}
+                      </span>
                     </button>
-                    <button
-                      disabled={(page + 1) * 20 >= prospects.data.total}
-                      onClick={() => setPage(p => p + 1)}
-                      className="disabled:opacity-30"
-                    >
-                      Siguiente
-                    </button>
-                  </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400">
+                    El nuevo CRM está listo para recibir sus primeros
+                    prospectos.
+                  </p>
+                )}
+              </section>
+            </>
+          )}
+        </div>
+      )}
+      {tab === "leads" && (
+        <div className="space-y-5">
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              setSearch(draftSearch.trim());
+              setPage(0);
+            }}
+            className="flex flex-wrap gap-3"
+          >
+            <input
+              aria-label="Buscar prospectos"
+              value={draftSearch}
+              onChange={e => setDraftSearch(e.target.value)}
+              maxLength={150}
+              placeholder="Empresa, contacto o correo"
+              className={`${control} min-w-0 flex-1`}
+            />
+            <select
+              aria-label="Filtrar etapa"
+              value={status}
+              onChange={e => {
+                setStatus(e.target.value as LeadStage | "");
+                setPage(0);
+              }}
+              className={control}
+            >
+              <option value="">Todas las etapas</option>
+              {leadStages.map(s => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            <button className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold">
+              Buscar
+            </button>
+          </form>
+          {prospects.isLoading && <p role="status">Cargando prospectos…</p>}
+          {prospects.error && (
+            <p role="alert" className="text-red-300">
+              No se pudieron cargar los prospectos.
+            </p>
+          )}
+          {prospects.data && (
+            <>
+              <div className="overflow-x-auto rounded-2xl border border-white/10">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-[#102039]">
+                    <tr>
+                      {[
+                        "Empresa / contacto",
+                        "Origen",
+                        "Etapa",
+                        "Fecha",
+                        "Ficha",
+                      ].map(h => (
+                        <th key={h} className="p-4 font-medium text-slate-300">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prospects.data.items.map((l: any) => (
+                      <tr key={l.id} className="border-t border-white/10">
+                        <td className="p-4">
+                          <strong>{l.company}</strong>
+                          <p className="mt-1 text-xs text-slate-400">
+                            {l.contactName}
+                          </p>
+                        </td>
+                        <td className="p-4">{sourceLabel(l.source)}</td>
+                        <td className="p-4">{label(l.status)}</td>
+                        <td className="whitespace-nowrap p-4 text-slate-400">
+                          {new Date(l.createdAt).toLocaleDateString("es-MX")}
+                        </td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => setSelected(l.id)}
+                            className="text-blue-300 underline"
+                          >
+                            Abrir
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {!prospects.data.items.length && (
+                  <p className="p-6 text-sm text-slate-400">
+                    No hay prospectos que coincidan con estos filtros.
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-3 text-sm text-slate-400">
+                <span>
+                  {prospects.data.total} prospectos · Página {page + 1}
+                </span>
+                <div className="flex gap-4">
+                  <button
+                    disabled={!page}
+                    onClick={() => setPage(p => p - 1)}
+                    className="disabled:opacity-30"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    disabled={(page + 1) * 20 >= prospects.data.total}
+                    onClick={() => setPage(p => p + 1)}
+                    className="disabled:opacity-30"
+                  >
+                    Siguiente
+                  </button>
                 </div>
-              </>
-            )}
-            {selected && (
-              <LeadDetail
-                key={selected}
-                id={selected}
-                close={() => setSelected(null)}
-              />
-            )}
-          </div>
-        )}
-        {tab === "assistant" && <AssistantCRM />}
-        <p className="mt-8 text-xs text-slate-500">
-          Acceso privado · IAMET · Tijuana, Mexicali, Tecate y Ensenada
-        </p>
-      </div>
-    </div>
+              </div>
+            </>
+          )}
+          {selected && (
+            <LeadDetail
+              key={selected}
+              id={selected}
+              close={() => setSelected(null)}
+            />
+          )}
+        </div>
+      )}
+      {tab === "assistant" && <AssistantCRM />}
+    </AdminWorkspaceV2>
   );
 }
