@@ -5,7 +5,15 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingBag, Lock, Eye, EyeOff, Loader2, CheckCircle, XCircle } from "lucide-react";
+import {
+  ShoppingBag,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 export default function TiendaNuevaContrasena() {
   const [, navigate] = useLocation();
@@ -19,21 +27,36 @@ export default function TiendaNuevaContrasena() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get("token");
-    if (!t) { setTokenError(true); return; }
+    if (!t) {
+      setTokenError(true);
+      return;
+    }
     setToken(t);
   }, []);
 
   const resetMutation = trpc.storeAuth.resetPassword.useMutation({
     onSuccess: () => {
+      setPassword("");
+      setConfirm("");
       setDone(true);
-      setTimeout(() => navigate("/tienda/login"), 3000);
+      window.history.replaceState(null, "", "/tienda/nueva-contrasena");
     },
-    onError: (e) => toast.error(e.message),
+    onError: e => {
+      if (/inválido|expirado/i.test(e.message)) setTokenError(true);
+      else toast.error(e.message);
+    },
   });
 
   const handleReset = () => {
-    if (password.length < 8) { toast.error("La contraseña debe tener al menos 8 caracteres"); return; }
-    if (password !== confirm) { toast.error("Las contraseñas no coinciden"); return; }
+    if (resetMutation.isPending) return;
+    if (password.length < 8) {
+      toast.error("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
     resetMutation.mutate({ token, password });
   };
 
@@ -46,7 +69,7 @@ export default function TiendaNuevaContrasena() {
               <ShoppingBag className="h-8 w-8 text-cyan-400" />
             </div>
             <h1 className="text-xl font-bold text-white">Nueva contraseña</h1>
-            <p className="text-sm text-slate-400 mt-1">IAMET Tienda</p>
+            <p className="text-sm text-slate-400 mt-1">Cuenta IAMET</p>
           </div>
 
           <div className="p-8">
@@ -54,8 +77,13 @@ export default function TiendaNuevaContrasena() {
               <div className="text-center space-y-4">
                 <XCircle className="h-12 w-12 text-red-400 mx-auto" />
                 <p className="text-white font-medium">Enlace inválido</p>
-                <p className="text-sm text-slate-400">El enlace de recuperación no es válido o ha expirado.</p>
-                <Button onClick={() => navigate("/tienda/login")} className="w-full bg-cyan-500 hover:bg-cyan-600 text-black">
+                <p className="text-sm text-slate-400">
+                  El enlace de recuperación no es válido o ha expirado.
+                </p>
+                <Button
+                  onClick={() => navigate("/acceso")}
+                  className="w-full bg-cyan-500 hover:bg-cyan-600 text-black"
+                >
                   Ir al login
                 </Button>
               </div>
@@ -64,7 +92,9 @@ export default function TiendaNuevaContrasena() {
             {!tokenError && !done && (
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-400">Nueva contraseña (mín. 8 caracteres)</Label>
+                  <Label className="text-xs text-slate-400">
+                    Nueva contraseña (mín. 8 caracteres)
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
@@ -74,13 +104,23 @@ export default function TiendaNuevaContrasena() {
                       placeholder="Nueva contraseña"
                       className="pl-9 pr-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-cyan-500/50"
                     />
-                    <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      {showPass ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-400">Confirmar contraseña</Label>
+                  <Label className="text-xs text-slate-400">
+                    Confirmar contraseña
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
@@ -98,10 +138,14 @@ export default function TiendaNuevaContrasena() {
                   disabled={resetMutation.isPending}
                   className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold"
                 >
-                  {resetMutation.isPending
-                    ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Guardando...</>
-                    : "Guardar nueva contraseña"
-                  }
+                  {resetMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Guardando...
+                    </>
+                  ) : (
+                    "Guardar nueva contraseña"
+                  )}
                 </Button>
               </div>
             )}
@@ -109,13 +153,26 @@ export default function TiendaNuevaContrasena() {
             {done && (
               <div className="text-center space-y-4">
                 <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto" />
-                <p className="text-white font-medium">¡Contraseña actualizada!</p>
-                <p className="text-sm text-slate-400">Redirigiendo al login...</p>
+                <p className="text-white font-medium">
+                  ¡Contraseña actualizada!
+                </p>
+                <p className="text-sm leading-6 text-slate-400">
+                  Su contraseña quedó actualizada y su correo confirmado. Ya
+                  puede iniciar sesión con su nueva contraseña.
+                </p>
+                <Button
+                  onClick={() => navigate("/acceso")}
+                  className="w-full bg-blue-600 text-white hover:bg-blue-500"
+                >
+                  Entrar a mi cuenta
+                </Button>
               </div>
             )}
           </div>
         </div>
-        <p className="text-center text-xs text-slate-600 mt-4">IAMET Evolución Tecnológica · Tienda en línea</p>
+        <p className="text-center text-xs text-slate-600 mt-4">
+          IAMET · Portal de clientes
+        </p>
       </div>
     </div>
   );

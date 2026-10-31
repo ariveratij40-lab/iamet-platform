@@ -10,10 +10,12 @@ import {
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { readFile } from "node:fs/promises";
+import bcrypt from "bcryptjs";
+import { authenticateAccount } from "./account-access";
 import { getDb } from "./db";
 import { storeAuthRouter } from "./routers/storeAuth";
-import { sendVerificationEmail } from "./email";
-vi.mock("./db", () => ({ getDb: vi.fn() }));
+import { sendVerificationEmail, sendPasswordResetEmail } from "./email";
+vi.mock("./db", () => ({ getDb: vi.fn(), isMysqlDb: () => false }));
 vi.mock("./email", () => ({
   sendVerificationEmail: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
@@ -38,6 +40,8 @@ beforeAll(async () => {
   vi.mocked(getDb).mockResolvedValue(drizzle(pg));
 });
 beforeEach(() => {
+  vi.mocked(sendPasswordResetEmail).mockReset();
+  vi.mocked(sendPasswordResetEmail).mockResolvedValue({ ok: true });
   vi.mocked(sendVerificationEmail).mockReset();
   vi.mocked(sendVerificationEmail).mockResolvedValue({ ok: true });
 });
@@ -158,5 +162,70 @@ describe("Customer verification delivery", () => {
       ).alreadyVerified
     ).toBe(true);
     expect(sendVerificationEmail).not.toHaveBeenCalled();
+  });
+  it("confirms the mailbox through a valid recovery link and allows normal sign-in", async () => {
+    const hash = await bcrypt.hash(password, 4);
+    await pg.query(
+      `INSERT INTO store_users (name,email,"passwordHash","emailVerified","verificationToken","tokenExpiry","resetToken","resetTokenExpiry") VALUES ('Cliente de prueba','recovery@example.invalid',$1,false,'old-verification',now()+interval '1 day','valid-recovery-fixture',now()+interval '1 hour')`,
+      [hash]
+    );
+    await expect(
+      authenticateAccount("recovery@example.invalid", password)
+    ).rejects.toMatchObject({ status: 403 });
+    const nextPassword = "New-synthetic-password-fixture";
+    expect(
+      (
+        await caller().resetPassword({
+          token: "valid-recovery-fixture",
+          password: nextPassword,
+        })
+      ).ok
+    ).toBe(true);
+    const stored = await pg.query<any>(
+      `SELECT * FROM store_users WHERE email='recovery@example.invalid'`
+    );
+    expect(stored.rows[0].emailVerified).toBe(true);
+    expect(stored.rows[0].verificationToken).toBeNull();
+    expect(stored.rows[0].resetToken).toBeNull();
+    expect(
+      await bcrypt.compare(nextPassword, stored.rows[0].passwordHash)
+    ).toBe(true);
+    expect(
+      (await authenticateAccount("recovery@example.invalid", nextPassword)).kind
+    ).toBe("customer");
+    await expect(
+      caller().resetPassword({
+        token: "valid-recovery-fixture",
+        password: "Another-password-fixture",
+      })
+    ).rejects.toThrow("Token inválido");
+  });
+  it("never verifies an account or changes its password through an expired or invalid recovery link", async () => {
+    const hash = await bcrypt.hash(password, 4);
+    await pg.query(
+      `INSERT INTO store_users (name,email,"passwordHash","emailVerified","resetToken","resetTokenExpiry") VALUES ('Cliente de prueba','expired@example.invalid',$1,false,'expired-recovery-fixture',now()-interval '1 hour')`,
+      [hash]
+    );
+    for (const token of [
+      "expired-recovery-fixture",
+      "invalid-recovery-fixture",
+    ])
+      await expect(
+        caller().resetPassword({ token, password: "Changed-password-fixture" })
+      ).rejects.toThrow("Token inválido");
+    const stored = await pg.query<any>(
+      `SELECT * FROM store_users WHERE email='expired@example.invalid'`
+    );
+    expect(stored.rows[0].emailVerified).toBe(false);
+    expect(stored.rows[0].passwordHash).toBe(hash);
+  });
+  it("builds recovery links only on the configured site", async () => {
+    await caller().forgotPassword({
+      email: "accepted@example.invalid",
+      origin: "https://untrusted.example",
+    });
+    expect(vi.mocked(sendPasswordResetEmail).mock.calls[0][0].resetUrl).toMatch(
+      /^https:\/\/staging\.iamet\.mx\//
+    );
   });
 });

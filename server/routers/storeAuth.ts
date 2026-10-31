@@ -291,7 +291,7 @@ export const storeAuthRouter = router({
         .set({ resetToken, resetTokenExpiry, updatedAt: new Date() })
         .where(eq(storeUsers.id, user.id));
 
-      const resetUrl = makeResetUrl(input.origin, resetToken);
+      const resetUrl = makeResetUrl(ENV.appUrl, resetToken);
 
       await sendPasswordResetEmail({
         to: input.email,
@@ -306,7 +306,12 @@ export const storeAuthRouter = router({
 
   // ── Nueva contraseña ──────────────────────────────────────────────────────
   resetPassword: publicProcedure
-    .input(z.object({ token: z.string(), password: z.string().min(8) }))
+    .input(
+      z.object({
+        token: z.string().min(1).max(128),
+        password: z.string().min(8).max(1000),
+      })
+    )
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Base de datos no disponible.");
@@ -325,15 +330,28 @@ export const storeAuthRouter = router({
       if (!user) throw new Error("Token inválido o expirado.");
 
       const passwordHash = await bcrypt.hash(input.password, 12);
-      await db
+      // A valid, unexpired recovery link also proves ownership of this mailbox.
+      // Consume it atomically: repeated/concurrent submissions cannot reuse it.
+      const changed = await db
         .update(storeUsers)
         .set({
           passwordHash,
+          emailVerified: true,
+          verificationToken: null,
+          tokenExpiry: null,
           resetToken: null,
           resetTokenExpiry: null,
           updatedAt: new Date(),
         })
-        .where(eq(storeUsers.id, user.id));
+        .where(
+          and(
+            eq(storeUsers.id, user.id),
+            eq(storeUsers.resetToken, input.token),
+            gt(storeUsers.resetTokenExpiry, new Date())
+          )
+        )
+        .returning({ id: storeUsers.id });
+      if (!changed.length) throw new Error("Token inválido o expirado.");
 
       return { ok: true };
     }),

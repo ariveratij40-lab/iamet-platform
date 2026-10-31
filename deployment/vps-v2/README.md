@@ -144,3 +144,7 @@ docker exec iamet_v2_app_staging node scripts/check-email.mjs
 EMAIL_FROM permite configurar el remitente; el valor por defecto es IAMET <noreply@iamet.mx>. El diagnóstico comprueba si Resend permite consultar el dominio remitente. Una clave con permiso solo de envío puede rechazar esa consulta y seguir siendo apta para enviar. Comprobar entonces el estado del dominio y los eventos del mensaje en el panel de Resend. El código no cambia DNS, claves ni permisos del proveedor automáticamente.
 
 Referencias: [errores del proveedor](https://resend.com/docs/api-reference/errors) y [consulta de dominios](https://resend.com/docs/api-reference/domains/list-domains).
+
+## Recuperación de cuenta pendiente de confirmar
+
+Un enlace de recuperación válido y no expirado también prueba el acceso al buzón del cliente. Al completar la recuperación se cambia la contraseña, se confirma ese correo y se consumen los tokens de recuperación y confirmación en una actualización condicional atómica. Enlaces expirados, falsos o ya usados no activan cuentas ni cambian contraseñas. La pantalla de éxito permite iniciar sesión expresamente y elimina el token de la URL; ya no redirige por temporizador al mismo bloqueo de verificación. No hay activación masiva de cuentas ni cambios de esquema. Las recuperaciones completadas antes de esta corrección no se marcan verificadas retroactivamente: el cliente debe abrir un nuevo enlace válido de recuperación o confirmar el correo con el enlace de verificación.
