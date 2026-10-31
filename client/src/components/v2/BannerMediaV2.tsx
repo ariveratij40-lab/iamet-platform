@@ -1,3 +1,4 @@
+import { bannerImage } from "@shared/banner-images";
 import SmartBuildingDepthV2 from "./SmartBuildingDepthV2";
 import { useEffect, useRef, useState } from "react";
 
@@ -59,6 +60,7 @@ export default function BannerMediaV2({
     };
   }, [hasVideo, paused, visible, video]);
 
+  const optimized = bannerImage(image);
   const imageClass =
     "absolute inset-0 h-full w-full object-cover object-[72%_center] lg:object-[62%_center]";
   return (
@@ -67,7 +69,12 @@ export default function BannerMediaV2({
         <SmartBuildingDepthV2 image={image} paused={paused || !visible} />
       ) : (
         <img
-          src={image}
+          src={optimized.src}
+          srcSet={optimized.srcSet}
+          sizes={optimized.sizes}
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
           alt=""
           className={`${imageClass} ${!reduceMotion && !hasVideo ? "iamet-cctv-cinematic" : ""}`}
           style={{
@@ -79,7 +86,7 @@ export default function BannerMediaV2({
         <video
           ref={player}
           src={video}
-          poster={image}
+          poster={optimized.src}
           muted
           playsInline
           loop

@@ -1,3 +1,4 @@
+import { homeBannerPreload } from "../../shared/banner-images";
 /**
  * serveStatic.ts — Sirve los archivos estáticos del build de producción.
  * Este archivo NO importa 'vite' para que funcione en producción
@@ -19,7 +20,12 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // The preload must be in the initial home HTML, before React discovers the image.
+  const homeHtml = fs.readFileSync(path.join(distPath, "index.html"), "utf8").replace("</head>", `${homeBannerPreload}</head>`);
+  app.get("/", (_req, res) => { res.type("html").send(homeHtml); });
   app.use(express.static(distPath));
+  // Missing machine-readable files must not return the SPA's HTML with status 200.
+  app.get(["/llms.txt", "/ai-catalog.json", "/.well-known/ai-catalog.json"], (_req, res) => { res.status(404).type("text").send("Not found"); });
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {

@@ -1,59 +1,59 @@
-import AdminCampaignsV2 from "./pages/AdminCampaignsV2";
+const AdminCampaignsV2 = lazy(() => import("./pages/AdminCampaignsV2"));
 import VisitorAssistantV2 from "./components/v2/VisitorAssistantV2";
-import Warranties from "./pages/Warranties";
-import AdminWarranties from "./pages/AdminWarranties";
-import {useEffect} from "react";
+const Warranties = lazy(() => import("./pages/Warranties"));
+const AdminWarranties = lazy(() => import("./pages/AdminWarranties"));
+import {useEffect, lazy, Suspense} from "react";
 import CorporateFooterV2 from "./components/v2/CorporateFooterV2";
 import { AboutV2, BrandsV2, BrandLandingV2, QuoteV2 } from "./pages/CorporatePagesV2";
 import { BlogIndexV2, BlogPostV2 } from "./pages/BlogV2";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
+const NotFound = lazy(() => import("@/pages/NotFound"));
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import Home from "./pages/Home";
 import HomeV2 from "./pages/HomeV2";
-import ServiceLandingV2 from "./pages/ServiceLandingV2";
-import InfrastructureV2 from "./pages/InfrastructureV2";
-import VerticalLanding from "./pages/VerticalLanding";
-import TechAdvisor from "./pages/TechAdvisor";
-import Academy from "./pages/Academy";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminConsole from "./pages/AdminConsole";
-import TiendaVerificar from "./pages/TiendaVerificar";
-import AdminTienda from "./pages/AdminTienda";
-import AdminReuiones from "./pages/AdminReuiones";
-import AdminSeguimientos from "./pages/AdminSeguimientos";
-import AdminCRM from "./pages/AdminCRMV2";
-import AdminIntelligence from "./pages/AdminIntelligence";
-import AdminAgent from "./pages/AdminAgent";
-import AdminKnowledge from "./pages/AdminKnowledge";
-import AdminBriefing from "./pages/AdminBriefing";
-import AdminKnowledgeBatch from "./pages/AdminKnowledgeBatch";
-import AdminCampaigns from "./pages/AdminCampaigns";
-import AdminSimulator from "./pages/AdminSimulator";
-import AdminQA from "./pages/AdminQA";
-import AdminHealth from "./pages/AdminHealth";
-import AdminUsers from "./pages/AdminUsers";
-import TiendaNuevaContrasena from "./pages/TiendaNuevaContrasena";
-import Contact from "./pages/Contact";
-import Industrias from "./pages/Industrias";
-import Soluciones from "./pages/Soluciones";
-import CancelarReunion from "./pages/CancelarReunion";
-import LandingPage from "./pages/LandingPage";
+const ServiceLandingV2 = lazy(() => import("./pages/ServiceLandingV2"));
+const InfrastructureV2 = lazy(() => import("./pages/InfrastructureV2"));
+const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
+const TechAdvisor = lazy(() => import("./pages/TechAdvisor"));
+const Academy = lazy(() => import("./pages/Academy"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminConsole = lazy(() => import("./pages/AdminConsole"));
+const TiendaVerificar = lazy(() => import("./pages/TiendaVerificar"));
+const AdminTienda = lazy(() => import("./pages/AdminTienda"));
+const AdminReuiones = lazy(() => import("./pages/AdminReuiones"));
+const AdminSeguimientos = lazy(() => import("./pages/AdminSeguimientos"));
+const AdminCRM = lazy(() => import("./pages/AdminCRMV2"));
+const AdminIntelligence = lazy(() => import("./pages/AdminIntelligence"));
+const AdminAgent = lazy(() => import("./pages/AdminAgent"));
+const AdminKnowledge = lazy(() => import("./pages/AdminKnowledge"));
+const AdminBriefing = lazy(() => import("./pages/AdminBriefing"));
+const AdminKnowledgeBatch = lazy(() => import("./pages/AdminKnowledgeBatch"));
+const AdminCampaigns = lazy(() => import("./pages/AdminCampaigns"));
+const AdminSimulator = lazy(() => import("./pages/AdminSimulator"));
+const AdminQA = lazy(() => import("./pages/AdminQA"));
+const AdminHealth = lazy(() => import("./pages/AdminHealth"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const TiendaNuevaContrasena = lazy(() => import("./pages/TiendaNuevaContrasena"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Industrias = lazy(() => import("./pages/Industrias"));
+const Soluciones = lazy(() => import("./pages/Soluciones"));
+const CancelarReunion = lazy(() => import("./pages/CancelarReunion"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 import Navbar from "./components/Navbar";
 import ServiceLandingHeaderV2 from "./components/v2/ServiceLandingHeaderV2";
 import PublicHeaderV2 from "./components/v2/PublicHeaderV2";
 import { useIsMobile } from "./hooks/useMobile";
-import Login from "./pages/Login";
-import AccountAccessV2, { CustomerAccessRoute } from "./pages/AccountAccessV2";
+const Login = lazy(() => import("./pages/Login"));
+const AccountAccessV2 = lazy(() => import("./pages/AccountAccessV2"));
+const CustomerAccessRoute = lazy(() => import("./pages/AccountAccessV2").then(m => ({default:m.CustomerAccessRoute})));
 import { AdminGuard } from "./components/AdminGuard";
-import Register from "./pages/Register";
-import SubscriberLogin from "./pages/SubscriberLogin";
-import MyAccount from "./pages/MyAccount";
-import VerifyEmail from "./pages/VerifyEmail";
+const Register = lazy(() => import("./pages/Register"));
+const SubscriberLogin = lazy(() => import("./pages/SubscriberLogin"));
+const MyAccount = lazy(() => import("./pages/MyAccount"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 // Wrapper que compensa el espacio del Navbar (sidebar en desktop, topbar en móvil)
 function AppShell({ children }: { children: React.ReactNode }) {
@@ -91,6 +91,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <AppShell>
+      <Suspense fallback={<div role="status" className="min-h-64 bg-[#07111f] p-8 text-center text-slate-200">Cargando página…</div>}>
       <Switch>
           <Route path="/" component={HomeV2} />
           <Route path="/nosotros" component={AboutV2} />
@@ -161,6 +162,7 @@ function Router() {
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
       </Switch>
+      </Suspense>
     </AppShell>
   );
 }
