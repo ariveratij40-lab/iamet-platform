@@ -4,7 +4,7 @@ const password = process.env.ADMIN_PASSWORD;
 const health = await (await fetch(`${origin}/api/health`)).json();
 if (health.release !== process.env.DEPLOY_RELEASE)
   throw new Error("Unexpected release");
-const response = await fetch(`${origin}/api/auth/login`, {
+const response = await fetch(`${origin}/api/auth/access`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ email: "alvaro.rivera@iamet.mx", password }),

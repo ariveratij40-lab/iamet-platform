@@ -34,6 +34,7 @@ trap restore_on_error ERR
 "${COMPOSE[@]}" up -d --no-deps --no-build --wait app
 # Validate application routes before making Nginx resolve the recreated container.
 docker exec iamet_v2_app_staging node -e 'Promise.all(["/acceso","/admin/login","/"].map(p=>fetch("http://127.0.0.1:3000"+p))).then(rs=>{if(rs.some(r=>!r.ok))process.exit(1)}).catch(()=>process.exit(1))'
+docker exec iamet_v2_app_staging node -e 'fetch("http://127.0.0.1:3000/api/auth/access",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}).then(r=>process.exit(r.status===400?0:1)).catch(()=>process.exit(1))'
 docker exec global_nginx nginx -t
 docker exec global_nginx nginx -s reload
 sleep 2

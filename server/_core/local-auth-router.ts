@@ -1,3 +1,4 @@
+import { authenticateAccount, AccountAccessError } from "../account-access";
 /**
  * Router de autenticación local IAMET
  * Endpoints REST (no tRPC) para VPS standalone
@@ -47,6 +48,28 @@ function getSessionToken(req: Request): string | null {
 }
 
 const isProduction = process.env.NODE_ENV === "production";
+
+// One public sign-in form; identity and permissions are decided by the server.
+localAuthRouter.post("/access", loginLimiter, async (req: Request, res: Response) => {
+  const { email, password } = req.body ?? {};
+  if (typeof email !== "string" || !email.trim() || email.length > 320 || typeof password !== "string" || !password || password.length > 1000) {
+    return res.status(400).json({ error: "Ingrese un correo y una contraseña válidos." });
+  }
+  try {
+    const account = await authenticateAccount(email, password);
+    if (account.kind === "admin") {
+      res.cookie(SESSION_COOKIE, account.token, cookieOptions(isProduction));
+      return res.json({ ok: true, kind: account.kind, user: account.user });
+    }
+    // Signing in as a customer ends any prior administrative session in this browser.
+    res.clearCookie(SESSION_COOKIE, { path: "/" });
+    return res.json({ ok: true, ...account });
+  } catch (error) {
+    if (error instanceof AccountAccessError) return res.status(error.status).json({ error: error.message });
+    console.error("[LocalAuth] Unified access failed");
+    return res.status(500).json({ error: "No se pudo iniciar sesión. Intente nuevamente." });
+  }
+});
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
 localAuthRouter.post("/login", loginLimiter, async (req: Request, res: Response) => {

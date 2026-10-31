@@ -23,12 +23,12 @@ export function AdminGuard({
 
     if (!isAuthenticated) {
       const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.href = `/acceso?perfil=equipo&returnTo=${returnTo}`;
+      window.location.href = `/acceso?returnTo=${returnTo}`;
       return;
     }
 
     if (user && !allowedRoles.includes(user.role)) {
-      window.location.href = "/acceso?perfil=equipo&error=forbidden";
+      window.location.href = "/acceso?error=forbidden";
     }
   }, [loading, isAuthenticated, user, allowedRoles]);
 

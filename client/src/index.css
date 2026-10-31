@@ -827,3 +827,4 @@ body:has(.iamet-reference-home) .iamet-brand-tagline { color: #9ab6df; }
 .iamet-account .iamet-brand-logo { color: #f1f5f9; }
 body:has(.iamet-reference-home) header a[href="/acceso"] { color: #b9dcff; border-color: #31506a; }
 body:has(.iamet-reference-home) header a[href="/acceso"]:hover { background: #15344b; }
+body:has(.iamet-account) header .iamet-brand-logo { color: #111f34; }
