@@ -63,8 +63,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const isMobile = useIsMobile();
   useEffect(() => { if (!window.location.hash) window.scrollTo({top: 0, behavior: "instant"}); }, [location]);
-  const isServiceLanding = /^\/soluciones\/(infraestructura|cableado-estructurado|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
-  const isCablingCampaign = (isCablingHostname(window.location.hostname) && location === "/") || location === "/soluciones/cableado-estructurado" || location === "/soluciones/cableado-estructurado/gracias";
+  const isCablingCampaign = isCablingHostname(window.location.hostname);
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
   if (location === "/admin/crm" || location === "/admin/garantias" || location === "/admin/campanas") return <>{children}</>;
@@ -84,9 +83,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {isServiceLanding || isCablingCampaign ? <ServiceLandingHeaderV2 focused={isCablingCampaign} /> : <PublicHeaderV2 />}
+      {isCablingCampaign ? <ServiceLandingHeaderV2 focused /> : <PublicHeaderV2 />}
       <main>{children}</main>
-      {!isServiceLanding && !isCablingCampaign && <CorporateFooterV2 />}
+      {!isCablingCampaign && <CorporateFooterV2 />}
       {!isCablingCampaign && <VisitorAssistantV2 />}
     </>
   );
