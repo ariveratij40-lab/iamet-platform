@@ -1,3 +1,4 @@
+import { isCablingHostname } from "@shared/cabling-campaign";
 import { Link } from "wouter";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -332,7 +333,15 @@ export default function StructuredCablingV2() {
           >
             {t("Aviso sobre sus datos", "Your contact data")}
           </a>
-          <Link href="/nosotros">{t("Conocer IAMET", "About IAMET")}</Link>
+          <Link
+            href={
+              isCablingHostname(window.location.hostname)
+                ? "https://iamet.mx/nosotros"
+                : "/nosotros"
+            }
+          >
+            {t("Conocer IAMET", "About IAMET")}
+          </Link>
         </div>
         <p className="mt-4 text-xs">
           © {new Date().getFullYear()} IAMET.{" "}

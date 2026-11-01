@@ -2,6 +2,8 @@ import {
   cablingPath,
   cablingTitle,
   cablingDescription,
+  cablingHostname,
+  cablingOrigin,
 } from "../../shared/cabling-campaign";
 import { ENV } from "./env";
 import { homeBannerPreload } from "../../shared/banner-images";
@@ -30,9 +32,7 @@ export function serveStatic(app: Express) {
   const homeHtml = fs
     .readFileSync(path.join(distPath, "index.html"), "utf8")
     .replace("</head>", `${homeBannerPreload}</head>`);
-  app.get("/", (_req, res) => {
-    res.type("html").send(homeHtml);
-  });
+
   const escapeAttribute = (value: string) =>
     value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   const campaignUrl = escapeAttribute(
@@ -54,7 +54,19 @@ export function serveStatic(app: Express) {
       /(<meta (?:property="og:|name="twitter:)description" content=")[^"]*/g,
       `$1${cablingDescription}`
     );
-  app.get(cablingPath, (_req, res) => res.type("html").send(campaignHtml));
+  const subdomainHtml = campaignHtml.replaceAll(
+    campaignUrl,
+    `${cablingOrigin}/`
+  );
+  app.get("/", (req, res) =>
+    res
+      .type("html")
+      .send(req.hostname === cablingHostname ? subdomainHtml : homeHtml)
+  );
+  app.get(cablingPath, (req, res) => {
+    if (req.hostname === cablingHostname) return res.redirect(302, "/");
+    res.type("html").send(campaignHtml);
+  });
   app.get(`${cablingPath}/gracias`, (_req, res) => {
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
     res

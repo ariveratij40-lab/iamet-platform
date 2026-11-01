@@ -1,3 +1,4 @@
+import { isCablingHostname } from "@shared/cabling-campaign";
 import { UserRound } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,7 +15,11 @@ export default function ServiceLandingHeaderV2({
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0b1725] text-white">
       <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between gap-2 px-3 sm:px-8 lg:px-12">
         <Link
-          href="/"
+          href={
+            focused && isCablingHostname(window.location.hostname)
+              ? "https://iamet.mx/"
+              : "/"
+          }
           aria-label={es ? "IAMET · Inicio" : "IAMET · Home"}
           className="w-[105px] shrink-0 sm:w-[190px]"
         >

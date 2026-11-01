@@ -1,3 +1,4 @@
+import { isCablingHostname } from "@shared/cabling-campaign";
 const AdminCampaignsV2 = lazy(() => import("./pages/AdminCampaignsV2"));
 import VisitorAssistantV2 from "./components/v2/VisitorAssistantV2";
 const Warranties = lazy(() => import("./pages/Warranties"));
@@ -63,7 +64,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   useEffect(() => { if (!window.location.hash) window.scrollTo({top: 0, behavior: "instant"}); }, [location]);
   const isServiceLanding = /^\/soluciones\/(infraestructura|cableado-estructurado|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
-  const isCablingCampaign = location === "/soluciones/cableado-estructurado" || location === "/soluciones/cableado-estructurado/gracias";
+  const isCablingCampaign = (isCablingHostname(window.location.hostname) && location === "/") || location === "/soluciones/cableado-estructurado" || location === "/soluciones/cableado-estructurado/gracias";
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
   if (location === "/admin/crm" || location === "/admin/garantias" || location === "/admin/campanas") return <>{children}</>;
@@ -96,7 +97,7 @@ function Router() {
     <AppShell>
       <Suspense fallback={<div role="status" className="min-h-64 bg-[#07111f] p-8 text-center text-slate-200">Cargando página…</div>}>
       <Switch>
-          <Route path="/" component={HomeV2} />
+          <Route path="/" component={isCablingHostname(window.location.hostname) ? StructuredCablingV2 : HomeV2} />
           <Route path="/nosotros" component={AboutV2} />
           <Route path="/marcas" component={BrandsV2} />
           <Route path="/marcas/panduit" component={InfrastructureV2} />

@@ -1,3 +1,4 @@
+import { cablingOrigin } from "../../shared/cabling-campaign";
 import { registerGoogleAdsOAuth } from "../google-ads-oauth";
 import "dotenv/config";
 import express from "express";
@@ -119,6 +120,7 @@ async function startServer() {
   // Acepta el origen definido en VITE_APP_URL (staging o producción).
   // En desarrollo acepta localhost:* para no bloquear el flujo de trabajo.
   const allowedOrigins = [
+    cablingOrigin,
     process.env.VITE_APP_URL,
     "http://localhost:3000",
     "http://localhost:5173",

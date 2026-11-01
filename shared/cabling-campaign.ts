@@ -15,3 +15,9 @@ export function validCablingReceipt(
     now - time < 30 * 60 * 1000
   );
 }
+
+export const cablingHostname = "cableado.iamet.mx";
+export const cablingOrigin = `https://${cablingHostname}`;
+export function isCablingHostname(hostname: string): boolean {
+  return hostname.toLowerCase() === cablingHostname;
+}
