@@ -28,6 +28,8 @@ interface LeadFormProps {
   hideBusinessDetails?: boolean;
   problemLabel?: string;
   problemPlaceholder?: string;
+  privacyHref?: string;
+  errorContact?: string;
 }
 
 const INDUSTRIES = [
@@ -61,6 +63,8 @@ export default function LeadForm({
   hideBusinessDetails = false,
   problemLabel = "¿Cuál es su principal reto tecnológico?",
   problemPlaceholder,
+  privacyHref,
+  errorContact = "contacto@iamet.mx",
 }: LeadFormProps) {
   const formId = useId();
   const attribution = useAttribution();
@@ -168,10 +172,18 @@ export default function LeadForm({
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
 
+  const converted = useRef(false);
+  const sending = useRef(false);
   const createLead = trpc.leads.create.useMutation({
-    onSuccess: () => {
+    onError: () => {
+      sending.current = false;
+    },
+    onSuccess: result => {
+      if (converted.current) return;
+      converted.current = true;
       setSubmitted(true);
       trackEvent("lead_captured", {
+        lead_id: String(result.id),
         vertical: verticalSlug ?? "general",
         sessionId: attribution.sessionId ?? "",
       });
@@ -181,7 +193,16 @@ export default function LeadForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.company || !form.contactName || !form.email) return;
+    if (
+      sending.current ||
+      createLead.isPending ||
+      converted.current ||
+      !form.company ||
+      !form.contactName ||
+      !form.email
+    )
+      return;
+    sending.current = true;
     createLead.mutate({
       ...attribution,
       ...form,
@@ -282,7 +303,7 @@ export default function LeadForm({
       {createLead.isError && (
         <p role="alert" className="text-sm text-red-400">
           No pudimos enviar su solicitud. Intente de nuevo o escriba a
-          contacto@iamet.mx.
+          {errorContact}.
         </p>
       )}
       {profileFilled && (
@@ -427,6 +448,7 @@ export default function LeadForm({
         <Button
           type="submit"
           disabled={
+            sending.current ||
             createLead.isPending ||
             !form.company ||
             !form.contactName ||
@@ -450,6 +472,22 @@ export default function LeadForm({
         <p className="text-xs text-center text-[var(--color-iamet-text-subtle)]">
           Al enviar, acepta que IAMET le contacte para dar seguimiento a su
           solicitud.
+          {privacyHref && (
+            <>
+              {" "}
+              <a
+                href={privacyHref}
+                className="underline underline-offset-4"
+                onClick={() => {
+                  const notice = document.getElementById(privacyHref.slice(1));
+                  if (notice instanceof HTMLDetailsElement) notice.open = true;
+                }}
+              >
+                Uso de sus datos de contacto
+              </a>
+              .
+            </>
+          )}
         </p>
       </form>
     </div>

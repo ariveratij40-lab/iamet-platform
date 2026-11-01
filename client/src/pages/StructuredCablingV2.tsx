@@ -1,8 +1,11 @@
 import { Link } from "wouter";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import LeadForm from "@/components/LeadForm";
-import ServiceHeroV2 from "@/components/v2/ServiceHeroV2";
+import {
+  CablingHeroV2,
+  CablingWhatsappV2,
+  CablingPrivacyV2,
+} from "@/components/v2/CablingCampaignV2";
 import { useServiceMetadata } from "@/components/v2/ServiceConversionV2";
 
 export default function StructuredCablingV2() {
@@ -119,35 +122,36 @@ export default function StructuredCablingV2() {
       ];
   return (
     <div className="iamet-reference-home bg-[#f4f7fb] text-slate-900">
-      <ServiceHeroV2
-        eyebrow={t(
-          "Cableado estructurado y fibra óptica",
-          "Structured cabling and fiber optics"
-        )}
-        brandLabel="PANDUIT"
-        title={t(
-          "Instalación de cableado estructurado Panduit.",
-          "Panduit structured cabling installation."
-        )}
-        description={t(
-          "Diseño, instalación y certificación de cableado estructurado Panduit para nuevas instalaciones, ampliaciones y renovación de su red. Atendemos Tijuana, Mexicali, Tecate y Ensenada.",
-          "Panduit structured cabling design, installation and testing for new sites, expansions and network upgrades. Serving Tijuana, Mexicali, Tecate and Ensenada."
-        )}
-        image="/images/solutions/panduit-high-density-cinematic.png"
-        contactHref="#solicitar"
-        contactLabel={t("Solicitar cotización", "Request a quote")}
-        portfolioHref="#servicios"
-        portfolioLabel={t("Ver servicios", "View services")}
-        breadcrumbLabel={t("Cableado estructurado", "Structured cabling")}
-        homeLabel={t("Inicio", "Home")}
-        partner={{
-          image: "/partners/panduit-one-silver-partner.png",
-          label: t(
-            "Integradores certificados Panduit",
-            "Certified Panduit integrators"
-          ),
-        }}
-      />
+      <CablingHeroV2 />
+      <section
+        aria-label={t("Respaldo técnico", "Technical credentials")}
+        className="border-y border-white/10 bg-[#0b1b2b] px-5 py-7 sm:px-8"
+      >
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <img
+            src="/partners/panduit-one-silver-partner.png"
+            width="140"
+            height="76"
+            alt="Panduit ONE Silver Partner 2025"
+            className="w-[140px] rounded-lg p-3"
+            style={{ background: "white" }}
+          />
+          <div>
+            <h2 className="text-lg font-semibold">
+              {t(
+                "Materiales, instalación y pruebas con un alcance claro",
+                "Materials, installation and testing with a clear scope"
+              )}
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              {t(
+                "Componentes seleccionados para su aplicación y entregables acordados antes de iniciar.",
+                "Components selected for your application, with deliverables agreed before work begins."
+              )}
+            </p>
+          </div>
+        </div>
+      </section>
       <section id="servicios" className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
         <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
           {t("Del diseño al mantenimiento", "From design to maintenance")}
@@ -245,30 +249,30 @@ export default function StructuredCablingV2() {
           {(es
             ? [
                 [
-                  "01 · Cuéntenos su necesidad",
-                  "Comparta sus datos, ubicación y lo que necesita conectar o corregir.",
+                  "01 · Diagnóstico y levantamiento",
+                  "Revisamos su necesidad y definimos si se requiere una visita técnica para conocer las condiciones de instalación.",
                 ],
                 [
-                  "02 · Revisamos el alcance",
-                  "Un especialista revisará la información y le contactará para aclarar requisitos y definir si se requiere visita técnica.",
+                  "02 · Propuesta técnica y económica",
+                  "Presentamos actividades, materiales, pruebas, entregables y condiciones para que decida con claridad.",
                 ],
                 [
-                  "03 · Reciba una propuesta",
-                  "Le presentamos actividades, materiales, entregables y condiciones para que pueda decidir con claridad.",
+                  "03 · Instalación y puesta en marcha",
+                  "Con la propuesta aprobada, coordinamos los trabajos con su operación y validamos los enlaces según el alcance contratado.",
                 ],
               ]
             : [
                 [
-                  "01 · Tell us what you need",
-                  "Share your contact details, location and what you need to connect or improve.",
+                  "01 · Assessment and site review",
+                  "We review your needs and determine whether a site visit is required to assess installation conditions.",
                 ],
                 [
-                  "02 · We review the scope",
-                  "A specialist reviews your information and contacts you to clarify requirements and determine if a site visit is needed.",
+                  "02 · Technical and commercial proposal",
+                  "We present work, materials, tests, deliverables and conditions so you can make an informed decision.",
                 ],
                 [
-                  "03 · Receive a proposal",
-                  "Review work, materials, deliverables and conditions before making a decision.",
+                  "03 · Installation and commissioning",
+                  "After proposal approval, we coordinate work with your operation and validate links within the agreed scope.",
                 ],
               ]
           ).map(([title, body]) => (
@@ -277,60 +281,6 @@ export default function StructuredCablingV2() {
               <p className="mt-3 text-sm leading-7 text-slate-600">{body}</p>
             </div>
           ))}
-        </div>
-      </section>
-      <section
-        id="solicitar"
-        className="scroll-mt-24 bg-white px-5 py-16 sm:px-8"
-      >
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
-              {t(
-                "Cotice su infraestructura",
-                "Request your infrastructure quote"
-              )}
-            </p>
-            <h2 className="mt-4 text-3xl font-bold">
-              {t(
-                "Cuéntenos qué necesita conectar.",
-                "Tell us what you need to connect."
-              )}
-            </h2>
-            <p className="mt-5 leading-7 text-slate-600">
-              {t(
-                "Indique en el mensaje su ciudad, cantidad aproximada de puntos o enlaces y si se trata de una instalación nueva o existente. Un especialista revisará su solicitud para definir el siguiente paso.",
-                "Include your city, approximate number of outlets or links and whether this is a new or existing installation. A specialist will review your request to determine the next step."
-              )}
-            </p>
-            <p className="mt-5 font-semibold text-blue-700">
-              Tijuana · Mexicali · Tecate · Ensenada
-            </p>
-            <p className="mt-5 text-sm text-slate-500">
-              {t(
-                "No necesita crear una cuenta para solicitar una cotización.",
-                "No account is required to request a quote."
-              )}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-[#f4f7fb] p-6 sm:p-8">
-            <LeadForm
-              compact
-              hideBusinessDetails
-              problemPlaceholder={t(
-                "Ciudad, puntos o enlaces aproximados y fecha requerida…",
-                "City, approximate outlets or links and target date…"
-              )}
-              problemLabel={t(
-                "Cuéntenos sobre su proyecto",
-                "Tell us about your project"
-              )}
-              verticalSlug="infraestructura"
-              source="form"
-              context="Servicio solicitado: cableado estructurado y fibra óptica Panduit. Landing: /soluciones/cableado-estructurado."
-              submitLabel={t("Solicitar cotización", "Request a quote")}
-            />
-          </div>
         </div>
       </section>
       <section className="mx-auto max-w-4xl px-5 py-16 sm:px-8">
@@ -344,14 +294,50 @@ export default function StructuredCablingV2() {
           </details>
         ))}
       </section>
-      <footer className="border-t border-slate-200 px-5 py-8 text-center text-sm text-slate-600">
-        <p>IAMET · {t("Integración tecnológica", "Technology integration")}</p>
-        <div className="mt-3 flex flex-wrap justify-center gap-6">
-          <Link href="/nosotros">{t("Conocer IAMET", "About IAMET")}</Link>
-          <Link href="/soluciones/infraestructura">
-            {t("Infraestructura", "Infrastructure")}
-          </Link>
+      <section className="border-t border-white/10 bg-[#0b1b2b] px-5 py-14 text-center sm:px-8">
+        <h2 className="text-3xl font-bold">
+          {t(
+            "Prepare la conectividad de su próximo proyecto",
+            "Plan connectivity for your next project"
+          )}
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl leading-7 text-slate-300">
+          {t(
+            "Revisemos su red nueva, ampliación o renovación. Definimos el alcance antes de proponer una solución.",
+            "Let us review your new network, expansion or upgrade and define the scope before proposing a solution."
+          )}
+        </p>
+        <div className="mt-7 flex flex-col justify-center gap-4 sm:flex-row">
+          <a
+            href="#solicitar"
+            className="inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500"
+          >
+            {t("Solicitar asesoría para mi proyecto", "Request project advice")}
+            <ArrowRight size={18} />
+          </a>
+          <CablingWhatsappV2 />
         </div>
+      </section>
+      <CablingPrivacyV2 />
+      <footer className="border-t border-white/10 px-5 py-8 text-center text-sm text-slate-400">
+        <p>IAMET · {t("Integración tecnológica", "Technology integration")}</p>
+        <p className="mt-3">WhatsApp: +52 664 331 4515</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-6">
+          <a
+            href="#aviso-privacidad"
+            onClick={() => {
+              const notice = document.getElementById("aviso-privacidad");
+              if (notice instanceof HTMLDetailsElement) notice.open = true;
+            }}
+          >
+            {t("Aviso sobre sus datos", "Your contact data")}
+          </a>
+          <Link href="/nosotros">{t("Conocer IAMET", "About IAMET")}</Link>
+        </div>
+        <p className="mt-4 text-xs">
+          © {new Date().getFullYear()} IAMET.{" "}
+          {t("Todos los derechos reservados.", "All rights reserved.")}
+        </p>
       </footer>
     </div>
   );

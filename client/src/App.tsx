@@ -15,6 +15,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import HomeV2 from "./pages/HomeV2";
 const ServiceLandingV2 = lazy(() => import("./pages/ServiceLandingV2"));
+const CablingThanksV2 = lazy(() => import("./pages/CablingThanksV2"));
 const StructuredCablingV2 = lazy(() => import("./pages/StructuredCablingV2"));
 const InfrastructureV2 = lazy(() => import("./pages/InfrastructureV2"));
 const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
@@ -62,6 +63,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   useEffect(() => { if (!window.location.hash) window.scrollTo({top: 0, behavior: "instant"}); }, [location]);
   const isServiceLanding = /^\/soluciones\/(infraestructura|cableado-estructurado|edificios-inteligentes|cctv|control-acceso|rfid|energia|software-ia|polizas-servicios)$/.test(location) || /^\/marcas\/(panduit|genetec|zebra|avigilon|apc-schneider)$/.test(location);
+  const isCablingCampaign = location === "/soluciones/cableado-estructurado" || location === "/soluciones/cableado-estructurado/gracias";
   const isAdmin = location === "/admin" || location.startsWith("/admin/");
 
   if (location === "/admin/crm" || location === "/admin/garantias" || location === "/admin/campanas") return <>{children}</>;
@@ -81,10 +83,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {isServiceLanding ? <ServiceLandingHeaderV2 /> : <PublicHeaderV2 />}
+      {isServiceLanding || isCablingCampaign ? <ServiceLandingHeaderV2 focused={isCablingCampaign} /> : <PublicHeaderV2 />}
       <main>{children}</main>
-      {!isServiceLanding && <CorporateFooterV2 />}
-      <VisitorAssistantV2 />
+      {!isServiceLanding && !isCablingCampaign && <CorporateFooterV2 />}
+      {!isCablingCampaign && <VisitorAssistantV2 />}
     </>
   );
 }
@@ -106,6 +108,7 @@ function Router() {
           <Route path="/soluciones/polizas-servicios" component={ServiceLandingV2} />
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
+          <Route path="/soluciones/cableado-estructurado/gracias" component={CablingThanksV2} />
           <Route path="/soluciones/cableado-estructurado" component={StructuredCablingV2} />
           <Route path="/soluciones/infraestructura" component={InfrastructureV2} />
           <Route path="/soluciones/edificios-inteligentes" component={ServiceLandingV2} />

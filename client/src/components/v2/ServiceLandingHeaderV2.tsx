@@ -3,7 +3,11 @@ import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import IametTechLogoV2 from "./IametTechLogoV2";
 
-export default function ServiceLandingHeaderV2() {
+export default function ServiceLandingHeaderV2({
+  focused = false,
+}: {
+  focused?: boolean;
+}) {
   const { language } = useLanguage();
   const es = language === "es";
   return (
@@ -17,22 +21,34 @@ export default function ServiceLandingHeaderV2() {
           <IametTechLogoV2 className="!text-white" />
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link
-            href="/acceso"
-            aria-label={es ? "Mi cuenta" : "My account"}
-            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-white/20 px-3 text-sm"
-          >
-            <UserRound size={18} />
-            <span className="hidden lg:inline">
-              {es ? "Mi cuenta" : "My account"}
-            </span>
-          </Link>
+          {!focused && (
+            <Link
+              href="/acceso"
+              aria-label={es ? "Mi cuenta" : "My account"}
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-white/20 px-3 text-sm"
+            >
+              <UserRound size={18} />
+              <span className="hidden lg:inline">
+                {es ? "Mi cuenta" : "My account"}
+              </span>
+            </Link>
+          )}
           <a
-            href="#solicitar"
+            href={
+              focused
+                ? "/soluciones/cableado-estructurado#solicitar"
+                : "#solicitar"
+            }
             className="rounded-full bg-blue-600 px-5 py-3 text-xs font-semibold transition hover:bg-blue-500 sm:px-7 sm:text-sm"
           >
             <span className="hidden sm:inline">
-              {es ? "Hablar con un especialista" : "Talk to a specialist"}
+              {focused
+                ? es
+                  ? "Solicitar cotización"
+                  : "Request a quote"
+                : es
+                  ? "Hablar con un especialista"
+                  : "Talk to a specialist"}
             </span>
             <span className="sm:hidden">{es ? "Asesoría" : "Contact"}</span>
             <span aria-hidden="true" className="ml-2">

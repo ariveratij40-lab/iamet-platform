@@ -1,3 +1,9 @@
+import {
+  cablingPath,
+  cablingTitle,
+  cablingDescription,
+} from "../../shared/cabling-campaign";
+import { ENV } from "./env";
 import { homeBannerPreload } from "../../shared/banner-images";
 /**
  * serveStatic.ts — Sirve los archivos estáticos del build de producción.
@@ -26,6 +32,39 @@ export function serveStatic(app: Express) {
     .replace("</head>", `${homeBannerPreload}</head>`);
   app.get("/", (_req, res) => {
     res.type("html").send(homeHtml);
+  });
+  const escapeAttribute = (value: string) =>
+    value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  const campaignUrl = escapeAttribute(
+    `${(ENV.appUrl || "https://staging.iamet.mx").replace(/\/$/, "")}${cablingPath}`
+  );
+  const campaignHtml = homeHtml
+    .replace(/<title>.*?<\/title>/, `<title>${cablingTitle}</title>`)
+    .replace(
+      /(<meta name="description" content=")[^"]*/,
+      `$1${cablingDescription}`
+    )
+    .replace(/(<link rel="canonical" href=")[^"]*/, `$1${campaignUrl}`)
+    .replace(/(<meta property="og:url" content=")[^"]*/, `$1${campaignUrl}`)
+    .replace(
+      /(<meta (?:property="og:|name="twitter:)title" content=")[^"]*/g,
+      `$1${cablingTitle}`
+    )
+    .replace(
+      /(<meta (?:property="og:|name="twitter:)description" content=")[^"]*/g,
+      `$1${cablingDescription}`
+    );
+  app.get(cablingPath, (_req, res) => res.type("html").send(campaignHtml));
+  app.get(`${cablingPath}/gracias`, (_req, res) => {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    res
+      .type("html")
+      .send(
+        homeHtml.replace(
+          /<meta name="robots" content="[^"]*"/,
+          '<meta name="robots" content="noindex, nofollow"'
+        )
+      );
   });
   app.use(express.static(distPath));
   // Missing machine-readable files must not return the SPA's HTML with status 200.
