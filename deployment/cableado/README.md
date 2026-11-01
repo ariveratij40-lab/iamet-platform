@@ -1,12 +1,12 @@
 # Landing de cableado en subdominio
 
-URL solicitada: https://cableado.iamet.mx/ . El logo y «Conocer IAMET» llevan al sitio corporativo https://iamet.mx/ . El subdominio muestra directamente la landing en la raíz; no requiere otro repositorio ni una base nueva.
+URL solicitada: https://cableadoestructurado.iamet.mx/ . El logo y «Conocer IAMET» llevan al sitio corporativo https://iamet.mx/ . El subdominio muestra directamente la landing en la raíz; no requiere otro repositorio ni una base nueva.
 
 ## Primera activación en el VPS de pruebas
 
 Esta configuración utiliza `iamet_v2_app_staging` y su CRM existente. Conserva `noindex` y no cambia el dominio corporativo ni el vhost de staging. Antes de campañas públicas debe acordarse la separación/operación de producción y completar privacidad y medición. No se considera una migración al VPS final.
 
-1. En el proveedor DNS de iamet.mx, crear registro A: nombre `cableado`, valor `108.175.9.162`. Eliminar o corregir cualquier AAAA de ese nombre que apunte a otro servidor. Si hay proxy/CDN, validar su configuración antes de continuar; el script verifica resolución directa al VPS.
+1. En el proveedor DNS de iamet.mx, crear registro A: nombre `cableadoestructurado`, valor `108.175.9.162`. Eliminar o corregir cualquier AAAA de ese nombre que apunte a otro servidor. Si hay proxy/CDN, validar su configuración antes de continuar; el script verifica resolución directa al VPS.
 2. Actualizar la aplicación con el flujo normal, preservando la base:
 
 ```bash

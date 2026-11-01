@@ -17,13 +17,13 @@ describe("Cabling receipt presentation", () => {
 describe("Cabling host selection", () => {
   it("selects only the exact campaign host and leaves staging and corporate routes alone", async () => {
     const { isCablingHostname } = await import("../shared/cabling-campaign");
-    expect(isCablingHostname("cableado.iamet.mx")).toBe(true);
-    expect(isCablingHostname("CABLEADO.IAMET.MX")).toBe(true);
+    expect(isCablingHostname("cableadoestructurado.iamet.mx")).toBe(true);
+    expect(isCablingHostname("CABLEADOESTRUCTURADO.IAMET.MX")).toBe(true);
     for (const host of [
       "staging.iamet.mx",
       "iamet.mx",
       "localhost",
-      "cableado.iamet.mx.example.com",
+      "cableadoestructurado.iamet.mx.example.com",
     ])
       expect(isCablingHostname(host)).toBe(false);
   });

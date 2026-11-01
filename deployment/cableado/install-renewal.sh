@@ -4,7 +4,7 @@ ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 sudo install -m 755 "$ROOT/renew-certificate.sh" /usr/local/sbin/iamet-cableado-renew
 sudo tee /etc/systemd/system/iamet-cableado-certificate.service >/dev/null <<'UNIT'
 [Unit]
-Description=Renew TLS certificate for cableado.iamet.mx
+Description=Renew TLS certificate for cableadoestructurado.iamet.mx
 After=docker.service network-online.target
 Requires=docker.service
 [Service]

@@ -16,7 +16,7 @@ export function validCablingReceipt(
   );
 }
 
-export const cablingHostname = "cableado.iamet.mx";
+export const cablingHostname = "cableadoestructurado.iamet.mx";
 export const cablingOrigin = `https://${cablingHostname}`;
 export function isCablingHostname(hostname: string): boolean {
   return hostname.toLowerCase() === cablingHostname;
