@@ -1,0 +1,16 @@
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ARG PUBLIC_CAPTURE_ENABLED=false
+ARG PUBLIC_LEAD_ENDPOINT=/api/leads
+ARG PUBLIC_PRIVACY_URL=
+ENV ASTRO_TELEMETRY_DISABLED=1
+ENV PUBLIC_CAPTURE_ENABLED=$PUBLIC_CAPTURE_ENABLED PUBLIC_LEAD_ENDPOINT=$PUBLIC_LEAD_ENDPOINT PUBLIC_PRIVACY_URL=$PUBLIC_PRIVACY_URL
+RUN npm run build
+FROM nginx:stable-alpine
+COPY deploy/nginx.preview.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 8080
+HEALTHCHECK CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1

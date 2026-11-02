@@ -1,0 +1,8 @@
+services:
+  landing:
+    build: .
+    ports:
+      - "127.0.0.1:4322:8080"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true

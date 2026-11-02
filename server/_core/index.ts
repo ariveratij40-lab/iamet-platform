@@ -1,3 +1,4 @@
+import { landingRest } from "./landing-rest";
 import { cablingOrigin } from "../../shared/cabling-campaign";
 import { registerGoogleAdsOAuth } from "../google-ads-oauth";
 import "dotenv/config";
@@ -115,6 +116,8 @@ async function startServer() {
       crossOriginEmbedderPolicy: false, // Permite embeds de terceros (mapas, videos)
     })
   );
+
+  app.use("/api/leads", landingRest);
 
   // ─── CORS explícito ────────────────────────────────────────────────────────
   // Acepta el origen definido en VITE_APP_URL (staging o producción).

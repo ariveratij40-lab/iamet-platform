@@ -1,0 +1,21 @@
+IAMET · INTEGRACIÓN TECNOLÓGICA
+Identidad definitiva aprobada — versión 1.1 — 1 de noviembre de 2026
+
+GEOMETRÍA
+Usar el símbolo infinito angular de la opción 01, con cruce entrelazado. El icono se amplió 15% respecto a la propuesta anterior, manteniendo su centro. Conservar los trazos originales de las letras IAMET. No sustituirlos por otra fuente. El descriptor se mantiene debajo, en mayúsculas.
+
+VARIANTES Y COLORES
+1. Principal sobre blanco: icono #2166FF; IAMET #071321; descriptor #536276.
+2. Sobre azul noche #071321: icono #4B8DFF; IAMET blanco #FFFFFF; descriptor #C2CDDD.
+3. Sobre azul corporativo #1752D0: todos los elementos blancos #FFFFFF.
+4. Monocromática negra: todos los elementos #000000 sobre fondo claro.
+5. Monocromática blanca: todos los elementos #FFFFFF sobre fondo oscuro.
+
+ARCHIVOS
+Los cinco archivos iamet-*.svg tienen fondo transparente y conservan el espacio transparente del cruce. Seleccionar la variante según el fondo real. variantes-iamet.svg es una lámina de presentación, no el archivo que se debe insertar como logo.
+
+REGLAS PARA EL AGENTE
+Mantener proporciones, colores y espacio libre alrededor del conjunto. No estirar, inclinar, añadir sombras, degradados ni contornos. En fotografías utilizar un área uniforme o una base de color para garantizar legibilidad. No añadir una I dentro del símbolo: la identidad aprobada usa el infinito angular solicitado.
+El nombre IAMET está construido con trazos vectoriales. El descriptor utiliza Arial/Helvetica: convertirlo a contornos antes de entregar originales definitivos a imprenta para evitar sustituciones tipográficas.
+En tamaños pequeños, si el descriptor deja de ser legible, usar una composición sin descriptor preparada y revisada; no comprimir el texto. Para bordado o grabado, usar versión monocromática y validar físicamente el tamaño y la separación del cruce con el proveedor.
+Estas variantes y la geometría indicada fueron confirmadas como identidad definitiva por IAMET el 1 de noviembre de 2026. Aplicarlas a la nueva landing con los SVG entregados. La aprobación de identidad no autoriza modificar el sitio corporativo, desplegar en el VPS ni activar campañas.
