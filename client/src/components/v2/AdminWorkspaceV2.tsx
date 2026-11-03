@@ -8,7 +8,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useLocalAuth } from "@/hooks/useLocalAuth";
-import IametTechLogoV2 from "./IametTechLogoV2";
+import IametOfficialLogoV2 from "./IametOfficialLogoV2";
 
 export default function AdminWorkspaceV2({
   children,
@@ -22,7 +22,7 @@ export default function AdminWorkspaceV2({
       <header className="border-b border-white/10 bg-[#0b1829]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <Link href="/admin/crm" aria-label="IAMET · Panel de administración">
-            <IametTechLogoV2 className="!w-36 text-white" />
+            <IametOfficialLogoV2 className="w-36" showTagline={false} />
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <span className="hidden text-slate-400 md:inline">

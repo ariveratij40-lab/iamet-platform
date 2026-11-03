@@ -1,4 +1,4 @@
-import IametTechLogoV2 from "./IametTechLogoV2";
+import IametOfficialLogoV2 from "./IametOfficialLogoV2";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowRight, Languages, Menu, X, UserRound } from "lucide-react";
@@ -41,10 +41,7 @@ export default function PublicHeaderV2() {
           aria-label={es ? "IAMET — Inicio" : "IAMET — Home"}
           className="flex shrink-0 flex-col items-center rounded focus-visible:outline-2 focus-visible:outline-blue-600"
         >
-          <IametTechLogoV2 className="h-[46.8px] w-[167px]" />
-          <span className="iamet-brand-tagline mt-0.5 text-[9px] font-medium uppercase tracking-[0.16em]">
-            {es ? "Integración tecnológica" : "Technology integration"}
-          </span>
+          <IametOfficialLogoV2 className="w-[190px]" />
         </Link>
 
         <nav

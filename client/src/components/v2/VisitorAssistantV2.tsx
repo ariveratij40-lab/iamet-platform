@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Send, X, RotateCcw, Loader2 } from "lucide-react";
-import IametTechLogoV2 from "./IametTechLogoV2";
 import { businessServices } from "@shared/iamet-profile";
 import { trpc } from "@/lib/trpc";
 import { useAttribution } from "@/hooks/useAttribution";
@@ -162,7 +161,14 @@ function VisitorAssistantContent({ path }: { path: string }) {
           className="mb-3 flex h-[min(620px,calc(100dvh-115px))] w-[min(390px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-blue-300/25 bg-[#0b1c2c] shadow-[0_20px_80px_rgba(0,0,0,.5)]"
         >
           <header className="flex shrink-0 items-center justify-between gap-3 border-b border-blue-300/15 bg-[#10283d] p-4">
-            <div>
+            <div className="flex items-center gap-3">
+              <img
+                src="/brand/iamet-symbol-official.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-9 w-9 shrink-0 object-contain"
+              />
+              <div>
               <p className="font-bold">Asistente virtual IAMET</p>
               <p className="mt-1 text-xs text-blue-200">
                 {mode === "guide"
@@ -171,6 +177,7 @@ function VisitorAssistantContent({ path }: { path: string }) {
                     ? "Orientación con inteligencia artificial"
                     : "Conozca nuestras soluciones"}
               </p>
+              </div>
             </div>
             <div className="flex gap-1">
               <button
@@ -309,9 +316,11 @@ function VisitorAssistantContent({ path }: { path: string }) {
               aria-hidden="true"
               className="absolute inset-0 rounded-full bg-blue-200/20 motion-safe:animate-pulse"
             />
-            <IametTechLogoV2
-              symbolOnly
-              className="relative h-8 !w-8 text-white [&_.iamet-logo-symbol]:!stroke-blue-100"
+            <img
+              src="/brand/iamet-symbol-official.svg"
+              alt=""
+              aria-hidden="true"
+              className="relative h-8 w-8 rounded-full bg-[#07111F] p-1 object-contain"
             />
           </span>
           <span>{open ? "Cerrar" : "¿Le orientamos?"}</span>

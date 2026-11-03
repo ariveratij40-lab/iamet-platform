@@ -2,7 +2,7 @@ import { isCablingHostname } from "@shared/cabling-campaign";
 import { UserRound } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import IametTechLogoV2 from "./IametTechLogoV2";
+import IametOfficialLogoV2 from "./IametOfficialLogoV2";
 
 export default function ServiceLandingHeaderV2({
   focused = false,
@@ -23,7 +23,7 @@ export default function ServiceLandingHeaderV2({
           aria-label={es ? "IAMET · Inicio" : "IAMET · Home"}
           className="w-[105px] shrink-0 sm:w-[190px]"
         >
-          <IametTechLogoV2 className="!text-white" />
+          <IametOfficialLogoV2 className="w-full" showTagline={false} />
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
           {!focused && (

@@ -31,6 +31,7 @@ export default function IametTechLogoV2({
         </mask>
       </defs>
       <g
+        transform={symbolOnly ? undefined : "translate(-10.5 -10.5) scale(1.15)"}
         className="iamet-logo-symbol"
         fill="none"
         stroke="var(--iamet-symbol-color, #2166FF)"

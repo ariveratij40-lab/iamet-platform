@@ -665,11 +665,6 @@ body:has(.iamet-reference-home) header .border-slate-200 { border-color: #21374e
 @media (max-width: 767px) {
   .iamet-reference-home .iamet-process-section article > span { background: #102638; border-color: #245069; color: #45d3ef; }
 }
-body:has(.iamet-reference-home) header a:has(> img[alt="IAMET"]) {
-  background: #f8fbff;
-  border-radius: 6px;
-  padding: 4px 8px;
-}
 
 .iamet-reference-home #soluciones-iamet [aria-roledescription="carrusel"] {
   border: 0;
@@ -869,4 +864,31 @@ body:has(.iamet-reference-home) header a[href="/acceso"]:hover { background: #15
 .iamet-brand-intro .iamet-brand-logo,
 .iamet-reference-home .iamet-brand-logo {
   --iamet-symbol-color: #4D8FFF;
+}
+
+/* IAMET official identity — introduction reveal */
+@keyframes iamet-official-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: brightness(.75);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+}
+
+.iamet-intro-official > span {
+  animation: iamet-official-reveal 1.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iamet-intro-official > span {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }

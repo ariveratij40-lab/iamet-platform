@@ -1,4 +1,4 @@
-import IametTechLogoV2 from "./IametTechLogoV2";
+import IametOfficialLogoV2 from "./IametOfficialLogoV2";
 import { Link } from "wouter";
 import { ArrowRight, Mail, MessageCircle, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,7 +27,7 @@ export default function CorporateClosingV2() {
       />
 
       <div className="relative mx-auto max-w-[1440px]">
-        <IametTechLogoV2 className="mb-12 max-w-[230px] text-white" />
+        <IametOfficialLogoV2 className="mb-12 w-[230px]" />
         <div className="grid items-end gap-12 lg:grid-cols-[1.15fr_.85fr] lg:gap-20">
           <div className="max-w-[820px]">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-400/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.17em] text-blue-300">
