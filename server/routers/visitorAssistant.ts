@@ -178,13 +178,17 @@ export const visitorAssistantRouter = router({
         }
       };
       if (!ENV.llmApiKey) return finish({ ...guidance, mode: "guide" });
+      // Turno del visitante = cuántos mensajes suyos van en esta ventana.
+      // Alimenta el cierre por turnos del prompt: a más turnos, el asistente
+      // deja de preguntar y empuja a dejar datos (evita el chat infinito).
+      const turnNumber = input.messages.filter(m => m.role === "user").length;
       try {
         const result = await invokeLLM({
           messages: [
             {
               role: "system",
               content:
-                visitorSystemPrompt() +
+                visitorSystemPrompt(turnNumber) +
                 `\nOrientación de la página: ${guidance.reply}`,
             },
             ...input.messages,
