@@ -5,7 +5,8 @@ COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 RUN pnpm install --frozen-lockfile
 COPY . .
-ENV VITE_APP_URL=https://iamet.mx
+ARG VITE_APP_URL=https://iamet.mx
+ENV VITE_APP_URL=${VITE_APP_URL}
 RUN pnpm build
 
 FROM node:22-alpine
@@ -15,6 +16,8 @@ COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 RUN pnpm install --frozen-lockfile --prod
 COPY --from=builder /app/dist ./dist
+RUN find /app/dist/public -type d -exec chmod 755 {} + \
+ && find /app/dist/public -type f -exec chmod 644 {} +
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/deployment/vps-v2/schema.sql ./deployment/vps-v2/schema.sql
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
