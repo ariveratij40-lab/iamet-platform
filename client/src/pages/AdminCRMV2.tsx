@@ -3,9 +3,24 @@ import { trpc } from "@/lib/trpc";
 import AdminWorkspaceV2 from "@/components/v2/AdminWorkspaceV2";
 import AssistantCRM from "@/components/AssistantCRM";
 import { leadStages, type LeadStage } from "@shared/crm";
+import { leerVeredicto, PRESENTACION_CATEGORIA } from "@shared/lead-verdict";
 import { LayoutDashboard, Users, MessagesSquare } from "lucide-react";
 const label = (status: string) =>
   leadStages.find(s => s.value === status)?.label ?? status;
+// Insignia del veredicto de IA del lead (proyecto / consulta / ruido).
+function VeredictoBadge({ scoreBreakdown }: { scoreBreakdown: unknown }) {
+  const v = leerVeredicto(scoreBreakdown);
+  if (!v) return <span className="text-xs text-slate-500">—</span>;
+  const p = PRESENTACION_CATEGORIA[v.categoria];
+  return (
+    <span
+      title={v.resumen || undefined}
+      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${p.color}`}
+    >
+      {p.etiqueta}
+    </span>
+  );
+}
 const sourceLabel = (source: string) =>
   ({
     agent: "Asistente",
@@ -65,6 +80,15 @@ function LeadDetail({ id, close }: { id: number; close: () => void }) {
               </p>
             </div>
             <div>
+              <div className="mb-3 flex items-center gap-2">
+                <p className="text-sm text-slate-400">Calificación IA</p>
+                <VeredictoBadge scoreBreakdown={lead.scoreBreakdown} />
+              </div>
+              {leerVeredicto(lead.scoreBreakdown)?.resumen && (
+                <p className="mb-3 text-sm italic text-slate-300">
+                  “{leerVeredicto(lead.scoreBreakdown)!.resumen}”
+                </p>
+              )}
               <p className="text-sm text-slate-400">Necesidad del cliente</p>
               <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">
                 {lead.problemDescription || "Sin descripción"}
@@ -145,10 +169,14 @@ export default function AdminCRMV2() {
   const [draftSearch, setDraftSearch] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
   const overview = trpc.crmV2.overview.useQuery({ days });
+  const utils = trpc.useUtils();
   const prospects = trpc.crmV2.list.useQuery(
     { days, page, status: status || undefined, search },
     { enabled: tab === "leads" }
   );
+  const calificar = trpc.crmV2.calificar.useMutation({
+    onSuccess: () => utils.crmV2.list.invalidate(),
+  });
   const stages = overview.data?.stages ?? [];
   const count = (status: string) =>
     stages.find((s: any) => s.status === status)?.count ?? 0;
@@ -370,6 +398,21 @@ export default function AdminCRMV2() {
               Buscar
             </button>
           </form>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => calificar.mutate({})}
+              disabled={calificar.isPending}
+              className="rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm font-medium hover:bg-emerald-600 disabled:opacity-40"
+            >
+              {calificar.isPending ? "Calificando…" : "Calificar leads nuevos"}
+            </button>
+            {calificar.data && (
+              <span role="status" className="text-xs text-slate-400">
+                {calificar.data.calificados} calificados ·{" "}
+                {calificar.data.porReglas} por reglas · {calificar.data.porIA} con IA
+              </span>
+            )}
+          </div>
           {prospects.isLoading && <p role="status">Cargando prospectos…</p>}
           {prospects.error && (
             <p role="alert" className="text-red-300">
@@ -384,6 +427,7 @@ export default function AdminCRMV2() {
                     <tr>
                       {[
                         "Empresa / contacto",
+                        "Calidad",
                         "Origen",
                         "Etapa",
                         "Fecha",
@@ -403,6 +447,9 @@ export default function AdminCRMV2() {
                           <p className="mt-1 text-xs text-slate-400">
                             {l.contactName}
                           </p>
+                        </td>
+                        <td className="p-4">
+                          <VeredictoBadge scoreBreakdown={l.scoreBreakdown} />
                         </td>
                         <td className="p-4">{sourceLabel(l.source)}</td>
                         <td className="p-4">{label(l.status)}</td>
