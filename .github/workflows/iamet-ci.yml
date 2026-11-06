@@ -19,6 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: iamet_test
+          POSTGRES_PASSWORD: ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iamet_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,7 +53,19 @@ jobs:
         run: pnpm check
 
       - name: Run tests
-        run: pnpm test
+        env:
+          DATABASE_URL: postgresql://postgres:ci_only@127.0.0.1:5432/iamet_test
+          SKIP_LIVE_PROVIDER_TESTS: "true"
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f deployment/vps-v2/schema.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO verticals (slug, name)
+          SELECT slug, slug FROM unnest(ARRAY[
+            'infraestructura', 'seguridad', 'rfid', 'software-ia',
+            'servicios-administrados', 'educacion', 'compliance', 'control-acceso', 'cctv'
+          ]) AS catalog(slug);
+          SQL
+          JWT_SECRET="$(openssl rand -hex 32)" pnpm test
 
       - name: Build application
         run: pnpm build
