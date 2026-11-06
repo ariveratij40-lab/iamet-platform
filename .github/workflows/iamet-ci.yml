@@ -37,6 +37,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check TypeScript
+        run: pnpm check
+
+      - name: Run tests
+        run: pnpm test
+
       - name: Build application
         run: pnpm build
 
@@ -47,3 +53,21 @@ jobs:
             -f deployment/ionos-production/Dockerfile \
             -t iamet-ci:${{ github.sha }} \
             .
+
+      - name: Smoke test Docker image
+        timeout-minutes: 2
+        run: |
+          container=$(docker run -d -p 127.0.0.1:3000:3000 \
+            -e SEED_CALENDAR_DATA=false \
+            -e JWT_SECRET="$(openssl rand -hex 32)" \
+            "iamet-ci:$GITHUB_SHA")
+          trap 'docker rm -f "$container" >/dev/null' EXIT
+          for attempt in {1..30}; do
+            if curl -fsS --max-time 2 http://127.0.0.1:3000/api/health | jq -e '.ok == true' >/dev/null; then
+              exit 0
+            fi
+            [[ $(docker inspect -f '{{.State.Running}}' "$container") == true ]] || break
+            sleep 1
+          done
+          docker logs "$container"
+          exit 1
