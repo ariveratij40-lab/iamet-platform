@@ -17,7 +17,7 @@ const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY ?? "";
 const R2_REGION = process.env.R2_REGION ?? "auto";
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL ?? "";
 
-describe("Cloudflare R2 — Validación de credenciales", () => {
+describe.skipIf(process.env.SKIP_LIVE_PROVIDER_TESTS === "true")("Cloudflare R2 — Validación de credenciales", () => {
   it("Las variables de entorno R2 están definidas", () => {
     expect(R2_ENDPOINT).toBeTruthy();
     expect(R2_BUCKET).toBeTruthy();
