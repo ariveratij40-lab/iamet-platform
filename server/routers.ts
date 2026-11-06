@@ -1,5 +1,6 @@
 import { googleAdsRouter } from "./routers/googleAds";
 import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
+import { blogRouter } from "./routers/blog";
 import {visitorAssistantRouter} from "./routers/visitorAssistant";
 import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
 import { TRPCError } from "@trpc/server";
@@ -943,6 +944,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   warranty: warrantyRouter,
   visitorAssistant: visitorAssistantRouter,
   crmV2: crmV2Router,
+  blog: blogRouter,
   googleAds: googleAdsRouter,
 
   // ─── Smart Calendar ──────────────────────────────────────────────────────────────────────────────

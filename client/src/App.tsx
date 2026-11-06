@@ -3,6 +3,7 @@ const AdminCampaignsV2 = lazy(() => import("./pages/AdminCampaignsV2"));
 import VisitorAssistantV2 from "./components/v2/VisitorAssistantV2";
 const Warranties = lazy(() => import("./pages/Warranties"));
 const AdminWarranties = lazy(() => import("./pages/AdminWarranties"));
+const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 import {useEffect, lazy, Suspense} from "react";
 import CorporateFooterV2 from "./components/v2/CorporateFooterV2";
 import { AboutV2, BrandsV2, BrandLandingV2, QuoteV2 } from "./pages/CorporatePagesV2";
@@ -152,6 +153,7 @@ function Router() {
           <Route path="/admin/reuniones">{() => <AdminGuard><AdminReuiones /></AdminGuard>}</Route>
           <Route path="/admin/seguimientos">{() => <AdminGuard><AdminSeguimientos /></AdminGuard>}</Route>
           <Route path="/admin/garantias">{() => <AdminGuard allowedRoles={["admin"]}><AdminWarranties /></AdminGuard>}</Route>
+          <Route path="/admin/blog">{() => <AdminGuard allowedRoles={["admin"]}><AdminBlog /></AdminGuard>}</Route>
           <Route path="/admin/campanas">{() => <AdminGuard allowedRoles={["admin"]}><AdminCampaignsV2 /></AdminGuard>}</Route>
           <Route path="/admin/crm">{() => <AdminGuard allowedRoles={["admin"]}><AdminCRM /></AdminGuard>}</Route>
           <Route path="/admin/intelligence">{() => <AdminGuard><AdminIntelligence /></AdminGuard>}</Route>
