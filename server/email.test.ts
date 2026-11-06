@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Resend } from "resend";
 
-describe("Resend API Key", () => {
+describe.skipIf(process.env.SKIP_LIVE_PROVIDER_TESTS === "true")("Resend API Key", () => {
   it("should have RESEND_API_KEY configured", () => {
     const key = process.env.RESEND_API_KEY;
     expect(key).toBeTruthy();
