@@ -2,7 +2,7 @@
  * blog/store.ts — Guardar y leer los artículos del blog en la base de datos.
  * El admin usa estas mismas funciones para editar, despublicar o borrar.
  */
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "../db";
 import { blogPosts, type BlogPost, type InsertBlogPost } from "../../drizzle/schema";
 
@@ -33,7 +33,7 @@ export async function yaCubierto(headline: string, dias = 10): Promise<boolean> 
   const [row] = await db
     .select({ id: blogPosts.id })
     .from(blogPosts)
-    .where(and(eq(blogPosts.sourceHeadline, headline), sql`${blogPosts.createdAt} >= ${desde}`))
+    .where(and(eq(blogPosts.sourceHeadline, headline), gte(blogPosts.createdAt, desde)))
     .limit(1);
   return !!row;
 }
