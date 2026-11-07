@@ -50,6 +50,20 @@
       "when": 1793405543829,
       "tag": "0006_assistant-conversations",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794001874651,
+      "tag": "0007_stiff_kitty_pryde",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794002530673,
+      "tag": "0008_worthless_talon",
+      "breakpoints": true
     }
   ]
 }
