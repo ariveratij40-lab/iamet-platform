@@ -65,14 +65,14 @@ export async function verifyPassword(
 export function signJWT(payload: Omit<JWTPayload, "iat" | "exp">): string {
   const secret = ENV.cookieSecret;
   if (!secret) throw new Error("JWT_SECRET no configurado");
-  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRY });
+  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRY, audience: "iamet-local" });
 }
 
 export function verifyJWT(token: string): JWTPayload | null {
   try {
     const secret = ENV.cookieSecret;
     if (!secret) return null;
-    return jwt.verify(token, secret) as JWTPayload;
+    return jwt.verify(token, secret, { algorithms: ["HS256"], audience: "iamet-local" }) as JWTPayload;
   } catch {
     return null;
   }

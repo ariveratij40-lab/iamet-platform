@@ -1,3 +1,4 @@
+import AssistantCRM from "@/components/AssistantCRM";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -438,6 +439,7 @@ export default function AdminCRM() {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
+        <AssistantCRM />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

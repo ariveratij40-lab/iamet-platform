@@ -1,0 +1,23 @@
+# IAMET
+
+> Integración y servicios de soluciones tecnológicas para empresas en Tijuana, Mexicali, Tecate y Ensenada.
+
+## Empresa
+
+- [Quiénes somos](https://staging.iamet.mx/nosotros): Misión, visión, valores y cobertura de IAMET.
+- [Solicitar cotización](https://staging.iamet.mx/cotizacion): Solicitudes de proyectos y servicios.
+- [Garantías](https://staging.iamet.mx/garantias): Proceso y portal autenticado de seguimiento.
+
+## Soluciones
+
+- [Infraestructura física](https://staging.iamet.mx/soluciones/infraestructura): Cableado estructurado, fibra óptica, data center y certificación con equipo Fluke Networks.
+- [Video CCTV](https://staging.iamet.mx/soluciones/cctv)
+- [Control de acceso](https://staging.iamet.mx/soluciones/control-acceso)
+- [Energía](https://staging.iamet.mx/soluciones/energia)
+- [RFID](https://staging.iamet.mx/soluciones/rfid)
+- [Desarrollo de aplicaciones e IA](https://staging.iamet.mx/soluciones/software-ia)
+- [Pólizas y servicios administrados](https://staging.iamet.mx/soluciones/polizas-servicios)
+
+## Contexto
+
+Este dominio es un entorno de pruebas. Las áreas de clientes y administración requieren autenticación. Este documento ofrece un resumen público; no concede acceso ni sustituye las directivas de indexación del sitio.

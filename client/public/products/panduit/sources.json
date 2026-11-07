@@ -1,0 +1,30 @@
+{
+  "source": "https://www.panduit.com/content/dam/panduit/en/website/support/catalogs/pdf/panduit-asean-preferred-part-catalogue-2024.pdf",
+  "assets": {
+    "angled-panel.jpg": {
+      "page": 4,
+      "product": "CPPA48HDWBLY"
+    },
+    "patch-cord-28awg.jpg": {
+      "page": 5,
+      "product": "UTP28X Cat 6A 28 AWG"
+    },
+    "r2p-rack.jpg": {
+      "page": 9,
+      "product": "R2P"
+    },
+    "nmf4-manager.jpg": {
+      "page": 9,
+      "product": "NMF4 NetManager"
+    },
+    "fmt1-fiber-tray.jpg": {
+      "page": 7,
+      "product": "FMT1"
+    },
+    "fiber-adapter-panel.jpg": {
+      "page": 8,
+      "product": "LC fiber adapter panel"
+    }
+  },
+  "method": "Original embedded product images extracted from manufacturer PDF; no generative modification."
+}

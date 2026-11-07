@@ -50,7 +50,8 @@ export function useStoreSession() {
   useEffect(() => {
     refresh();
     window.addEventListener("store-session-change", refresh);
-    return () => window.removeEventListener("store-session-change", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {window.removeEventListener("store-session-change", refresh);window.removeEventListener("storage", refresh);};
   }, [refresh]);
 
   const logout = useCallback(() => {

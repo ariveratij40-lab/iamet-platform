@@ -1,0 +1,19 @@
+{
+  "document": "Panduit Infrastructure for Building Technologies \u2014 CPEB12-WW-ENG, 2/2024",
+  "sourceFile": "smart-building-ebook-web-cpeb12-ww-eng.pdf",
+  "method": "Original embedded illustrations extracted from supplied PDF; converted to WebP without cropping or generative changes.",
+  "assets": {
+    "building-overview.webp": {
+      "pdfPage": 10
+    },
+    "data-center.webp": {
+      "pdfPage": 12
+    },
+    "telecom-room.webp": {
+      "pdfPage": 14
+    },
+    "office-cabling.webp": {
+      "pdfPage": 16
+    }
+  }
+}

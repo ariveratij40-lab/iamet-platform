@@ -13,3 +13,8 @@ DEPLOYMENT.md
 test-email-send.mjs
 check-resend-domain.mjs
 infra/scripts
+# Never include nested deployment credentials or server backup state.
+**/.env*
+deployment/vps-v2/last-backup
+deployment/vps-v2/release-id
+**/__pycache__

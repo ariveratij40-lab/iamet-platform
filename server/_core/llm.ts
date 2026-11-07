@@ -56,6 +56,7 @@ export type ToolChoice =
   | ToolChoiceExplicit;
 
 export type InvokeParams = {
+  signal?: AbortSignal;
   messages: Message[];
   tools?: Tool[];
   toolChoice?: ToolChoice;
@@ -326,7 +327,7 @@ const fetchWithBackoff = async (
       await sleep(computeBackoffDelay(attempt, retryAfterMs));
     } catch (error) {
       lastError = error;
-      if (attempt === RETRY_MAX_RETRIES) throw error;
+      if (init.signal?.aborted || attempt === RETRY_MAX_RETRIES) throw error;
       console.warn(
         `LLM request retry ${attempt + 1}/${RETRY_MAX_RETRIES} after network error`
       );
@@ -399,6 +400,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   }
 
   const response = await fetchWithBackoff(resolveApiUrl(), {
+    signal: params.signal,
     method: "POST",
     headers: {
       "content-type": "application/json",
