@@ -27,7 +27,9 @@ const SISTEMA =
   "no publicidad de IAMET.\n" +
   "De la lista de titulares de hoy, ELIGE UNO: el más interesante, curioso o " +
   "comentado para público general (tecnología, videojuegos, cine, ciencia, IA, " +
-  "gadgets). EVITA deportes, política local y notas tristes o sensibles.\n" +
+  "gadgets). EVITA deportes, política local y notas tristes o sensibles. Si algún " +
+  "titular viene marcado con [DESTACADO], es la gran noticia del día: PREFIÉRELO, " +
+  "salvo que sea deporte, política o algo sensible. Quita la marca [DESTACADO] del título.\n" +
   "Luego ESCRIBE un blog en español de México: título atractivo (sin clickbait " +
   "engañoso), una entradilla de 1-2 líneas, y un cuerpo de 3 a 4 párrafos cortos " +
   "(máximo ~250 palabras en total), fácil de leer, con un dato o ángulo curioso. " +

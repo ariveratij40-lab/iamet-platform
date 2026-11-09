@@ -7,23 +7,39 @@
  *
  * Se dispara desde un endpoint de admin (a mano) o desde un cron diario.
  */
-import { titularesDelDia } from "./sources";
+import { titularesDelDia, type Titular } from "./sources";
 import { redactarBlog } from "./writer";
 import { buscarImagen } from "./image";
 import { crearPost, yaCubierto } from "./store";
 import { blogAutoEncendido } from "./settings";
+import { megaPendiente, limpiarMega } from "./megabomba";
 
 export type ResultadoGeneracion =
-  | { ok: true; id: number; slug: string; titulo: string; conImagen: boolean }
+  | { ok: true; id: number; slug: string; titulo: string; conImagen: boolean; mega: boolean }
   | { ok: false; motivo: string };
 
 export async function generarBlogDelDia(opts: { signal?: AbortSignal } = {}): Promise<ResultadoGeneracion> {
-  // 1) Código: traer titulares frescos (gratis, sin IA).
+  // 1) Código: traer titulares del tema del día (gratis, sin IA).
   const titulares = await titularesDelDia({ signal: opts.signal });
-  if (titulares.length === 0) return { ok: false, motivo: "No se pudieron traer titulares hoy." };
+
+  // 1b) ¿Hubo una mega noticia durante el día? Entra como DESTACADA al principio
+  //     de la lista, para que la IA la prefiera sobre el tema del día.
+  const mega = await megaPendiente();
+  const candidatos: Titular[] = [];
+  if (mega) {
+    candidatos.push({
+      titulo: `[DESTACADO] ${mega.titulo}`,
+      fuente: "tendencia del día",
+      resumen: mega.contexto,
+      enlace: "",
+      tema: "mega noticia",
+    });
+  }
+  candidatos.push(...titulares);
+  if (candidatos.length === 0) return { ok: false, motivo: "No se pudieron traer titulares hoy." };
 
   // 2) IA: elegir y redactar (la única llamada).
-  const blog = await redactarBlog(titulares, { signal: opts.signal });
+  const blog = await redactarBlog(candidatos, { signal: opts.signal });
   if (!blog) return { ok: false, motivo: "La IA no devolvió un blog válido (o no hay clave configurada)." };
 
   // Anti-repetición: si ya cubrimos ese mismo titular hace poco, no repetir.
@@ -51,7 +67,11 @@ export async function generarBlogDelDia(opts: { signal?: AbortSignal } = {}): Pr
   });
   if (id == null) return { ok: false, motivo: "No hay base de datos para guardar el blog." };
 
-  return { ok: true, id, slug: blog.slug, titulo: blog.titulo, conImagen: !!imagen };
+  // Si publicamos, la mega guardada ya cumplió su función: se limpia.
+  const usoMega = !!mega;
+  if (usoMega) await limpiarMega();
+
+  return { ok: true, id, slug: blog.slug, titulo: blog.titulo, conImagen: !!imagen, mega: usoMega };
 }
 
 /**

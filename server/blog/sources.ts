@@ -86,7 +86,7 @@ async function traerTema(tema: string, signal?: AbortSignal): Promise<Titular[]>
       signal: signal ?? AbortSignal.timeout(15000),
     });
     if (!r.ok) return [];
-    return parsearRss(await r.text(), tema).slice(0, 6);
+    return parsearRss(await r.text(), tema).slice(0, 12);
   } catch {
     return [];
   }
@@ -97,20 +97,19 @@ async function traerTema(tema: string, signal?: AbortSignal): Promise<Titular[]>
  * fecha para variar, y suma uno o dos temas más para que la IA tenga de dónde
  * elegir. Devuelve [] si ninguna fuente respondió (el llamador no publica).
  */
-export async function titularesDelDia(opts: { fecha?: Date; signal?: AbortSignal } = {}): Promise<Titular[]> {
-  const fecha = opts.fecha ?? new Date();
+/** El tema que le toca a una fecha, por rotación. */
+export function temaDelDia(fecha = new Date()): string {
   const dia = Math.floor((fecha.getTime() - Date.UTC(fecha.getUTCFullYear(), 0, 0)) / 86400000);
-  // Tema principal rota por día; se acompañan dos temas vecinos.
-  const i = dia % TEMAS.length;
-  const elegidos = [TEMAS[i], TEMAS[(i + 2) % TEMAS.length], TEMAS[(i + 4) % TEMAS.length]];
+  return TEMAS[dia % TEMAS.length];
+}
 
-  const listas = await Promise.all(elegidos.map(t => traerTema(t, opts.signal)));
-  // Intercala para que la lista no quede dominada por un solo tema.
-  const salida: Titular[] = [];
-  for (let k = 0; k < 6; k++) {
-    for (const lista of listas) {
-      if (lista[k]) salida.push(lista[k]);
-    }
-  }
-  return salida.slice(0, 14);
+/**
+ * Titulares del tema que toca hoy. UN solo tema (la variedad la da la rotación
+ * día a día, y la mega noticia entra aparte como destacada). Trae más titulares
+ * de ese tema para que la IA tenga de dónde escoger.
+ */
+export async function titularesDelDia(opts: { fecha?: Date; signal?: AbortSignal } = {}): Promise<Titular[]> {
+  const tema = temaDelDia(opts.fecha ?? new Date());
+  const lista = await traerTema(tema, opts.signal);
+  return lista.slice(0, 12);
 }

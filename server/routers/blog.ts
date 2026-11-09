@@ -16,6 +16,7 @@ import {
 } from "../blog/store";
 import { generarBlogDelDia, ejecutarBlogDiario } from "../blog/generate";
 import { blogAutoEncendido, ponerBlogAuto } from "../blog/settings";
+import { detectarMega } from "../blog/megabomba";
 
 export const blogRouter = router({
   // ── Público (el sitio) ──
@@ -50,6 +51,10 @@ export const blogRouter = router({
   // Entrypoint para el cron diario: respeta el interruptor. Protegido por admin;
   // un cron externo lo invoca con credenciales o se corre vía comando interno.
   ejecutarDiario: adminProcedure.mutation(() => ejecutarBlogDiario()),
+
+  // Entrypoint para el cron de monitoreo (cada pocas horas): detecta la mega
+  // noticia del día y la guarda para la publicación de mañana.
+  vigilarMega: adminProcedure.mutation(() => detectarMega()),
 
   editar: adminProcedure
     .input(
