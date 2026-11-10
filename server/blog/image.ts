@@ -20,6 +20,18 @@ export type ImagenBlog = {
 const esFoto = (u: string) => /^https:\/\/.+\.(jpe?g|png)(\?|$)/i.test(u);
 const sinHtml = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
+// Filtro de calidad: una buena foto de blog es GRANDE y HORIZONTAL. Descarta
+// imágenes chicas (se ven pixeladas al ancho del blog) y verticales o panorámicas
+// (quedan mal en la tarjeta). Cuando no sabemos el tamaño, no bloqueamos.
+const ANCHO_MIN = 1000;
+const ALTO_MIN = 600;
+function calidadOk(ancho?: number, alto?: number): boolean {
+  if (!ancho || !alto) return true; // sin datos: no descartamos
+  if (ancho < ANCHO_MIN || alto < ALTO_MIN) return false;
+  const r = ancho / alto;
+  return r >= 1.2 && r <= 2.6; // horizontal, ni cuadrada ni panorámica extrema
+}
+
 // Nombres que delatan una gráfica, diagrama, mapa, logo o escaneo — NO son una
 // foto editorial. Se descartan para que el blog no salga con una estadística.
 const NO_FOTO =
@@ -62,22 +74,28 @@ async function buscarEnOpenverse(palabra: string, signal?: AbortSignal): Promise
 // ── Wikimedia Commons (respaldo) ─────────────────────────────────────────────
 async function buscarEnWikimedia(palabra: string, signal?: AbortSignal): Promise<ImagenBlog | null> {
   const q = encodeURIComponent(palabra);
+  // iiprop=size trae ancho/alto para el filtro de calidad; iiurlwidth=1280 da una
+  // versión escalada a 1280px (no la original gigante, que carga lento).
   const url =
     `https://commons.wikimedia.org/w/api.php?action=query&generator=search` +
-    `&gsrsearch=${q}&gsrnamespace=6&gsrlimit=8&prop=imageinfo` +
-    `&iiprop=url|extmetadata&format=json&origin=*`;
+    `&gsrsearch=${q}&gsrnamespace=6&gsrlimit=10&prop=imageinfo` +
+    `&iiprop=url|size|extmetadata&iiurlwidth=1280&format=json&origin=*`;
   try {
     const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" }, signal });
     if (!r.ok) return null;
     const data: any = await r.json();
     const paginas: any[] = Object.values(data?.query?.pages ?? {});
     const urlDe = (p: any) => (p?.imageinfo?.[0]?.url ?? "").toString();
-    // Preferimos una foto real .jpg; luego cualquier foto que no sea gráfica/logo.
-    const elige = (fn: (u: string) => boolean) => paginas.find(p => fn(urlDe(p)));
-    const p = elige(u => esFotoReal(u) && esJpg(u)) ?? elige(esFotoReal);
+    const bueno = (p: any) => {
+      const info = p?.imageinfo?.[0];
+      return esFotoReal(urlDe(p)) && calidadOk(Number(info?.width), Number(info?.height));
+    };
+    // Preferimos foto real .jpg que pase calidad; luego cualquier foto de calidad.
+    const p = paginas.find(x => bueno(x) && esJpg(urlDe(x))) ?? paginas.find(bueno);
     if (!p) return null;
     const info = p.imageinfo[0];
-    const img = (info.url ?? "").toString();
+    // thumburl = la versión de 1280px; si no, la original.
+    const img = (info.thumburl ?? info.url ?? "").toString();
     const meta = info?.extmetadata ?? {};
     const autor = sinHtml((meta?.Artist?.value ?? "").toString()) || "autor desconocido";
     const lic = sinHtml((meta?.LicenseShortName?.value ?? "").toString()) || "licencia abierta";
@@ -97,15 +115,21 @@ async function buscarEnPixabay(palabra: string, signal?: AbortSignal): Promise<I
   const key = process.env.PIXABAY_API_KEY;
   if (!key) return null;
   const q = encodeURIComponent(palabra);
+  // min_width/min_height: que la API solo regrese fotos grandes. order=popular:
+  // las más vistas primero (suelen ser las mejores).
   const url =
     `https://pixabay.com/api/?key=${key}&q=${q}&image_type=photo&safesearch=true` +
-    `&orientation=horizontal&per_page=5&lang=es`;
+    `&orientation=horizontal&order=popular&min_width=1280&min_height=720&per_page=12&lang=es`;
   try {
     const r = await fetch(url, { headers: { "User-Agent": UA }, signal });
     if (!r.ok) return null;
     const data: any = await r.json();
-    const hit = (Array.isArray(data?.hits) ? data.hits : [])[0];
-    const img = (hit?.webformatURL ?? hit?.largeImageURL ?? "").toString();
+    const hits: any[] = Array.isArray(data?.hits) ? data.hits : [];
+    // Primera que pase el filtro de calidad (tamaño real de la foto).
+    const hit = hits.find(h => calidadOk(Number(h?.imageWidth), Number(h?.imageHeight)));
+    if (!hit) return null;
+    // largeImageURL = 1280px (buena calidad); webformatURL (640) solo de respaldo.
+    const img = (hit.largeImageURL ?? hit.webformatURL ?? "").toString();
     if (!img.startsWith("https://")) return null;
     const autor = (hit?.user ?? "").toString().trim() || "Pixabay";
     return {
