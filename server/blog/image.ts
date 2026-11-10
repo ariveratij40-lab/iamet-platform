@@ -20,6 +20,14 @@ export type ImagenBlog = {
 const esFoto = (u: string) => /^https:\/\/.+\.(jpe?g|png)(\?|$)/i.test(u);
 const sinHtml = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
+// Nombres que delatan una gráfica, diagrama, mapa, logo o escaneo — NO son una
+// foto editorial. Se descartan para que el blog no salga con una estadística.
+const NO_FOTO =
+  /chart|graph|diagram|plot|map\b|statistic|\bvs\b|versus|_rate|rates_|logo|icon|flag|seal|coat[_ ]of[_ ]arms|schematic|screenshot|infographic|svg|\.pdf/i;
+// Una foto de verdad suele ser .jpg; las gráficas y logos suelen ser .png.
+const esFotoReal = (u: string) => esFoto(u) && !NO_FOTO.test(u);
+const esJpg = (u: string) => /\.jpe?g(\?|$)/i.test(u);
+
 // ── Openverse ────────────────────────────────────────────────────────────────
 function creditoOpenverse(r: any): string {
   const autor = (r?.creator ?? "").toString().trim() || "autor desconocido";
@@ -37,13 +45,15 @@ async function buscarEnOpenverse(palabra: string, signal?: AbortSignal): Promise
     const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" }, signal });
     if (!r.ok) return null;
     const data: any = await r.json();
-    for (const item of (Array.isArray(data?.results) ? data.results : [])) {
-      const img = (item?.url ?? "").toString();
-      if (esFoto(img)) {
-        return { url: img, credito: creditoOpenverse(item), enlaceCredito: (item?.foreign_landing_url ?? img).toString() };
-      }
-    }
-    return null;
+    const items: any[] = Array.isArray(data?.results) ? data.results : [];
+    // Preferimos una foto real .jpg; luego cualquier foto que no sea gráfica/logo.
+    const elegir = (fn: (u: string) => boolean) =>
+      items.find(it => fn((it?.url ?? "").toString()));
+    const item =
+      elegir(u => esFotoReal(u) && esJpg(u)) ?? elegir(esFotoReal) ?? elegir(esFoto);
+    if (!item) return null;
+    const img = (item.url ?? "").toString();
+    return { url: img, credito: creditoOpenverse(item), enlaceCredito: (item?.foreign_landing_url ?? img).toString() };
   } catch {
     return null;
   }
@@ -61,20 +71,21 @@ async function buscarEnWikimedia(palabra: string, signal?: AbortSignal): Promise
     if (!r.ok) return null;
     const data: any = await r.json();
     const paginas: any[] = Object.values(data?.query?.pages ?? {});
-    for (const p of paginas) {
-      const info = p?.imageinfo?.[0];
-      const img = (info?.url ?? "").toString();
-      if (!esFoto(img)) continue;
-      const meta = info?.extmetadata ?? {};
-      const autor = sinHtml((meta?.Artist?.value ?? "").toString()) || "autor desconocido";
-      const lic = sinHtml((meta?.LicenseShortName?.value ?? "").toString()) || "licencia abierta";
-      return {
-        url: img.split("?")[0], // sin parámetros de rastreo
-        credito: `Foto de ${autor} en Wikimedia Commons (${lic})`,
-        enlaceCredito: (info?.descriptionurl ?? img).toString(),
-      };
-    }
-    return null;
+    const urlDe = (p: any) => (p?.imageinfo?.[0]?.url ?? "").toString();
+    // Preferimos una foto real .jpg; luego cualquier foto que no sea gráfica/logo.
+    const elige = (fn: (u: string) => boolean) => paginas.find(p => fn(urlDe(p)));
+    const p = elige(u => esFotoReal(u) && esJpg(u)) ?? elige(esFotoReal);
+    if (!p) return null;
+    const info = p.imageinfo[0];
+    const img = (info.url ?? "").toString();
+    const meta = info?.extmetadata ?? {};
+    const autor = sinHtml((meta?.Artist?.value ?? "").toString()) || "autor desconocido";
+    const lic = sinHtml((meta?.LicenseShortName?.value ?? "").toString()) || "licencia abierta";
+    return {
+      url: img.split("?")[0], // sin parámetros de rastreo
+      credito: `Foto de ${autor} en Wikimedia Commons (${lic})`,
+      enlaceCredito: (info?.descriptionurl ?? img).toString(),
+    };
   } catch {
     return null;
   }

@@ -47,8 +47,12 @@ const SISTEMA =
   "sin vender nada.\n" +
   'Responde SOLO un JSON: {"titulo","entradilla","cuerpo","metaDescripcion",' +
   '"palabraImagen","temaElegido"}. "cuerpo" usa saltos de línea dobles entre ' +
-  'párrafos. "palabraImagen" es 1-2 palabras EN INGLÉS para buscar una foto ' +
-  'genérica del tema (ej. "video game", "cinema", "space"). "temaElegido" es el ' +
+  'párrafos. "palabraImagen" son 2-4 palabras EN INGLÉS que describan una ESCENA ' +
+  'U OBJETO CONCRETO Y FOTOGRAFIABLE del tema, no un concepto abstracto. Piensa ' +
+  'qué foto real quedaría bien (una persona, un lugar, un objeto). Ej.: para ' +
+  'streaming "watching television at home"; para un videojuego "person playing ' +
+  'video game"; para el espacio "rocket launch". EVITA palabras sueltas y ' +
+  'abstractas como "streaming", "technology" o "data". "temaElegido" es el ' +
   "titular que elegiste, tal cual.";
 
 function acentoSlug(s: string): string {
