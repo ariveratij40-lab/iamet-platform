@@ -32,10 +32,19 @@ const SISTEMA =
   "salvo que sea deporte, política o algo sensible. Quita la marca [DESTACADO] del título.\n" +
   "Luego ESCRIBE un blog en español de México: título atractivo (sin clickbait " +
   "engañoso), una entradilla de 1-2 líneas, y un cuerpo de 3 a 4 párrafos cortos " +
-  "(máximo ~250 palabras en total), fácil de leer, con un dato o ángulo curioso. " +
-  "No inventes cifras ni hechos que no estén en el titular o el resumen; si no " +
-  "sabes un dato, no lo afirmes. Cierra con una frase que invite a seguir " +
-  "explorando el sitio, sin vender nada.\n" +
+  "(máximo ~250 palabras en total), fácil de leer, con un dato o ángulo curioso.\n" +
+  "REGLA DE ORO — que el artículo CUMPLA lo que promete: si el tema es un truco, " +
+  "una lista, un tutorial o unos códigos/pasos, DA ejemplos concretos y útiles de " +
+  "verdad (usa tu conocimiento general, que es información pública, no un invento). " +
+  "NUNCA escribas 'existe un truco con códigos' o 'hay ciertos pasos' sin DECIR " +
+  "cuáles son: un texto que promete algo y no lo entrega es un mal artículo. Si no " +
+  "puedes dar el contenido concreto de ese titular, ELIGE OTRO titular de la lista " +
+  "que sí puedas desarrollar completo.\n" +
+  "Sobre los HECHOS DE LA NOTICIA (fechas, cifras, declaraciones, qué pasó): no " +
+  "inventes ni exageres lo que no esté en el titular o el resumen. Lo que sí puedes " +
+  "aportar libremente es contexto y conocimiento general del tema para que el " +
+  "artículo sea útil. Cierra con una frase que invite a seguir explorando el sitio, " +
+  "sin vender nada.\n" +
   'Responde SOLO un JSON: {"titulo","entradilla","cuerpo","metaDescripcion",' +
   '"palabraImagen","temaElegido"}. "cuerpo" usa saltos de línea dobles entre ' +
   'párrafos. "palabraImagen" es 1-2 palabras EN INGLÉS para buscar una foto ' +
