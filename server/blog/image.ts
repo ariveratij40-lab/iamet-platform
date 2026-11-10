@@ -109,33 +109,52 @@ async function buscarEnWikimedia(palabra: string, signal?: AbortSignal): Promise
   }
 }
 
+// Cuántas palabras-tag de la foto coinciden con lo que el artículo espera ver.
+// Así elegimos la foto RELEVANTE, no solo la primera grande. (Un paisaje tendría
+// 0 coincidencias con ["television","streaming"] y se descarta.)
+function relevancia(tagsFoto: string, esperadas: string[]): number {
+  if (esperadas.length === 0) return 0;
+  const t = tagsFoto.toLowerCase();
+  let n = 0;
+  for (const w of esperadas) if (w.length > 2 && t.includes(w)) n++;
+  return n;
+}
+
 // ── Pixabay (fuente principal — fotos profesionales y relevantes) ────────────
 // Requiere PIXABAY_API_KEY (gratis). Si no está, se omite y se usan los otros.
-async function buscarEnPixabay(palabra: string, signal?: AbortSignal): Promise<ImagenBlog | null> {
+async function buscarEnPixabay(palabra: string, tags: string[], signal?: AbortSignal): Promise<ImagenBlog | null> {
   const key = process.env.PIXABAY_API_KEY;
   if (!key) return null;
   const q = encodeURIComponent(palabra);
-  // min_width/min_height: que la API solo regrese fotos grandes. order=popular:
-  // las más vistas primero (suelen ser las mejores).
   const url =
     `https://pixabay.com/api/?key=${key}&q=${q}&image_type=photo&safesearch=true` +
-    `&orientation=horizontal&order=popular&min_width=1280&min_height=720&per_page=12&lang=es`;
+    `&orientation=horizontal&order=popular&min_width=1280&min_height=720&per_page=20&lang=es`;
   try {
     const r = await fetch(url, { headers: { "User-Agent": UA }, signal });
     if (!r.ok) return null;
     const data: any = await r.json();
-    const hits: any[] = Array.isArray(data?.hits) ? data.hits : [];
-    // Primera que pase el filtro de calidad (tamaño real de la foto).
-    const hit = hits.find(h => calidadOk(Number(h?.imageWidth), Number(h?.imageHeight)));
-    if (!hit) return null;
-    // largeImageURL = 1280px (buena calidad); webformatURL (640) solo de respaldo.
-    const img = (hit.largeImageURL ?? hit.webformatURL ?? "").toString();
+    const hits: any[] = (Array.isArray(data?.hits) ? data.hits : [])
+      .filter((h: any) => calidadOk(Number(h?.imageWidth), Number(h?.imageHeight)));
+    if (hits.length === 0) return null;
+    // Palabras que la foto debe mostrar: los tags del artículo + las de la búsqueda.
+    const esperadas = [...tags, ...palabra.toLowerCase().split(/\s+/)];
+    // Elegimos la de MAYOR coincidencia de tags (la más relevante).
+    let mejor = hits[0];
+    let mejorPuntaje = relevancia(String(hits[0]?.tags ?? ""), esperadas);
+    for (const h of hits.slice(1)) {
+      const p = relevancia(String(h?.tags ?? ""), esperadas);
+      if (p > mejorPuntaje) { mejor = h; mejorPuntaje = p; }
+    }
+    // Si NINGUNA foto coincide con el tema, mejor no poner una irrelevante:
+    // devolvemos null y se intenta otra fuente (o se publica sin foto).
+    if (mejorPuntaje === 0 && esperadas.length > 0) return null;
+    const img = (mejor.largeImageURL ?? mejor.webformatURL ?? "").toString();
     if (!img.startsWith("https://")) return null;
-    const autor = (hit?.user ?? "").toString().trim() || "Pixabay";
+    const autor = (mejor?.user ?? "").toString().trim() || "Pixabay";
     return {
       url: img,
       credito: `Foto de ${autor} en Pixabay`,
-      enlaceCredito: (hit?.pageURL ?? "https://pixabay.com").toString(),
+      enlaceCredito: (mejor?.pageURL ?? "https://pixabay.com").toString(),
     };
   } catch {
     return null;
@@ -143,18 +162,20 @@ async function buscarEnPixabay(palabra: string, signal?: AbortSignal): Promise<I
 }
 
 /**
- * Busca una imagen para `palabra`. Orden: Pixabay (fotos buenas y relevantes) →
- * Openverse → Wikimedia. Cada fuente con su propio cronómetro para que una lenta
- * no consuma el tiempo de la siguiente. Nunca lanza: ante cualquier fallo, null.
+ * Busca una imagen RELEVANTE para el artículo. `tags` son las palabras que la
+ * foto debe mostrar (las elige la IA): con ellas descartamos fotos bonitas pero
+ * fuera de tema. Orden: Pixabay → Openverse → Wikimedia, cada una con su reloj.
+ * Nunca lanza: ante cualquier fallo, null.
  */
 export async function buscarImagen(
   palabra: string,
+  tags: string[] = [],
   opts: { signal?: AbortSignal } = {}
 ): Promise<ImagenBlog | null> {
   const p = (palabra || "technology").trim();
   const reloj = () => opts.signal ?? AbortSignal.timeout(12000);
   return (
-    (await buscarEnPixabay(p, reloj())) ??
+    (await buscarEnPixabay(p, tags, reloj())) ??
     (await buscarEnOpenverse(p, reloj())) ??
     (await buscarEnWikimedia(p, reloj()))
   );

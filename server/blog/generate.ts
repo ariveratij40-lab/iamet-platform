@@ -48,7 +48,7 @@ export async function generarBlogDelDia(opts: { signal?: AbortSignal } = {}): Pr
   }
 
   // 3) Código: foto gratis y legal (si se puede).
-  const imagen = await buscarImagen(blog.palabraImagen, { signal: opts.signal });
+  const imagen = await buscarImagen(blog.palabraImagen, blog.tagsImagen, { signal: opts.signal });
 
   // 4) Guardar como publicado.
   const id = await crearPost({
