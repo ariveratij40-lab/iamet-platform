@@ -89,6 +89,10 @@ export async function buscarImagen(
   opts: { signal?: AbortSignal } = {}
 ): Promise<ImagenBlog | null> {
   const p = (palabra || "technology").trim();
-  const signal = opts.signal ?? AbortSignal.timeout(15000);
-  return (await buscarEnOpenverse(p, signal)) ?? (await buscarEnWikimedia(p, signal));
+  // Cada fuente con su PROPIO cronómetro: si Openverse se tarda o se cae, no
+  // debe consumir el tiempo de Wikimedia (si comparten señal, la 2a arranca ya
+  // vencida y nunca trae foto). Si viene una señal externa, se respeta.
+  const openverse = await buscarEnOpenverse(p, opts.signal ?? AbortSignal.timeout(12000));
+  if (openverse) return openverse;
+  return buscarEnWikimedia(p, opts.signal ?? AbortSignal.timeout(12000));
 }
