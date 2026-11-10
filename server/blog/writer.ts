@@ -16,7 +16,8 @@ export type BlogGenerado = {
   entradilla: string; // resumen de una o dos líneas
   cuerpo: string; // el artículo, en párrafos (markdown simple)
   metaDescripcion: string; // para buscadores
-  palabraImagen: string; // en inglés, para buscar la foto en bancos
+  palabraImagen: string; // en inglés, para BUSCAR la foto en los bancos
+  tagsImagen: string[]; // palabras EN INGLÉS que la foto debe mostrar, para ELEGIR la más relevante
   temaElegido: string; // el titular de origen, para no repetir
 };
 
@@ -45,15 +46,19 @@ const SISTEMA =
   "aportar libremente es contexto y conocimiento general del tema para que el " +
   "artículo sea útil. Cierra con una frase que invite a seguir explorando el sitio, " +
   "sin vender nada.\n" +
-  'Responde SOLO un JSON: {"titulo","entradilla","cuerpo","metaDescripcion",' +
-  '"palabraImagen","temaElegido"}. "cuerpo" usa saltos de línea dobles entre ' +
-  'párrafos. "palabraImagen" son 2-4 palabras EN INGLÉS que describan una ESCENA ' +
-  'U OBJETO CONCRETO Y FOTOGRAFIABLE del tema, no un concepto abstracto. Piensa ' +
-  'qué foto real quedaría bien (una persona, un lugar, un objeto). Ej.: para ' +
-  'streaming "watching television at home"; para un videojuego "person playing ' +
-  'video game"; para el espacio "rocket launch". EVITA palabras sueltas y ' +
-  'abstractas como "streaming", "technology" o "data". "temaElegido" es el ' +
-  "titular que elegiste, tal cual.";
+  "Responde SOLO un JSON con estas claves: titulo, entradilla, cuerpo, " +
+  "metaDescripcion, palabraImagen, tagsImagen, temaElegido. En cuerpo usa saltos " +
+  "de linea dobles entre parrafos.\n" +
+  "PARA LA FOTO (muy importante que sea congruente): palabraImagen son 2-3 " +
+  "palabras EN INGLES para BUSCAR una foto concreta del tema. Usa objetos o " +
+  "escenas claros y EVITA palabras que signifiquen otra cosa (ejemplo: NO uses " +
+  "watching sola, porque trae bird watching; NO uses nacionalidades que traigan " +
+  "comida). Mejor: television living room, game controller, rocket launch.\n" +
+  "tagsImagen es un arreglo de 4 a 6 palabras EN INGLES, de UNA sola palabra cada " +
+  "una, que describan lo que la buena foto DEBE mostrar; sirven para elegir la mas " +
+  "relevante. Ejemplo para series de TV: [television, screen, sofa, streaming, " +
+  "remote, living]. Ejemplo para un videojuego: [videogame, controller, console, " +
+  "gaming, screen]. temaElegido es el titular que elegiste, tal cual.";
 
 function acentoSlug(s: string): string {
   return s
@@ -91,6 +96,9 @@ export function parsearBlog(texto: string): BlogGenerado | null {
     cuerpo: cuerpo.slice(0, 4000),
     metaDescripcion: String(d?.metaDescripcion ?? d?.entradilla ?? "").trim().slice(0, 200),
     palabraImagen: String(d?.palabraImagen ?? "technology").trim().slice(0, 40) || "technology",
+    tagsImagen: Array.isArray(d?.tagsImagen)
+      ? d.tagsImagen.map((t: any) => String(t).toLowerCase().trim()).filter((t: string) => t.length > 1).slice(0, 8)
+      : [],
     temaElegido: String(d?.temaElegido ?? titulo).trim().slice(0, 200),
   };
 }
