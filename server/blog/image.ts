@@ -91,19 +91,47 @@ async function buscarEnWikimedia(palabra: string, signal?: AbortSignal): Promise
   }
 }
 
+// ── Pixabay (fuente principal — fotos profesionales y relevantes) ────────────
+// Requiere PIXABAY_API_KEY (gratis). Si no está, se omite y se usan los otros.
+async function buscarEnPixabay(palabra: string, signal?: AbortSignal): Promise<ImagenBlog | null> {
+  const key = process.env.PIXABAY_API_KEY;
+  if (!key) return null;
+  const q = encodeURIComponent(palabra);
+  const url =
+    `https://pixabay.com/api/?key=${key}&q=${q}&image_type=photo&safesearch=true` +
+    `&orientation=horizontal&per_page=5&lang=es`;
+  try {
+    const r = await fetch(url, { headers: { "User-Agent": UA }, signal });
+    if (!r.ok) return null;
+    const data: any = await r.json();
+    const hit = (Array.isArray(data?.hits) ? data.hits : [])[0];
+    const img = (hit?.webformatURL ?? hit?.largeImageURL ?? "").toString();
+    if (!img.startsWith("https://")) return null;
+    const autor = (hit?.user ?? "").toString().trim() || "Pixabay";
+    return {
+      url: img,
+      credito: `Foto de ${autor} en Pixabay`,
+      enlaceCredito: (hit?.pageURL ?? "https://pixabay.com").toString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Busca una imagen para `palabra`. Intenta Openverse y, si no da, Wikimedia.
- * Nunca lanza: ante cualquier fallo devuelve null.
+ * Busca una imagen para `palabra`. Orden: Pixabay (fotos buenas y relevantes) →
+ * Openverse → Wikimedia. Cada fuente con su propio cronómetro para que una lenta
+ * no consuma el tiempo de la siguiente. Nunca lanza: ante cualquier fallo, null.
  */
 export async function buscarImagen(
   palabra: string,
   opts: { signal?: AbortSignal } = {}
 ): Promise<ImagenBlog | null> {
   const p = (palabra || "technology").trim();
-  // Cada fuente con su PROPIO cronómetro: si Openverse se tarda o se cae, no
-  // debe consumir el tiempo de Wikimedia (si comparten señal, la 2a arranca ya
-  // vencida y nunca trae foto). Si viene una señal externa, se respeta.
-  const openverse = await buscarEnOpenverse(p, opts.signal ?? AbortSignal.timeout(12000));
-  if (openverse) return openverse;
-  return buscarEnWikimedia(p, opts.signal ?? AbortSignal.timeout(12000));
+  const reloj = () => opts.signal ?? AbortSignal.timeout(12000);
+  return (
+    (await buscarEnPixabay(p, reloj())) ??
+    (await buscarEnOpenverse(p, reloj())) ??
+    (await buscarEnWikimedia(p, reloj()))
+  );
 }
