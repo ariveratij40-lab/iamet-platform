@@ -6,7 +6,13 @@ import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { solutions, solutionDestinations } from "./solutionsData";
 
-export default function InfrastructureMasterBannerV2() {
+type InfrastructureMasterBannerV2Props = {
+  externalPaused?: boolean;
+};
+
+export default function InfrastructureMasterBannerV2({
+  externalPaused = false,
+}: InfrastructureMasterBannerV2Props) {
   const { language } = useLanguage();
   const es = language === "es";
   const reduceMotion = useReducedMotion();
@@ -20,12 +26,12 @@ export default function InfrastructureMasterBannerV2() {
     solutions[index].slideDurationMs ?? (solutions[index].video ? 12000 : 7000);
 
   useEffect(() => {
-    if (hovered || focused || autoplayPaused) return;
+    if (externalPaused || hovered || focused || autoplayPaused) return;
     const timer = window.setInterval(() => {
       setIndex(current => (current + 1) % solutions.length);
     }, slideDuration);
     return () => window.clearInterval(timer);
-  }, [hovered, focused, autoplayPaused, slideDuration]);
+  }, [externalPaused, hovered, focused, autoplayPaused, slideDuration]);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const active = solutions[index];
   const infra = index === 0;
@@ -105,7 +111,7 @@ export default function InfrastructureMasterBannerV2() {
               image={active.image}
               video={active.video}
               cinematicDepth={active.id === "edificios-inteligentes"}
-              paused={mediaPaused}
+              paused={mediaPaused || externalPaused}
               reduceMotion={Boolean(reduceMotion)}
             />
           </motion.div>
