@@ -1,3 +1,4 @@
+import { adminResetRouter } from "./admin-reset-router";
 import { getAccountProfile } from "../account-profile";
 import { authenticateAccount, AccountAccessError } from "../account-access";
 /**
@@ -26,6 +27,7 @@ import {
 } from "../local-auth";
 
 export const localAuthRouter = Router();
+localAuthRouter.use("/admin-password", adminResetRouter);
 
 // ─── Rate limit específico para login ─────────────────────────────────────────
 const loginLimiter = rateLimit({

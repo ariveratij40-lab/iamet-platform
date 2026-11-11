@@ -67,7 +67,7 @@ jobs:
           SQL
           JWT_SECRET="$(openssl rand -hex 32)" pnpm test
       - name: Test landing capture
-        run: pnpm exec vitest run server/landing-capture.test.ts
+        run: pnpm exec vitest run server/landing-capture.test.ts server/admin-password-reset.test.ts
 
       - name: Check email worker syntax
         run: node --check deployment/cableado-mail/worker.mjs

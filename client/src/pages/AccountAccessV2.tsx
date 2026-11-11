@@ -159,8 +159,9 @@ export default function AccountAccessV2() {
             Reenviar confirmación de correo
           </Link>
         )}
+        {window.location.pathname !== "/admin/login" && <Link href="/admin/recuperar" className="mt-5 block text-sm text-blue-300 underline">Recuperar acceso de administrador del CRM</Link>}
         <Link
-          href="/tienda/login?mode=forgot&returnTo=%2Fgarantias"
+          href={window.location.pathname === "/admin/login" ? "/admin/recuperar" : "/tienda/login?mode=forgot&returnTo=%2Fgarantias"}
           className="mt-5 block text-sm text-blue-300 hover:underline"
         >
           ¿Olvidó su contraseña?
