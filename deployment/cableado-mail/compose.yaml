@@ -1,0 +1,26 @@
+name: iamet-cableado-mail
+services:
+  worker:
+    image: ${IAMET_APP_IMAGE:?Set the tested application image}
+    restart: unless-stopped
+    working_dir: /app
+    command: [node, /app/cableado-mail.mjs]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?required}
+      RESEND_API_KEY: ${RESEND_API_KEY:?required}
+      EMAIL_FROM: ${EMAIL_FROM:?required}
+    volumes:
+      - ./worker.mjs:/app/cableado-mail.mjs:ro
+    networks: [data, mail_egress]
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: '2'
+networks:
+  data:
+    external: true
+    name: ${IAMET_DATA_NETWORK:?required}
+  mail_egress:
+    driver: bridge
+    internal: false

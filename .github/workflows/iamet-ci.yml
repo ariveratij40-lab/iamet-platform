@@ -66,6 +66,11 @@ jobs:
           ]) AS catalog(slug);
           SQL
           JWT_SECRET="$(openssl rand -hex 32)" pnpm test
+      - name: Test landing capture
+        run: pnpm exec vitest run server/landing-capture.test.ts
+
+      - name: Check email worker syntax
+        run: node --check deployment/cableado-mail/worker.mjs
 
       - name: Build application
         run: pnpm build
@@ -95,3 +100,18 @@ jobs:
           done
           docker logs "$container"
           exit 1
+      - name: Setup Node.js for Astro landing
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Validate static landing
+        working-directory: landings/cableado
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
+          PUBLIC_CAPTURE_ENABLED: "false"
+          PUBLIC_PRIVACY_URL: https://privacidad.iamet.mx/
+        run: |
+          npm ci
+          npm test
+          npm run build

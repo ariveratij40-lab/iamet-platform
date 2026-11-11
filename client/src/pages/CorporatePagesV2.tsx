@@ -1,3 +1,5 @@
+import BrandLogoV2 from "@/components/v2/BrandLogoV2";
+import { brandVisuals, serviceVisuals } from "@/components/v2/brandVisuals";
 import { Link, useParams } from "wouter";
 import { ArrowRight } from "lucide-react";
 import {
@@ -39,6 +41,14 @@ export function CorporateOverviewV2() {
               key={s.slug}
               className="rounded-2xl border border-blue-300/15 bg-[#10283d] p-6 transition hover:border-blue-400"
             >
+              {serviceVisuals[s.slug] && (
+                <>
+                  <img src={serviceVisuals[s.slug].image} alt={s.name}
+                    loading="lazy" decoding="async" width={1672} height={941}
+                    className="mb-4 aspect-video w-full rounded-xl object-cover object-[70%_center]" />
+                  <p className="mb-2.5 text-xs font-semibold text-blue-300">{serviceVisuals[s.slug].label}</p>
+                </>
+              )}
               <h3 className="text-lg font-bold text-white">{s.name}</h3>
               <p className="mt-3 text-sm leading-7 text-slate-300">
                 {s.summary}
@@ -59,6 +69,7 @@ export function CorporateOverviewV2() {
               href={`/marcas/${b.slug}`}
               className="rounded-xl border border-blue-300/20 p-5"
             >
+              <BrandLogoV2 slug={b.slug} name={b.name} />
               <p className="font-bold text-white">{b.name}</p>
               <p className="mt-3 text-xs leading-6 text-slate-300">
                 {b.summary}
@@ -235,6 +246,7 @@ export function BrandsV2() {
               key={b.slug}
               className="rounded-2xl border border-blue-300/20 bg-[#10283d] p-8"
             >
+              <BrandLogoV2 slug={b.slug} name={b.name} />
               <h2 className="text-2xl font-bold">{b.name}</h2>
               <p className="mt-4 leading-7 text-slate-300">{b.summary}</p>
               <span className="mt-6 inline-flex items-center gap-2 text-blue-300">
@@ -269,7 +281,7 @@ export function BrandLandingV2() {
         brandLabel={brand.name}
         title={brand.title}
         description={brand.summary}
-        image={brand.image}
+        image={brandVisuals[brand.slug]?.image ?? brand.image}
         contactHref="#solicitar"
         contactLabel="Solicitar una propuesta"
         portfolioHref="#alcance"

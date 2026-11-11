@@ -6,7 +6,15 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import IametOfficialLogoV2 from "./IametOfficialLogoV2";
 
 const SESSION_KEY = "iamet-brand-intro-devops-v1";
-export default function BrandIntroV2() {
+type BrandIntroV2Props = {
+  onComplete?: () => void;
+  onStart?: () => void;
+};
+
+export default function BrandIntroV2({
+  onComplete,
+  onStart,
+}: BrandIntroV2Props) {
   const { language } = useLanguage();
   const es = language === "es";
   const reduceMotion = useReducedMotion();
@@ -21,12 +29,13 @@ export default function BrandIntroV2() {
   const skip = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => {
     setActive(false);
+    onComplete?.();
     try {
       sessionStorage.setItem(SESSION_KEY, "seen");
     } catch {
       /* Storage is optional. */
     }
-  }, []);
+  }, [onComplete]);
   useEffect(() => {
     if (!active) return;
     if (reduceMotion) {
@@ -160,6 +169,7 @@ export default function BrandIntroV2() {
           type="button"
           onClick={() => {
             setProgress(0);
+            onStart?.();
             setActive(true);
           }}
           className="inline-flex items-center gap-2 rounded px-3 py-2 text-xs text-slate-400 hover:text-cyan-300 focus-visible:outline-2 focus-visible:outline-cyan-400"

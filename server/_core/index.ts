@@ -1,3 +1,4 @@
+import { landingRest } from "./landing-rest";
 import { cablingOrigin } from "../../shared/cabling-campaign";
 import { registerGoogleAdsOAuth } from "../google-ads-oauth";
 import "dotenv/config";
@@ -155,6 +156,7 @@ async function startServer() {
   // ─── Body Parser ──────────────────────────────────────────────────────────
   // 10MB para endpoints generales (JSON, formularios).
   // 50MB específico para rutas de upload de archivos (base64 de imágenes/PDFs).
+  app.use("/api/leads", landingRest);
   app.use("/api/trpc/catalog.uploadFile", express.json({ limit: "50mb" }));
   app.use("/api/trpc/adminStoreV2.uploadFile", express.json({ limit: "50mb" }));
   app.use(express.json({ limit: "10mb" }));

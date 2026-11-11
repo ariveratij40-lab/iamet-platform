@@ -1,4 +1,3 @@
-import IametTechLogoV2 from "./IametTechLogoV2";
 /** Decorative background: kept outside the reading and keyboard navigation flow. */
 export default function TechnologyBackgroundV2() {
   return (
@@ -45,7 +44,16 @@ export default function TechnologyBackgroundV2() {
         />
       </svg>
       <div className="iamet-tech-watermark absolute right-[-2%] top-[34%] select-none text-[clamp(7rem,21vw,23rem)] font-bold leading-none tracking-[-0.07em]">
-        <IametTechLogoV2 className="text-blue-500 opacity-[0.035]" />
+        <img
+          src="/brand/iamet-oscuro-sin-lema.svg"
+          alt=""
+          aria-hidden="true"
+          style={{
+            width: "clamp(320px,55vw,1100px)",
+            height: "auto",
+            display: "block",
+          }}
+        />
       </div>
       <div className="iamet-tech-orbit absolute -left-48 top-[68%] h-[600px] w-[600px] rounded-full border border-blue-500/[0.05]">
         <div className="absolute inset-12 rounded-full border border-blue-500/[0.04]" />
