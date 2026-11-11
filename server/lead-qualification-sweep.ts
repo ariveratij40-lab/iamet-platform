@@ -12,6 +12,8 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb, isMysqlDb } from "./db";
 import { leads } from "../drizzle/schema";
 import { calificarLeads, type LeadVeredicto } from "./lead-qualification";
+import { categoriasPermitidas } from "./lead-routing-config";
+import { syncLeadToCRM } from "./crm-sync";
 
 const VENTANA_HORAS_DEFECTO = 48;
 const MAX_IA_DEFECTO = 15;
@@ -28,6 +30,7 @@ export type ResultadoBarrido = {
   calificados: number;
   porReglas: number;
   porIA: number;
+  enviados: number; // subieron al CRM de IAMET por pasar el filtro
 };
 
 /**
@@ -40,7 +43,7 @@ export async function calificarLeadsRecientes(opts: {
   maxIA?: number;
   signal?: AbortSignal;
 } = {}): Promise<ResultadoBarrido> {
-  const vacio: ResultadoBarrido = { revisados: 0, calificados: 0, porReglas: 0, porIA: 0 };
+  const vacio: ResultadoBarrido = { revisados: 0, calificados: 0, porReglas: 0, porIA: 0, enviados: 0 };
   const db = await getDb();
   if (!db) return vacio;
 
@@ -61,14 +64,22 @@ export async function calificarLeadsRecientes(opts: {
     signal: opts.signal,
   });
 
+  // Enruta al CRM de IAMET solo lo que pasa el filtro (por defecto, proyecto).
+  const permitidas = await categoriasPermitidas();
+
   let porReglas = 0;
   let porIA = 0;
+  let enviados = 0;
   for (const lead of pendientes) {
     const v = veredictos[lead.id];
     if (!v) continue;
     if (!(await guardarVeredicto(db, lead.id, v))) continue;
     if (v.fuente === "ia") porIA++;
     else porReglas++;
+    // Sube a ventas solo si la categoría pasa y aún no se había enviado.
+    if (permitidas.has(v.categoria) && !lead.crmSyncedAt) {
+      if (await syncLeadToCRM(lead.id)) enviados++;
+    }
   }
 
   return {
@@ -76,11 +87,12 @@ export async function calificarLeadsRecientes(opts: {
     calificados: porReglas + porIA,
     porReglas,
     porIA,
+    enviados,
   };
 }
 
 /** Mete el veredicto en scoreBreakdown.ai sin pisar lo que ya trae el desglose. */
-async function guardarVeredicto(
+export async function guardarVeredicto(
   db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
   leadId: number,
   veredicto: LeadVeredicto

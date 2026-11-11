@@ -1,6 +1,6 @@
 import { googleAdsRouter } from "./routers/googleAds";
 import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
-import { syncLeadToCRM } from "./crm-sync";
+import { clasificarYEnrutar } from "./lead-routing";
 import { blogRouter } from "./routers/blog";
 import {visitorAssistantRouter} from "./routers/visitorAssistant";
 import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
@@ -264,11 +264,14 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         if (process.env.CRM_ENGINE === "v2") {
           const id = await captureCrmV2Lead(input);
-          syncLeadToCRM(id).catch(() => {}); // al CRM de IAMET (prospección), sin bloquear
+          // Clasifica (reglas + IA barata) y sube al CRM de IAMET solo si pasa
+          // el filtro. Sin bloquear: el visitante no espera.
+          clasificarYEnrutar(id).catch(() => {});
           return { id };
         }
         const leadId = await createLead(input);
-        syncLeadToCRM(leadId).catch(() => {}); // al CRM de IAMET (prospección), sin bloquear
+        // Clasifica y sube al CRM de IAMET solo si pasa el filtro. Sin bloquear.
+        clasificarYEnrutar(leadId).catch(() => {});
         // Trigger: timeline + scoring + followups (fire-and-forget)
         Promise.all([
           addTimelineEvent(leadId, 'lead_created', 'Lead creado',

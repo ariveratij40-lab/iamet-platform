@@ -13,7 +13,7 @@
  * reintento (reintentarLeadsPendientes) lo vuelve a enviar. El CRM deduplica por
  * externalId, así que reintentar nunca duplica prospectos. Nunca lanza.
  */
-import { and, eq, gte, isNull } from "drizzle-orm";
+import { and, eq, gte, isNotNull, isNull } from "drizzle-orm";
 import { getDb } from "./db";
 import { leads, type Lead } from "../drizzle/schema";
 
@@ -76,7 +76,12 @@ export async function syncLeadToCRM(leadId: number): Promise<boolean> {
   }
 }
 
-/** Reintenta los leads pendientes (últimos 30 días). Lo llama un cron/endpoint. */
+/**
+ * Reintenta los leads que SÍ debían subir al CRM pero el POST falló (tienen
+ * `crmSyncError`). NO toca los que a propósito se quedan en el sitio por no
+ * pasar el filtro (esos tienen `crmSyncedAt` NULL pero sin error). Últimos 30
+ * días. Lo llama un cron/endpoint.
+ */
 export async function reintentarLeadsPendientes(): Promise<{
   configured: boolean; pending: number; synced: number; failed: number;
 }> {
@@ -89,7 +94,11 @@ export async function reintentarLeadsPendientes(): Promise<{
   const pendientes = await db
     .select({ id: leads.id })
     .from(leads)
-    .where(and(isNull(leads.crmSyncedAt), gte(leads.createdAt, cutoff)))
+    .where(and(
+      isNull(leads.crmSyncedAt),
+      isNotNull(leads.crmSyncError), // solo los que intentaron y fallaron
+      gte(leads.createdAt, cutoff)
+    ))
     .orderBy(leads.id)
     .limit(50);
 
