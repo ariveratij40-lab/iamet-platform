@@ -23,8 +23,8 @@ async function database() {
   return db;
 }
 // New CRM capture path: no inherited scoring, reminders or external sync.
-export async function captureCrmV2Lead(data: InsertLead): Promise<number> {
-  const db = await database();
+export async function captureCrmV2Lead(data: InsertLead, transaction?: Awaited<ReturnType<typeof getDb>>): Promise<number> {
+  const db = transaction ?? await database();
   const [created] = await db
     .insert(leads)
     .values({

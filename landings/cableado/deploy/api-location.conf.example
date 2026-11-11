@@ -1,0 +1,13 @@
+# Replace preview /api/ only AFTER the real REST endpoint is implemented and tested.
+# Include inside landing server. Replace backend host/port with verified Docker service.
+location = /api/leads {
+  client_max_body_size 16k;
+  proxy_pass http://IAMET_BACKEND_VERIFICADO:3000/api/leads;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_connect_timeout 5s;
+  proxy_read_timeout 20s;
+  proxy_next_upstream off;
+  add_header Cache-Control "no-store" always;
+}
