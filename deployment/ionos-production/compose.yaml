@@ -49,6 +49,8 @@ services:
       DATABASE_URL: postgresql://iamet_v2_prod:${POSTGRES_PASSWORD}@iamet_v2_db_prod:5432/iamet_v2_prod
       REDIS_URL: redis://:${REDIS_PASSWORD}@iamet_v2_redis_prod:6379
       JWT_SECRET: ${JWT_SECRET:?required}
+      RESEND_API_KEY: ${RESEND_API_KEY:?required}
+      EMAIL_FROM: ${EMAIL_FROM:?required}
       VITE_APP_URL: https://iamet.mx
       ALLOW_ADMIN_BOOTSTRAP: "false"
       SEED_CALENDAR_DATA: "false"

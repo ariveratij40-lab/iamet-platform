@@ -1,3 +1,4 @@
+import AdminPasswordReset from "./pages/AdminPasswordReset";
 import { isCablingHostname } from "@shared/cabling-campaign";
 const AdminCampaignsV2 = lazy(() => import("./pages/AdminCampaignsV2"));
 import VisitorAssistantV2 from "./components/v2/VisitorAssistantV2";
@@ -68,7 +69,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   if (location === "/admin/crm" || location === "/admin/garantias" || location === "/admin/campanas") return <>{children}</>;
 
-  if (location === "/admin/login") return <><PublicHeaderV2 /><main>{children}</main></>;
+  if (location === "/admin/login" || location === "/admin/recuperar") return <><PublicHeaderV2 /><main>{children}</main></>;
 
   if (isAdmin) {
     return (
@@ -143,6 +144,7 @@ function Router() {
           <Route path="/verificar-email" component={VerifyEmail} />
           {/* Login local */}
           <Route path="/login" component={Login} />
+          <Route path="/admin/recuperar" component={AdminPasswordReset} />
           <Route path="/admin/login" component={AccountAccessV2} />
           <Route path="/acceso" component={AccountAccessV2} />
           {/* Admin — protegido con AdminGuard */}
