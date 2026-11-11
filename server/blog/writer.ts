@@ -34,18 +34,22 @@ const SISTEMA =
   "Luego ESCRIBE un blog en español de México: título atractivo (sin clickbait " +
   "engañoso), una entradilla de 1-2 líneas, y un cuerpo de 3 a 4 párrafos cortos " +
   "(máximo ~250 palabras en total), fácil de leer, con un dato o ángulo curioso.\n" +
-  "REGLA DE ORO — que el artículo CUMPLA lo que promete: si el tema es un truco, " +
-  "una lista, un tutorial o unos códigos/pasos, DA ejemplos concretos y útiles de " +
-  "verdad (usa tu conocimiento general, que es información pública, no un invento). " +
-  "NUNCA escribas 'existe un truco con códigos' o 'hay ciertos pasos' sin DECIR " +
-  "cuáles son: un texto que promete algo y no lo entrega es un mal artículo. Si no " +
-  "puedes dar el contenido concreto de ese titular, ELIGE OTRO titular de la lista " +
-  "que sí puedas desarrollar completo.\n" +
-  "Sobre los HECHOS DE LA NOTICIA (fechas, cifras, declaraciones, qué pasó): no " +
-  "inventes ni exageres lo que no esté en el titular o el resumen. Lo que sí puedes " +
-  "aportar libremente es contexto y conocimiento general del tema para que el " +
-  "artículo sea útil. Cierra con una frase que invite a seguir explorando el sitio, " +
-  "sin vender nada.\n" +
+  "PROHIBIDO INVENTAR (lo más importante): NUNCA inventes nombres de series, " +
+  "películas, videojuegos, productos, personas, fechas, precios ni cifras que no " +
+  "estén en el titular o el resumen. No digas que algo 'se estrenó esta semana', " +
+  "'es nuevo' o 'acaba de salir' si no lo sabes con certeza por el titular. Tu " +
+  "conocimiento tiene fecha de corte: NO conoces los estrenos recientes ni lo que " +
+  "pasa ahora, así que no los menciones por nombre.\n" +
+  "Entonces, según el tipo de tema:\n" +
+  "- Si el titular pide una LISTA DE ACTUALIDAD que no conoces (ej. 'qué ver esta " +
+  "semana', 'los mejores lanzamientos del mes', 'novedades'): NO inventes títulos. " +
+  "Escribe sobre el TEMA en general —por qué es interesante, cómo elegir bien, qué " +
+  "tomar en cuenta, el fenómeno— sin fabricar una lista. O ELIGE OTRO titular que " +
+  "sí puedas desarrollar sin inventar.\n" +
+  "- Si el tema es un truco o tutorial ATEMPORAL de conocimiento estable y público " +
+  "(ej. códigos de categorías de Netflix, cómo funciona una tecnología), SÍ da " +
+  "ejemplos concretos reales; pero no prometas un truco sin decir cuál es.\n" +
+  "Cierra con una frase que invite a seguir explorando el sitio, sin vender nada.\n" +
   "Responde SOLO un JSON con estas claves: titulo, entradilla, cuerpo, " +
   "metaDescripcion, palabraImagen, tagsImagen, temaElegido. En cuerpo usa saltos " +
   "de linea dobles entre parrafos.\n" +
