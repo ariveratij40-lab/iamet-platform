@@ -1,5 +1,6 @@
 import { googleAdsRouter } from "./routers/googleAds";
 import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
+import { syncLeadToCRM } from "./crm-sync";
 import { blogRouter } from "./routers/blog";
 import {visitorAssistantRouter} from "./routers/visitorAssistant";
 import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
@@ -261,8 +262,13 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        if (process.env.CRM_ENGINE === "v2") return { id: await captureCrmV2Lead(input) };
+        if (process.env.CRM_ENGINE === "v2") {
+          const id = await captureCrmV2Lead(input);
+          syncLeadToCRM(id).catch(() => {}); // al CRM de IAMET (prospección), sin bloquear
+          return { id };
+        }
         const leadId = await createLead(input);
+        syncLeadToCRM(leadId).catch(() => {}); // al CRM de IAMET (prospección), sin bloquear
         // Trigger: timeline + scoring + followups (fire-and-forget)
         Promise.all([
           addTimelineEvent(leadId, 'lead_created', 'Lead creado',
