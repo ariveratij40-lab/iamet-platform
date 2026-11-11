@@ -10,6 +10,37 @@ import {
   visitorGuidance,
   type VisitorAction,
 } from "@shared/visitor-assistant";
+
+// Da formato limpio al texto del asistente: convierte **negritas** en negritas
+// de verdad (sin mostrar los asteriscos) y acomoda las listas numeradas o con
+// viñeta en renglones ordenados. Seguro: no inyecta HTML, solo arma elementos.
+function negritas(linea: string, keyBase: number) {
+  return linea.split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((parte, i) =>
+    /^\*\*[^*]+\*\*$/.test(parte)
+      ? <strong key={`${keyBase}-${i}`}>{parte.slice(2, -2)}</strong>
+      : <span key={`${keyBase}-${i}`}>{parte}</span>
+  );
+}
+function TextoAsistente({ texto }: { texto: string }) {
+  const lineas = texto.split(/\n/).map(l => l.trim());
+  return (
+    <div className="space-y-1.5 break-words">
+      {lineas.map((l, i) => {
+        if (!l) return <div key={i} className="h-1" />;
+        const lista = l.match(/^(\d+[.)]|[-•])\s+(.*)$/); // "1. ..." o "- ..."
+        if (lista) {
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="shrink-0 text-blue-300">{/^\d/.test(lista[1]) ? lista[1] : "•"}</span>
+              <span>{negritas(lista[2], i)}</span>
+            </div>
+          );
+        }
+        return <p key={i}>{negritas(l, i)}</p>;
+      })}
+    </div>
+  );
+}
 const greetingKey = "iamet-assistant-greeted-v1";
 let greetedThisSession = false;
 function hasGreeted() {
@@ -223,7 +254,9 @@ function VisitorAssistantContent({ path }: { path: string }) {
                 <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-blue-100/70">
                   {m.role === "user" ? "Usted" : "IAMET"}
                 </span>
-                <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                {m.role === "user"
+                  ? <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  : <TextoAsistente texto={m.content} />}
               </div>
             ))}
             {busy && (
