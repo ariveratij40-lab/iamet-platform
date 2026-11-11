@@ -1,3 +1,4 @@
+import { leadReviewRouter } from "./routers/leadReview";
 import { googleAdsRouter } from "./routers/googleAds";
 import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
 import { syncLeadToCRM } from "./crm-sync";
@@ -950,6 +951,7 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   warranty: warrantyRouter,
   visitorAssistant: visitorAssistantRouter,
   crmV2: crmV2Router,
+  leadReview: leadReviewRouter,
   blog: blogRouter,
   googleAds: googleAdsRouter,
 

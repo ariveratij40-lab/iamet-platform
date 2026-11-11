@@ -18,9 +18,9 @@ import { getDb } from "./db";
 import { leads, type Lead } from "../drizzle/schema";
 
 function crmConfig(): { url: string; token: string } | null {
-  const url = process.env.CRM_SYNC_URL ?? "";
-  const token = process.env.CRM_SYNC_TOKEN ?? "";
-  return url && token ? { url, token } : null;
+  // El pase al CRM corporativo es manual. Ni formularios ni reintentos envían datos.
+  // Restaurar una integración automática requiere un cambio explícito de código.
+  return null;
 }
 
 // El payload que el CRM espera (mismo shape que usaba el sitio anterior).

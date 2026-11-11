@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import AdminWorkspaceV2 from "@/components/v2/AdminWorkspaceV2";
 import AssistantCRM from "@/components/AssistantCRM";
-import { leadStages, type LeadStage } from "@shared/crm";
+import {
+  reviewStages as leadStages,
+  type ReviewStage as LeadStage,
+  emptyReview,
+  reviewChecks,
+  type ReviewFields,
+} from "@shared/lead-review";
 import { leerVeredicto, PRESENTACION_CATEGORIA } from "@shared/lead-verdict";
 import { LayoutDashboard, Users, MessagesSquare } from "lucide-react";
 const label = (status: string) =>
@@ -31,25 +37,25 @@ const sourceLabel = (source: string) =>
 const control =
   "rounded-xl border border-slate-700 bg-[#101f32] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500";
 function LeadDetail({ id, close }: { id: number; close: () => void }) {
-  const detail = trpc.crmV2.detail.useQuery({ id });
+  const detail = trpc.leadReview.detail.useQuery({ id });
   const [status, setStatus] = useState<LeadStage>("new");
-  const [notes, setNotes] = useState("");
+  const [fields, setFields] = useState<ReviewFields>(emptyReview);
   const [saved, setSaved] = useState(false);
   const utils = trpc.useUtils();
-  const update = trpc.crmV2.update.useMutation({
+  const update = trpc.leadReview.update.useMutation({
     onSuccess: async () => {
       setSaved(true);
       await Promise.all([
-        utils.crmV2.list.invalidate(),
-        utils.crmV2.overview.invalidate(),
-        utils.crmV2.detail.invalidate({ id }),
+        utils.leadReview.list.invalidate(),
+        utils.leadReview.overview.invalidate(),
+        utils.leadReview.detail.invalidate({ id }),
       ]);
     },
   });
   useEffect(() => {
     if (detail.data) {
-      setStatus(detail.data.status);
-      setNotes(detail.data.notes ?? "");
+      setStatus(detail.data.review.status);
+      setFields(detail.data.review.fields);
     }
   }, [detail.data]);
   const lead = detail.data;
@@ -81,7 +87,9 @@ function LeadDetail({ id, close }: { id: number; close: () => void }) {
             </div>
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <p className="text-sm text-slate-400">Calificación IA</p>
+                <p className="text-sm text-slate-400">
+                  Sugerencia de IA (orientativa)
+                </p>
                 <VeredictoBadge scoreBreakdown={lead.scoreBreakdown} />
               </div>
               {leerVeredicto(lead.scoreBreakdown)?.resumen && (
@@ -102,13 +110,19 @@ function LeadDetail({ id, close }: { id: number; close: () => void }) {
           <form
             onSubmit={e => {
               e.preventDefault();
-              update.mutate({ id, status, notes });
+              update.mutate({
+                id,
+                status,
+                fields,
+                version: lead.review.version,
+              });
             }}
             className="space-y-4"
           >
             <label className="block text-sm">
-              Etapa del embudo
+              Estado de revisión
               <select
+                disabled={lead.review.status === "transferred"}
                 value={status}
                 onChange={e => {
                   setStatus(e.target.value as LeadStage);
@@ -117,34 +131,135 @@ function LeadDetail({ id, close }: { id: number; close: () => void }) {
                 className={`${control} mt-2 block w-full md:w-64`}
               >
                 {leadStages.map(s => (
-                  <option key={s.value} value={s.value}>
+                  <option
+                    key={s.value}
+                    value={s.value}
+                    disabled={
+                      s.value === "transferred" &&
+                      lead.review.status !== "qualified" &&
+                      lead.review.status !== "transferred"
+                    }
+                  >
                     {s.label}
                   </option>
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
-              Notas de seguimiento
-              <textarea
-                maxLength={5000}
-                value={notes}
-                onChange={e => {
-                  setNotes(e.target.value);
-                  setSaved(false);
-                }}
-                rows={4}
-                className={`${control} mt-2 block w-full`}
-              />
-            </label>
+            <fieldset
+              disabled={lead.review.status === "transferred"}
+              className="space-y-3"
+            >
+              <legend className="mb-2 text-sm font-semibold">
+                Criterios de calificación
+              </legend>
+              <p className="text-xs text-slate-400">
+                La falta de presupuesto no descarta automáticamente una
+                solicitud.
+              </p>
+              {reviewChecks.map(([key, text]) => (
+                <label key={key} className="flex items-center gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={fields[key]}
+                    onChange={e => {
+                      setFields(f => ({ ...f, [key]: e.target.checked }));
+                      setSaved(false);
+                    }}
+                  />
+                  {text}
+                </label>
+              ))}
+              <label className="block text-sm">
+                Notas de revisión
+                <textarea
+                  maxLength={5000}
+                  value={fields.notes}
+                  rows={4}
+                  className={`${control} mt-2 block w-full`}
+                  onChange={e => {
+                    setFields(f => ({ ...f, notes: e.target.value }));
+                    setSaved(false);
+                  }}
+                />
+              </label>
+              {(status === "needs_info" || status === "discarded") && (
+                <label className="block text-sm">
+                  {status === "discarded"
+                    ? "Motivo del descarte"
+                    : "Información que falta"}{" "}
+                  (obligatorio)
+                  <textarea
+                    required
+                    minLength={5}
+                    maxLength={1000}
+                    value={fields.reason}
+                    className={`${control} mt-2 block w-full`}
+                    onChange={e => {
+                      setFields(f => ({ ...f, reason: e.target.value }));
+                      setSaved(false);
+                    }}
+                  />
+                </label>
+              )}
+              {status === "transferred" && (
+                <label className="block text-sm">
+                  Referencia del registro en el CRM de la empresa (obligatoria)
+                  <input
+                    required
+                    maxLength={256}
+                    value={fields.reference}
+                    className={`${control} mt-2 block w-full`}
+                    placeholder="Folio o referencia del prospecto creado manualmente"
+                    onChange={e => {
+                      setFields(f => ({ ...f, reference: e.target.value }));
+                      setSaved(false);
+                    }}
+                  />
+                  <span className="mt-2 block text-xs text-slate-400">
+                    Guarda este estado únicamente después de dar de alta el
+                    prospecto en el CRM empresarial. No se envían datos
+                    automáticamente.
+                  </span>
+                </label>
+              )}
+            </fieldset>
+            {lead.review.transferredAt && (
+              <p className="text-sm text-emerald-300">
+                Transferencia registrada el{" "}
+                {new Date(lead.review.transferredAt).toLocaleString("es-MX")}{" "}
+                por {lead.review.reviewerName}. Referencia:{" "}
+                {lead.review.fields.reference}
+              </p>
+            )}
+            {lead.crmSyncedAt && (
+              <p className="text-sm text-amber-200">
+                Este prospecto tiene una sincronización anterior registrada.
+                Revisa el CRM empresarial antes de crear otro registro.
+              </p>
+            )}
+            {lead.notes && (
+              <details className="text-sm text-slate-400">
+                <summary>Notas comerciales anteriores</summary>
+                <p className="whitespace-pre-wrap">{lead.notes}</p>
+              </details>
+            )}
             <button
-              disabled={update.isPending || detail.isFetching}
+              disabled={
+                update.isPending ||
+                detail.isFetching ||
+                lead.review.status === "transferred"
+              }
               className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold disabled:opacity-50"
             >
-              {update.isPending ? "Guardando…" : "Guardar seguimiento"}
+              {update.isPending
+                ? "Guardando…"
+                : status === "transferred"
+                  ? "Confirmar transferencia realizada"
+                  : "Guardar revisión"}
             </button>
             {saved && (
               <p role="status" className="text-sm text-emerald-300">
-                Seguimiento guardado.
+                Revisión guardada.
               </p>
             )}
             {update.error && (
@@ -153,6 +268,41 @@ function LeadDetail({ id, close }: { id: number; close: () => void }) {
               </p>
             )}
           </form>
+          {lead.history.length > 0 && (
+            <details className="mt-5 text-sm">
+              <summary>Historial de revisión ({lead.history.length})</summary>
+              <ol className="mt-3 space-y-3">
+                {lead.history.map(
+                  (event: {
+                    id: number;
+                    status: string;
+                    reviewerName: string;
+                    createdAt: Date;
+                    fields: ReviewFields;
+                  }) => (
+                    <li
+                      key={event.id}
+                      className="border-t border-white/10 pt-3"
+                    >
+                      <p>
+                        {label(event.status)} · {event.reviewerName} ·{" "}
+                        {new Date(event.createdAt).toLocaleString("es-MX")}
+                      </p>
+                      <p className="whitespace-pre-wrap text-slate-400">
+                        {event.fields.notes}
+                      </p>
+                      {event.fields.reason && (
+                        <p>Motivo: {event.fields.reason}</p>
+                      )}
+                      {event.fields.reference && (
+                        <p>Referencia: {event.fields.reference}</p>
+                      )}
+                    </li>
+                  )
+                )}
+              </ol>
+            </details>
+          )}
         </>
       )}
     </section>
@@ -162,20 +312,20 @@ export default function AdminCRMV2() {
   const [tab, setTab] = useState<"overview" | "leads" | "assistant">(
     "overview"
   );
-  const [days, setDays] = useState<7 | 30 | 90>(30);
+  const [days, setDays] = useState<0 | 7 | 30 | 90>(0);
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState<LeadStage | "">("");
   const [search, setSearch] = useState("");
   const [draftSearch, setDraftSearch] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
-  const overview = trpc.crmV2.overview.useQuery({ days });
+  const overview = trpc.leadReview.overview.useQuery({ days });
   const utils = trpc.useUtils();
-  const prospects = trpc.crmV2.list.useQuery(
+  const prospects = trpc.leadReview.list.useQuery(
     { days, page, status: status || undefined, search },
     { enabled: tab === "leads" }
   );
   const calificar = trpc.crmV2.calificar.useMutation({
-    onSuccess: () => utils.crmV2.list.invalidate(),
+    onSuccess: () => utils.leadReview.list.invalidate(),
   });
   const stages = overview.data?.stages ?? [];
   const count = (status: string) =>
@@ -191,13 +341,14 @@ export default function AdminCRMV2() {
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[.24em] text-blue-400">
-            IAMET · Gestión comercial
+            IAMET · Revisión de solicitudes
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">
-            CRM de IAMET
+            Precalificación de leads
           </h1>
           <p className="mt-2 text-sm text-slate-400">
-            Prospectos, seguimiento y conversaciones en un solo lugar.
+            Revisa las solicitudes y califica las que se atenderán en el CRM de
+            la empresa. El pase es manual.
           </p>
         </div>
       </div>
@@ -220,16 +371,17 @@ export default function AdminCRMV2() {
       {tab !== "assistant" && (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <label className="text-sm text-slate-300">
-            Registros creados en los últimos{" "}
+            Fecha de recepción{" "}
             <select
               className={`${control} ml-2`}
               value={days}
               onChange={e => {
-                setDays(Number(e.target.value) as 7 | 30 | 90);
+                setDays(Number(e.target.value) as 0 | 7 | 30 | 90);
                 setPage(0);
               }}
             >
-              <option value={7}>7 días</option>
+              <option value={0}>Todas las fechas</option>
+              <option value={7}>Últimos 7 días</option>
               <option value={30}>30 días</option>
               <option value={90}>90 días</option>
             </select>
@@ -258,12 +410,9 @@ export default function AdminCRMV2() {
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {[
                   ["Prospectos recibidos", total],
-                  [
-                    "En seguimiento",
-                    count("contacted") + count("qualified") + count("proposal"),
-                  ],
-                  ["Ganados", count("closed_won")],
-                  ["Por atender", count("new")],
+                  ["Por revisar", count("new") + count("needs_info")],
+                  ["Calificados", count("qualified")],
+                  ["Transferidos", count("transferred")],
                 ].map(([label, value]) => (
                   <article
                     key={label}
@@ -277,7 +426,7 @@ export default function AdminCRMV2() {
               <div className="grid gap-5 lg:grid-cols-2">
                 <section className="rounded-2xl border border-white/10 bg-[#0c1a2b] p-5">
                   <h2 className="mb-5 text-lg font-semibold">
-                    Etapas del embudo
+                    Estados de revisión
                   </h2>
                   <div className="space-y-4">
                     {leadStages.map(s => (
@@ -379,7 +528,7 @@ export default function AdminCRMV2() {
               className={`${control} min-w-0 flex-1`}
             />
             <select
-              aria-label="Filtrar etapa"
+              aria-label="Filtrar estado"
               value={status}
               onChange={e => {
                 setStatus(e.target.value as LeadStage | "");
@@ -387,7 +536,7 @@ export default function AdminCRMV2() {
               }}
               className={control}
             >
-              <option value="">Todas las etapas</option>
+              <option value="">Todos los estados</option>
               {leadStages.map(s => (
                 <option key={s.value} value={s.value}>
                   {s.label}
@@ -404,15 +553,24 @@ export default function AdminCRMV2() {
               disabled={calificar.isPending}
               className="rounded-lg bg-emerald-600/80 px-3 py-1.5 text-sm font-medium hover:bg-emerald-600 disabled:opacity-40"
             >
-              {calificar.isPending ? "Calificando…" : "Calificar leads nuevos"}
+              {calificar.isPending
+                ? "Analizando…"
+                : "Consultar sugerencias de IA"}
             </button>
             {calificar.data && (
               <span role="status" className="text-xs text-slate-400">
-                {calificar.data.calificados} calificados ·{" "}
-                {calificar.data.porReglas} por reglas · {calificar.data.porIA} con IA
+                {calificar.data.calificados} analizados ·{" "}
+                {calificar.data.porReglas} por reglas · {calificar.data.porIA}{" "}
+                con IA
               </span>
             )}
           </div>
+          {calificar.error && (
+            <p role="alert" className="text-red-300">
+              No se pudo obtener la sugerencia. Puedes continuar la revisión
+              manual.
+            </p>
+          )}
           {prospects.isLoading && <p role="status">Cargando prospectos…</p>}
           {prospects.error && (
             <p role="alert" className="text-red-300">
@@ -427,9 +585,9 @@ export default function AdminCRMV2() {
                     <tr>
                       {[
                         "Empresa / contacto",
-                        "Calidad",
+                        "Sugerencia IA",
                         "Origen",
-                        "Etapa",
+                        "Estado",
                         "Fecha",
                         "Ficha",
                       ].map(h => (

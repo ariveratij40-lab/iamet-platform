@@ -683,3 +683,25 @@ export const appSettings = pgTable("app_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 export type AppSetting = typeof appSettings.$inferSelect;
+
+// Precalificación manual independiente del estado comercial histórico.
+export const leadReviews = pgTable("lead_reviews", {
+  leadId: integer("lead_id").primaryKey().references(() => leads.id),
+  status: varchar("status", { length: 32 }).$type<import('../shared/lead-review').ReviewStage>().notNull(),
+  version: integer("version").notNull(),
+  fields: json("fields").$type<import('../shared/lead-review').ReviewFields>().notNull(),
+  reviewedBy: integer("reviewed_by").notNull(),
+  reviewerName: text("reviewer_name").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  transferredAt: timestamp("transferred_at", { withTimezone: true }),
+});
+export const leadReviewEvents = pgTable("lead_review_events", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  version: integer("version").notNull(),
+  status: varchar("status", { length: 32 }).notNull(),
+  fields: json("fields").$type<import('../shared/lead-review').ReviewFields>().notNull(),
+  reviewedBy: integer("reviewed_by").notNull(),
+  reviewerName: text("reviewer_name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

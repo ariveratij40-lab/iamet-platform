@@ -18,3 +18,18 @@ describe("sincronización de leads al CRM", () => {
     expect(r.synced).toBe(0);
   });
 });
+
+it('manual mode blocks direct sends and retries even with valid-looking credentials', async () => {
+  process.env.CRM_SYNC_URL = 'https://crm.example.invalid/api/leads';
+  process.env.CRM_SYNC_TOKEN = 'test-only';
+  const request = vi.spyOn(globalThis, 'fetch');
+  try {
+    expect(await syncLeadToCRM(1)).toBe(false);
+    expect((await reintentarLeadsPendientes()).synced).toBe(0);
+    expect(request).not.toHaveBeenCalled();
+  } finally {
+    request.mockRestore();
+    delete process.env.CRM_SYNC_URL;
+    delete process.env.CRM_SYNC_TOKEN;
+  }
+});
