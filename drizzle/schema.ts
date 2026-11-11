@@ -85,6 +85,9 @@ export const leads = pgTable("leads", {
   landingUrl: text("landing_url"),
   firstPage: varchar("first_page", { length: 500 }),
   sessionId: varchar("session_id", { length: 128 }),
+  // Sincronización con el CRM de IAMET: cuándo se envió y el último error (si lo hubo).
+  crmSyncedAt: timestamp("crm_synced_at"),
+  crmSyncError: text("crm_sync_error"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
@@ -644,3 +647,39 @@ export const assistantTurns = pgTable("assistant_turns", {
   topic: varchar("topic", { length: 80 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ─── Blog generado por IA ─────────────────────────────────────────────────────
+// Artículos cortos de divulgación (tecnología, cine, videojuegos…) que publica el
+// blog automático diario. El admin puede editar, despublicar o borrar cualquiera.
+export const blogStatusEnum = pgEnum("blog_status", ["published", "draft", "archived"]);
+export const blogSourceEnum = pgEnum("blog_source", ["ai", "manual"]);
+
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 80 }).notNull().unique(),
+  title: varchar("title", { length: 200 }).notNull(),
+  intro: varchar("intro", { length: 320 }).notNull().default(""),
+  body: text("body").notNull(),
+  metaDescription: varchar("meta_description", { length: 220 }).notNull().default(""),
+  imageUrl: text("image_url"),
+  imageCredit: varchar("image_credit", { length: 300 }),
+  imageCreditUrl: text("image_credit_url"),
+  topic: varchar("topic", { length: 220 }).notNull().default(""),
+  sourceHeadline: varchar("source_headline", { length: 300 }),
+  source: blogSourceEnum("source").notNull().default("ai"),
+  status: blogStatusEnum("status").notNull().default("published"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+// ─── Ajustes de la aplicación (clave-valor) ──────────────────────────────────
+// Guarda interruptores y preferencias simples. Hoy: si el blog automático diario
+// está encendido o apagado. Reutilizable para otros ajustes del panel.
+export const appSettings = pgTable("app_settings", {
+  key: varchar("key", { length: 64 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export type AppSetting = typeof appSettings.$inferSelect;

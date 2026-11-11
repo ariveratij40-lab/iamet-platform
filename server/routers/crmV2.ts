@@ -4,6 +4,8 @@ import { TRPCError } from "@trpc/server";
 import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { leads, type InsertLead } from "../../drizzle/schema";
+import { calificarLeadsRecientes } from "../lead-qualification-sweep";
+import { reintentarLeadsPendientes } from "../crm-sync";
 const stage = z.enum([
   "new",
   "contacted",
@@ -110,6 +112,7 @@ export const crmV2Router = router({
           source: leads.source,
           status: leads.status,
           verticalSlug: leads.verticalSlug,
+          scoreBreakdown: leads.scoreBreakdown,
           createdAt: leads.createdAt,
         })
         .from(leads)
@@ -160,4 +163,26 @@ export const crmV2Router = router({
         });
       return { success: true };
     }),
+  // Dispara el barrido de calificación de leads (reglas + IA barata). Se puede
+  // llamar a mano desde el panel o engancharse a un cron externo que pegue a
+  // esta ruta. No corre en cada envío del formulario a propósito.
+  calificar: adminProcedure
+    .input(
+      z
+        .object({
+          ventanaHoras: z.number().int().min(1).max(720).optional(),
+          maxIA: z.number().int().min(1).max(50).optional(),
+        })
+        .optional()
+    )
+    .mutation(async ({ input }) => {
+      return calificarLeadsRecientes({
+        ventanaHoras: input?.ventanaHoras,
+        maxIA: input?.maxIA,
+      });
+    }),
+
+  // Reintenta enviar al CRM de IAMET los leads que quedaron pendientes
+  // (cuando el CRM no respondió). Se llama a mano o desde un cron.
+  reintentarSync: adminProcedure.mutation(() => reintentarLeadsPendientes()),
 });

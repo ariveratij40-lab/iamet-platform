@@ -294,6 +294,8 @@ CREATE TABLE "leads" (
 	"landing_url" text,
 	"first_page" varchar(500),
 	"session_id" varchar(128),
+	"crm_synced_at" timestamp,
+	"crm_sync_error" text,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
