@@ -5,6 +5,7 @@ import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { leads, type InsertLead } from "../../drizzle/schema";
 import { calificarLeadsRecientes } from "../lead-qualification-sweep";
+import { reintentarLeadsPendientes } from "../crm-sync";
 const stage = z.enum([
   "new",
   "contacted",
@@ -180,4 +181,8 @@ export const crmV2Router = router({
         maxIA: input?.maxIA,
       });
     }),
+
+  // Reintenta enviar al CRM de IAMET los leads que quedaron pendientes
+  // (cuando el CRM no respondió). Se llama a mano o desde un cron.
+  reintentarSync: adminProcedure.mutation(() => reintentarLeadsPendientes()),
 });

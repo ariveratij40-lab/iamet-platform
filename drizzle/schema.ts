@@ -85,6 +85,9 @@ export const leads = pgTable("leads", {
   landingUrl: text("landing_url"),
   firstPage: varchar("first_page", { length: 500 }),
   sessionId: varchar("session_id", { length: 128 }),
+  // Sincronización con el CRM de IAMET: cuándo se envió y el último error (si lo hubo).
+  crmSyncedAt: timestamp("crm_synced_at"),
+  crmSyncError: text("crm_sync_error"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
