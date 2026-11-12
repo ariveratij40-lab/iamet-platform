@@ -6,6 +6,7 @@ import { getDb } from "../db";
 import { leads, type InsertLead } from "../../drizzle/schema";
 import { calificarLeadsRecientes } from "../lead-qualification-sweep";
 import { reintentarLeadsPendientes } from "../crm-sync";
+import { incluyeConsulta, ponerIncluyeConsulta } from "../lead-routing-config";
 const stage = z.enum([
   "new",
   "contacted",
@@ -185,4 +186,16 @@ export const crmV2Router = router({
   // Reintenta enviar al CRM de IAMET los leads que quedaron pendientes
   // (cuando el CRM no respondió). Se llama a mano o desde un cron.
   reintentarSync: adminProcedure.mutation(() => reintentarLeadsPendientes()),
+
+  // Criterio del filtro hacia el CRM de IAMET: por defecto solo sube "proyecto".
+  // El interruptor permite incluir también las "consulta".
+  envioConfig: adminProcedure.query(async () => ({
+    incluyeConsulta: await incluyeConsulta(),
+  })),
+  setEnvioConfig: adminProcedure
+    .input(z.object({ incluyeConsulta: z.boolean() }))
+    .mutation(async ({ input }) => {
+      await ponerIncluyeConsulta(input.incluyeConsulta);
+      return { incluyeConsulta: input.incluyeConsulta };
+    }),
 });

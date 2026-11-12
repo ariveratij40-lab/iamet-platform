@@ -327,6 +327,10 @@ export default function AdminCRMV2() {
   const calificar = trpc.crmV2.calificar.useMutation({
     onSuccess: () => utils.leadReview.list.invalidate(),
   });
+  const envioConfig = trpc.crmV2.envioConfig.useQuery();
+  const setEnvio = trpc.crmV2.setEnvioConfig.useMutation({
+    onSuccess: () => utils.crmV2.envioConfig.invalidate(),
+  });
   const stages = overview.data?.stages ?? [];
   const count = (status: string) =>
     stages.find((s: any) => s.status === status)?.count ?? 0;
@@ -547,7 +551,7 @@ export default function AdminCRMV2() {
               Buscar
             </button>
           </form>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => calificar.mutate({})}
               disabled={calificar.isPending}
@@ -560,8 +564,8 @@ export default function AdminCRMV2() {
             {calificar.data && (
               <span role="status" className="text-xs text-slate-400">
                 {calificar.data.calificados} analizados ·{" "}
-                {calificar.data.porReglas} por reglas · {calificar.data.porIA}{" "}
-                con IA
+                {calificar.data.porReglas} por reglas · {calificar.data.porIA} con IA ·{" "}
+                {calificar.data.enviados} enviados al CRM de IAMET
               </span>
             )}
           </div>
@@ -571,6 +575,25 @@ export default function AdminCRMV2() {
               manual.
             </p>
           )}
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-[#0c1a2b] px-4 py-3">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-blue-600"
+                checked={envioConfig.data?.incluyeConsulta ?? false}
+                disabled={envioConfig.isLoading || setEnvio.isPending}
+                onChange={e =>
+                  setEnvio.mutate({ incluyeConsulta: e.target.checked })
+                }
+              />
+              Subir también las <strong>consultas</strong> al CRM de IAMET
+            </label>
+            <span className="text-xs text-slate-500">
+              {envioConfig.data?.incluyeConsulta
+                ? "Suben proyectos y consultas. Solo se queda el ruido."
+                : "Por defecto solo suben los proyectos (venta potencial). Las consultas y el ruido se quedan aquí."}
+            </span>
+          </div>
           {prospects.isLoading && <p role="status">Cargando prospectos…</p>}
           {prospects.error && (
             <p role="alert" className="text-red-300">
