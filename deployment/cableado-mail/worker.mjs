@@ -10,7 +10,49 @@ const sql = postgres(process.env.DATABASE_URL, {
 const internal = 'alvaro.rivera@iamet.mx';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// MAIN_SITE_FORM_MAIL_V1
+const mainSiteFirstLeadId = 9;
+// Embedded in the worker by patch-worker.py; plain text only.
+function mainSiteMessages(lead) {
+  const reference = `IAMET-${lead.id}`;
+  const services = {
+    rfid: 'RFID e identificación',
+    infraestructura: 'infraestructura tecnológica',
+    cctv: 'videovigilancia',
+    cableado: 'cableado estructurado',
+    'control-acceso': 'control de acceso',
+  };
+  const service = services[lead.verticalSlug] || 'tu proyecto';
+  return [
+    {kind: 'internal', payload: {
+      from: process.env.EMAIL_FROM, to: [internal], reply_to: lead.email,
+      subject: `Nueva solicitud del sitio — ${reference}`,
+      text: [
+        `Solicitud: ${reference}`, `Servicio: ${services[lead.verticalSlug] || 'Consulta de proyecto'}`,
+        `Nombre: ${lead.contactName}`, `Empresa: ${lead.company}`,
+        `Correo: ${lead.email}`, `Teléfono: ${lead.phone || 'No proporcionado'}`,
+        '', 'Necesidad:', lead.problemDescription || '', '',
+        'La solicitud está registrada en el mini CRM para revisión.',
+        'https://iamet.mx/admin/crm',
+      ].join('\n'),
+    }},
+    {kind: 'customer', payload: {
+      from: process.env.EMAIL_FROM, to: [lead.email], reply_to: internal,
+      subject: `Recibimos tu solicitud — ${reference}`,
+      text: [
+        `Hola ${lead.contactName},`, '',
+        `Recibimos tu solicitud sobre ${service}.`, `Tu referencia es ${reference}.`,
+        'Nuestro equipo revisará la información y se pondrá en contacto contigo.', '',
+        'Puedes responder a este correo si deseas agregar información.', '',
+        'IAMET', 'https://iamet.mx/', '',
+        'Si no realizaste esta solicitud, puedes ignorar este mensaje.',
+      ].join('\n'),
+    }},
+  ];
+}
+
 function messages(lead) {
+  if (!lead.landing_receipt_id) return mainSiteMessages(lead);
   const reference = `IAMET-${lead.id}`;
   return [
     {
@@ -63,12 +105,13 @@ function messages(lead) {
 async function tick() {
   // Snapshot the message once so retries always use the same content.
   const leads = await sql`
-    SELECT l.*
+    SELECT l.*, r.landing, r.lead_id AS landing_receipt_id
     FROM leads l
-    JOIN landing_capture_receipts r ON r.lead_id = l.id
-    WHERE (
-      SELECT count(*) FROM landing_mail_jobs j WHERE j.lead_id = l.id
-    ) < 2
+    LEFT JOIN landing_capture_receipts r ON r.lead_id = l.id
+    WHERE (r.lead_id IS NOT NULL OR (l.source = 'form' AND l.id >= ${mainSiteFirstLeadId}))
+      AND (
+        SELECT count(*) FROM landing_mail_jobs j WHERE j.lead_id = l.id
+      ) < 2
     ORDER BY l.id LIMIT 50`;
 
   for (const lead of leads) {
