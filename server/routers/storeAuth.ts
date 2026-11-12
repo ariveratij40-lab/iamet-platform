@@ -1,10 +1,11 @@
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storeUsers } from "../../drizzle/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, lt } from "drizzle-orm";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../email";
 import { ENV } from "../_core/env";
 import crypto from "crypto";
@@ -16,8 +17,15 @@ function generateToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-function makeVerifyUrl(origin: string, token: string) {
-  return `${origin}/tienda/verificar-email?token=${token}`;
+function makeVerifyUrl(
+  origin: string,
+  token: string,
+  returnTo?: "/garantias" | "/tienda"
+) {
+  const url = new URL(`${origin}/tienda/verificar-email`);
+  url.searchParams.set("token", token);
+  if (returnTo) url.searchParams.set("returnTo", returnTo);
+  return url.toString();
 }
 
 function makeResetUrl(origin: string, token: string) {
@@ -35,6 +43,7 @@ export const storeAuthRouter = router({
         phone: z.string().optional(),
         company: z.string().optional(),
         origin: z.string().url(),
+        returnTo: z.enum(["/garantias", "/tienda"]).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -48,12 +57,16 @@ export const storeAuthRouter = router({
         .limit(1);
 
       if (existing.length > 0) {
-        throw new Error("Este correo ya está registrado. Inicia sesión o recupera tu contraseña.");
+        throw new Error(
+          "Este correo ya está registrado. Inicia sesión o recupera tu contraseña."
+        );
       }
 
       const passwordHash = await bcrypt.hash(input.password, 12);
       const verificationToken = generateToken();
-      const tokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+      const tokenExpiry = new Date(
+        Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000
+      );
 
       await db.insert(storeUsers).values({
         name: input.name,
@@ -66,15 +79,89 @@ export const storeAuthRouter = router({
         tokenExpiry,
       });
 
-      const verifyUrl = makeVerifyUrl(input.origin, verificationToken);
+      const verifyUrl = makeVerifyUrl(
+        ENV.appUrl,
+        verificationToken,
+        input.returnTo
+      );
 
-      await sendVerificationEmail({
-        to: input.email,
+      const delivery = await sendVerificationEmail({
+        to: input.email.toLowerCase(),
         name: input.name,
         verifyUrl,
-      }).catch((err: unknown) => console.error("[StoreAuth] Error enviando email de verificación:", err));
+      }).catch(() => ({ ok: false }));
+      return {
+        ok: true,
+        emailSent: delivery.ok,
+        message: delivery.ok
+          ? "Cuenta creada. Solicitud de correo aceptada; revise su bandeja de entrada y spam."
+          : "Su cuenta fue creada, pero no pudimos enviar la confirmación. Puede solicitar un nuevo envío.",
+      };
+    }),
 
-      return { ok: true, message: "Cuenta creada. Revisa tu correo para verificar tu cuenta." };
+  // Resend requires the account password; never reveal accounts to anonymous lookups.
+  resendVerification: publicProcedure
+    .input(
+      z.object({
+        email: z.string().trim().email().max(320),
+        password: z.string().min(8).max(1000),
+        returnTo: z.enum(["/garantias", "/tienda"]).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "SERVICE_UNAVAILABLE",
+          message: "Servicio no disponible. Intente más tarde.",
+        });
+      const [user] = await db
+        .select()
+        .from(storeUsers)
+        .where(eq(storeUsers.email, input.email.toLowerCase()))
+        .limit(1);
+      const dummyHash =
+        "$2b$12$C6UzMDM.H6dfI/f/IKcEe.1r1RHNa3x2/ZKgRwyJpCwGLW3TQkJ6K";
+      const valid = await bcrypt.compare(
+        input.password,
+        user?.passwordHash ?? dummyHash
+      );
+      if (!user || !valid)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Correo o contraseña incorrectos.",
+        });
+      if (user.emailVerified)
+        return { ok: true, emailSent: false, alreadyVerified: true };
+      const now = new Date();
+      const stillValid =
+        user.verificationToken && user.tokenExpiry && user.tokenExpiry > now;
+      const token = stillValid ? user.verificationToken! : generateToken();
+      const expiry = stillValid
+        ? user.tokenExpiry!
+        : new Date(Date.now() + TOKEN_EXPIRY_HOURS * 3600000);
+      const changed = await db
+        .update(storeUsers)
+        .set({ verificationToken: token, tokenExpiry: expiry, updatedAt: now })
+        .where(
+          and(
+            eq(storeUsers.id, user.id),
+            eq(storeUsers.emailVerified, false),
+            lt(storeUsers.updatedAt, new Date(Date.now() - 60000))
+          )
+        )
+        .returning({ id: storeUsers.id });
+      if (!changed.length)
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Espere un minuto antes de solicitar otro correo.",
+        });
+      const delivery = await sendVerificationEmail({
+        to: user.email,
+        name: user.name,
+        verifyUrl: makeVerifyUrl(ENV.appUrl, token, input.returnTo),
+      }).catch(() => ({ ok: false }));
+      return { ok: true, emailSent: delivery.ok, alreadyVerified: false };
     }),
 
   // ── Verificar email ───────────────────────────────────────────────────────
@@ -99,7 +186,12 @@ export const storeAuthRouter = router({
 
       await db
         .update(storeUsers)
-        .set({ emailVerified: true, verificationToken: null, tokenExpiry: null, updatedAt: new Date() })
+        .set({
+          emailVerified: true,
+          verificationToken: null,
+          tokenExpiry: null,
+          updatedAt: new Date(),
+        })
         .where(eq(storeUsers.id, user.id));
 
       return { ok: true, name: user.name };
@@ -119,19 +211,32 @@ export const storeAuthRouter = router({
         .limit(1);
 
       if (!user) throw new Error("Correo o contraseña incorrectos.");
-      if (!user.emailVerified) throw new Error("Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.");
+      if (!user.emailVerified)
+        throw new Error(
+          "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada."
+        );
 
       const valid = await bcrypt.compare(input.password, user.passwordHash);
       if (!valid) throw new Error("Correo o contraseña incorrectos.");
 
-      const token = await new SignJWT({ sub: String(user.id), email: user.email, name: user.name })
+      const token = await new SignJWT({
+        sub: String(user.id),
+        email: user.email,
+        name: user.name,
+      })
         .setProtectedHeader({ alg: "HS256" })
         .setExpirationTime("30d")
         .sign(STORE_JWT_SECRET);
 
       return {
         token,
-        user: { id: user.id, name: user.name, email: user.email, phone: user.phone, company: user.company },
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          company: user.company,
+        },
       };
     }),
 
@@ -186,20 +291,27 @@ export const storeAuthRouter = router({
         .set({ resetToken, resetTokenExpiry, updatedAt: new Date() })
         .where(eq(storeUsers.id, user.id));
 
-      const resetUrl = makeResetUrl(input.origin, resetToken);
+      const resetUrl = makeResetUrl(ENV.appUrl, resetToken);
 
       await sendPasswordResetEmail({
         to: input.email,
         name: user.name ?? "usuario",
         resetUrl,
-      }).catch((err: unknown) => console.error("[StoreAuth] Error enviando email de reset:", err));
+      }).catch((err: unknown) =>
+        console.error("[StoreAuth] Error enviando email de reset:", err)
+      );
 
       return { ok: true };
     }),
 
   // ── Nueva contraseña ──────────────────────────────────────────────────────
   resetPassword: publicProcedure
-    .input(z.object({ token: z.string(), password: z.string().min(8) }))
+    .input(
+      z.object({
+        token: z.string().min(1).max(128),
+        password: z.string().min(8).max(1000),
+      })
+    )
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Base de datos no disponible.");
@@ -218,10 +330,28 @@ export const storeAuthRouter = router({
       if (!user) throw new Error("Token inválido o expirado.");
 
       const passwordHash = await bcrypt.hash(input.password, 12);
-      await db
+      // A valid, unexpired recovery link also proves ownership of this mailbox.
+      // Consume it atomically: repeated/concurrent submissions cannot reuse it.
+      const changed = await db
         .update(storeUsers)
-        .set({ passwordHash, resetToken: null, resetTokenExpiry: null, updatedAt: new Date() })
-        .where(eq(storeUsers.id, user.id));
+        .set({
+          passwordHash,
+          emailVerified: true,
+          verificationToken: null,
+          tokenExpiry: null,
+          resetToken: null,
+          resetTokenExpiry: null,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(storeUsers.id, user.id),
+            eq(storeUsers.resetToken, input.token),
+            gt(storeUsers.resetTokenExpiry, new Date())
+          )
+        )
+        .returning({ id: storeUsers.id });
+      if (!changed.length) throw new Error("Token inválido o expirado.");
 
       return { ok: true };
     }),
@@ -230,13 +360,17 @@ export const storeAuthRouter = router({
   getMyQuotes: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const { payload } = await jwtVerify(input.token, STORE_JWT_SECRET).catch(() => {
-        throw new Error("Sesi\u00f3n inv\u00e1lida.");
-      });
+      const { payload } = await jwtVerify(input.token, STORE_JWT_SECRET).catch(
+        () => {
+          throw new Error("Sesi\u00f3n inv\u00e1lida.");
+        }
+      );
       const userId = parseInt(payload.sub as string);
       const db = await getDb();
       if (!db) throw new Error("DB no disponible.");
-      const { quoteRequests, quoteItems } = await import("../../drizzle/schema");
+      const { quoteRequests, quoteItems } = await import(
+        "../../drizzle/schema"
+      );
       const { desc } = await import("drizzle-orm");
       const quotes = await db
         .select()
@@ -246,7 +380,10 @@ export const storeAuthRouter = router({
         .limit(50);
       const result = await Promise.all(
         quotes.map(async (q: typeof quoteRequests.$inferSelect) => {
-          const items = await db!.select().from(quoteItems).where(eq(quoteItems.quoteRequestId, q.id));
+          const items = await db!
+            .select()
+            .from(quoteItems)
+            .where(eq(quoteItems.quoteRequestId, q.id));
           return { ...q, items };
         })
       );
@@ -257,32 +394,49 @@ export const storeAuthRouter = router({
   getSavedCart: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const { payload } = await jwtVerify(input.token, STORE_JWT_SECRET).catch(() => {
-        throw new Error("Sesi\u00f3n inv\u00e1lida.");
-      });
+      const { payload } = await jwtVerify(input.token, STORE_JWT_SECRET).catch(
+        () => {
+          throw new Error("Sesi\u00f3n inv\u00e1lida.");
+        }
+      );
       const userId = parseInt(payload.sub as string);
       const db = await getDb();
       if (!db) return null;
       const { savedCarts } = await import("../../drizzle/schema");
-      const [cart] = await db.select().from(savedCarts).where(eq(savedCarts.userId, userId)).limit(1);
+      const [cart] = await db
+        .select()
+        .from(savedCarts)
+        .where(eq(savedCarts.userId, userId))
+        .limit(1);
       return cart ?? null;
     }),
 
   saveCart: publicProcedure
     .input(z.object({ token: z.string(), items: z.array(z.any()) }))
     .mutation(async ({ input }) => {
-      const { payload } = await jwtVerify(input.token, STORE_JWT_SECRET).catch(() => {
-        throw new Error("Sesi\u00f3n inv\u00e1lida.");
-      });
+      const { payload } = await jwtVerify(input.token, STORE_JWT_SECRET).catch(
+        () => {
+          throw new Error("Sesi\u00f3n inv\u00e1lida.");
+        }
+      );
       const userId = parseInt(payload.sub as string);
       const db = await getDb();
       if (!db) return { ok: true };
       const { savedCarts } = await import("../../drizzle/schema");
-      const [existing] = await db.select({ id: savedCarts.id }).from(savedCarts).where(eq(savedCarts.userId, userId)).limit(1);
+      const [existing] = await db
+        .select({ id: savedCarts.id })
+        .from(savedCarts)
+        .where(eq(savedCarts.userId, userId))
+        .limit(1);
       if (existing) {
-        await db.update(savedCarts).set({ items: input.items as any, updatedAt: new Date() }).where(eq(savedCarts.userId, userId));
+        await db
+          .update(savedCarts)
+          .set({ items: input.items as any, updatedAt: new Date() })
+          .where(eq(savedCarts.userId, userId));
       } else {
-        await db.insert(savedCarts).values({ userId, items: input.items as any });
+        await db
+          .insert(savedCarts)
+          .values({ userId, items: input.items as any });
       }
       return { ok: true };
     }),

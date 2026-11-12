@@ -1,0 +1,92 @@
+name: iamet_v2_prod
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: iamet_v2_db_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: iamet_v2_prod
+      POSTGRES_USER: iamet_v2_prod
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iamet_v2_prod -d iamet_v2_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: iamet_v2_redis_prod
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?required}
+    command:
+      - sh
+      - -ec
+      - exec redis-server --requirepass "$$REDIS_PASSWORD" --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: iamet-v2-prod:official-v8
+    container_name: iamet_v2_app_prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgresql://iamet_v2_prod:${POSTGRES_PASSWORD}@iamet_v2_db_prod:5432/iamet_v2_prod
+      REDIS_URL: redis://:${REDIS_PASSWORD}@iamet_v2_redis_prod:6379
+      JWT_SECRET: ${JWT_SECRET:?required}
+      VITE_APP_URL: https://iamet.mx
+      ALLOW_ADMIN_BOOTSTRAP: "false"
+      SEED_CALENDAR_DATA: "false"
+      LANDING_CAPTURE_ENABLED: "false"
+      TRUST_PROXY_HOPS: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - data
+      - backend
+      - proxy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 10
+
+networks:
+  data:
+    external: true
+    name: iamet_v2_prod_data
+  backend:
+    external: true
+    name: iamet_backend
+  proxy:
+    external: true
+    name: iamet_proxy
+
+volumes:
+  pg_data:
+    name: iamet_v2_prod_pg_data
+  redis_data:
+    name: iamet_v2_prod_redis_data

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useStoreSession } from "@/hooks/useStoreSession";
+import { useStoreSession, getStoreToken } from "@/hooks/useStoreSession";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -184,7 +184,7 @@ export default function TiendaPerfil() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated, loading, logout } = useStoreSession();
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("store_token") ?? "" : "";
+  const token = typeof window !== "undefined" ? getStoreToken() ?? "" : "";
 
   const { data: quotes, isLoading: quotesLoading } = trpc.storeAuth.getMyQuotes.useQuery(
     { token },
@@ -250,7 +250,7 @@ export default function TiendaPerfil() {
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm">Tienda</span>
           </button>
-          <span className="text-sm font-semibold text-white">Mi Perfil</span>
+          <a href="/garantias#portal" className="text-sm font-semibold text-blue-300">Garantías, pedidos y órdenes →</a>
           {user && (
             <button
               onClick={() => { logout(); navigate("/tienda/login"); }}

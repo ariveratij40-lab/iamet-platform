@@ -1,3 +1,9 @@
+import { googleAdsRouter } from "./routers/googleAds";
+import { crmV2Router, captureCrmV2Lead } from "./routers/crmV2";
+import { clasificarYEnrutar } from "./lead-routing";
+import { blogRouter } from "./routers/blog";
+import {visitorAssistantRouter} from "./routers/visitorAssistant";
+import {warrantyRouter, requireWarrantyCustomer} from "./routers/warranty";
 import { TRPCError } from "@trpc/server";
 import { storeAuthRouter as newStoreAuthRouter } from "./routers/storeAuth";
 import { subscribersRouter } from "./routers/subscribers";
@@ -256,7 +262,16 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
+        if (process.env.CRM_ENGINE === "v2") {
+          const id = await captureCrmV2Lead(input);
+          // Clasifica (reglas + IA barata) y sube al CRM de IAMET solo si pasa
+          // el filtro. Sin bloquear: el visitante no espera.
+          clasificarYEnrutar(id).catch(() => {});
+          return { id };
+        }
         const leadId = await createLead(input);
+        // Clasifica y sube al CRM de IAMET solo si pasa el filtro. Sin bloquear.
+        clasificarYEnrutar(leadId).catch(() => {});
         // Trigger: timeline + scoring + followups (fire-and-forget)
         Promise.all([
           addTimelineEvent(leadId, 'lead_created', 'Lead creado',
@@ -820,13 +835,15 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
           notes: z.string().optional(),
         })).min(1),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const customerToken=ctx.req.headers["x-store-token"];
+        const customer=typeof customerToken === "string" ? await requireWarrantyCustomer(customerToken) : null;
         const refCode = `IAMET-${Date.now().toString(36).toUpperCase()}`;
         const quote = await createQuoteRequest(
           {
             refCode,
-            userId: input.userId,
-            storeUserId: input.storeUserId,
+            userId: ctx.user?.id,
+            storeUserId: customer?.id,
             visitorName: input.visitorName,
             company: input.company,
             email: input.email,
@@ -933,6 +950,11 @@ Incluye entre 2 y 4 recomendaciones ordenadas por prioridad.`;
   }),
   adminStoreV2: adminStoreRouter,
   storeAuth: newStoreAuthRouter,
+  warranty: warrantyRouter,
+  visitorAssistant: visitorAssistantRouter,
+  crmV2: crmV2Router,
+  blog: blogRouter,
+  googleAds: googleAdsRouter,
 
   // ─── Smart Calendar ──────────────────────────────────────────────────────────────────────────────
   calendar: router({

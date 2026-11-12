@@ -1,0 +1,16 @@
+Tool: built-in image_gen, edit/compositing mode.
+Reference: approved processor IAMET logo from current website header.
+Edit targets: original cinematic banner images in this folder.
+
+Shared prompt: Edit only the garment logos. Match the approved processor I symbol and custom IAMET lettering, blue outline and white letters on dark fabric, natural fine embroidery integrated with fabric folds, perspective and existing light; no rectangular background patch or glow. Preserve people, faces, hands, poses, products, brand marks, architecture, lighting, framing, sharpness and wide cinematic composition.
+
+Placement prompts:
+CCTV: upper back of foreground technician between reflective straps; visible upper sleeve of ladder technician.
+Access control: upper back/shoulder blade of male installer only; visitor unchanged.
+RFID: visible upper sleeve of foreground woman and visible chest of male technician; safety stripes unchanged.
+Energy: above visible chest pocket and upper sleeve of technician's work jacket.
+Smart building: upper backs of only the two technical specialists beside upper-right control screen.
+Software: upper backs of two foreground developers and visible chest of standing developer at right; original clothing patterns preserved.
+
+Outputs: cctv-installation-iamet.png, access-control-iamet.png, rfid-traceability-iamet.png, energy-galaxy-vxl-iamet.png, smart-building-iamet.png, software-dashboards-iamet.png.
+Original images retained as cinematic.png siblings.
