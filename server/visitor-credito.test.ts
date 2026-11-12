@@ -29,4 +29,10 @@ describe("Crédito en el asistente", () => {
     expect(p).toMatch(/CRÉDITO COMERCIAL/);
     expect(p).toMatch(/NO inventes el monto, el plazo, la tasa/);
   });
+
+  it("el prompt indica MOSTRAR la lista en el chat, no deflectar al formulario", () => {
+    const p = visitorSystemPrompt(1);
+    expect(p).toMatch(/ENUMERA aquí mismo en el chat/);
+    expect(p).toMatch(/NO lo mandes al formulario solo para ver la lista/);
+  });
 });
