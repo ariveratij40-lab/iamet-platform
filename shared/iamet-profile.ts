@@ -83,6 +83,36 @@ export const businessServices = [
 ];
 export const brands = [
   {
+    slug: "dell",
+    name: "Dell",
+    service: "computo-licenciamiento",
+    summary: "Equipos de cómputo empresarial, laptops, estaciones de trabajo y monitores.",
+    title: "Equipe su empresa con tecnología Dell.",
+    capabilities: ["Laptops empresariales", "Equipos de escritorio", "Estaciones de trabajo", "Monitores y periféricos", "Selección según sus aplicaciones", "Configuración y puesta en marcha"],
+    image: "/images/solutions/computo-licenciamiento.png",
+    source: "https://www.dell.com/es-mx",
+  },
+  {
+    slug: "microsoft",
+    name: "Microsoft",
+    service: "computo-licenciamiento",
+    summary: "Microsoft 365 y Windows: licenciamiento y productividad para su empresa.",
+    title: "Conecte la productividad de su equipo con Microsoft.",
+    capabilities: ["Microsoft 365", "Licencias Windows", "Selección de planes", "Suscripciones y renovaciones", "Configuración de usuarios", "Puesta en marcha según alcance"],
+    image: "/images/solutions/computo-licenciamiento.png",
+    source: "https://www.microsoft.com/es-mx/microsoft-365/business",
+  },
+  {
+    slug: "autodesk",
+    name: "Autodesk · AutoCAD",
+    service: "computo-licenciamiento",
+    summary: "Licencias AutoCAD y Revit para diseño, ingeniería y construcción.",
+    title: "Impulse sus proyectos de diseño con Autodesk.",
+    capabilities: ["AutoCAD", "Revit", "Selección según su especialidad", "Suscripciones y renovaciones", "Asignación de licencias", "Instalación y configuración"],
+    image: "/images/solutions/computo-licenciamiento.png",
+    source: "https://www.autodesk.com/products/autocad/overview",
+  },
+  {
     slug: "panduit",
     name: "Panduit",
     service: "infraestructura",

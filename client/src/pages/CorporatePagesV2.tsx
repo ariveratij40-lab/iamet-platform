@@ -227,7 +227,7 @@ export function AboutV2() {
 export function BrandsV2() {
   useServiceMetadata(
     "Marcas",
-    "Soluciones con Panduit, Genetec, Zebra, Avigilon y APC by Schneider Electric."
+    "Soluciones con Dell, Microsoft, Autodesk, Panduit, Genetec, Zebra, Avigilon y APC by Schneider Electric."
   );
   return (
     <div className="iamet-reference-home min-h-screen bg-[#061524] px-5 py-20 text-white">

@@ -10,6 +10,9 @@ export const serviceVisuals: Record<string, { image: string; label: string }> = 
   "polizas-servicios": { image: "/images/solutions/smart-building-devops.png", label: "Soporte e integración IAMET" },
 };
 export const brandVisuals: Record<string, { logo: string; image: string; padded?: boolean }> = {
+  dell: { logo: "/partners/dell.png", image: serviceVisuals["computo-licenciamiento"].image },
+  microsoft: { logo: "/partners/microsoft.png", image: serviceVisuals["computo-licenciamiento"].image },
+  autodesk: { logo: "/partners/autodesk.png", image: serviceVisuals["computo-licenciamiento"].image, padded: true },
   panduit: { logo: "/partners/panduit.png", image: serviceVisuals.infraestructura.image, padded: true },
   genetec: { logo: "/partners/genetec.png", image: serviceVisuals.cctv.image, padded: true },
   zebra: { logo: "/partners/zebra.svg", image: serviceVisuals.rfid.image },
