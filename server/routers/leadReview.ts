@@ -10,6 +10,7 @@ import {
   reviewState,
   type ReviewStage,
 } from "../../shared/lead-review";
+import { syncLeadToCRM } from "../crm-sync";
 const days = z
   .union([z.literal(0), z.literal(7), z.literal(30), z.literal(90)])
   .default(0);
@@ -142,7 +143,7 @@ export const leadReviewRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const db = await database();
-      return db.transaction(
+      await db.transaction(
         async (tx: NonNullable<Awaited<ReturnType<typeof getDb>>>) => {
           // Lock the parent even for first review: concurrent first saves cannot overwrite each other.
           const [lead] = await tx
@@ -188,19 +189,22 @@ export const leadReviewRouter = router({
               code: "BAD_REQUEST",
               message: "Indica qué información falta o el motivo del descarte.",
             });
-          if (
-            input.status === "transferred" &&
-            (previous?.status !== "qualified" || !f.reference)
-          )
+          // "Transferido" exige haber calificado primero (sigue siendo el paso
+          // final). Ya NO se pide escribir la referencia a mano: el pase al CRM
+          // es automático (ver más abajo) y la referencia se rellena sola.
+          if (input.status === "transferred" && previous?.status !== "qualified")
             throw new TRPCError({
               code: "BAD_REQUEST",
               message:
-                "Primero guarda el lead como calificado. Después registra la referencia del CRM de la empresa.",
+                "Primero guarda el lead como calificado; después transfiérelo al CRM.",
             });
           const now = new Date();
           const fields = {
             ...f,
-            reference: input.status === "transferred" ? f.reference : "",
+            reference:
+              input.status === "transferred"
+                ? f.reference || "Enviado automáticamente al CRM de la empresa"
+                : "",
           };
           const data = {
             leadId: input.id,
@@ -218,8 +222,17 @@ export const leadReviewRouter = router({
             .values(data)
             .onConflictDoUpdate({ target: leadReviews.leadId, set: data });
           await tx.insert(leadReviewEvents).values({ ...data, createdAt: now });
-          return { success: true };
         }
       );
+      // Tras confirmar la revisión: si el humano lo CALIFICÓ o lo TRANSFIRIÓ,
+      // se empuja SOLO al CRM corporativo (como el filtro automático). Dedupe:
+      // syncLeadToCRM no reenvía si el lead ya estaba sincronizado, y el CRM
+      // deduplica por externalId — así calificar→transferir no duplica. Va
+      // FUERA de la transacción (syncLeadToCRM abre su propia conexión y la
+      // ficha quedó bloqueada 'for update' dentro). Nunca lanza.
+      let enviadoCRM = false;
+      if (input.status === "qualified" || input.status === "transferred")
+        enviadoCRM = await syncLeadToCRM(input.id);
+      return { success: true, enviadoCRM };
     }),
 });

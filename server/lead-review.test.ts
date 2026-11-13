@@ -5,7 +5,10 @@ import { readFile } from "node:fs/promises";
 import { getDb } from "./db";
 import { leadReviewRouter } from "./routers/leadReview";
 import { emptyReview } from "../shared/lead-review";
+import { syncLeadToCRM } from "./crm-sync";
 vi.mock("./db", () => ({ getDb: vi.fn() }));
+// El pase al CRM se simula: aquí probamos que calificar/transferir LO DISPARAN.
+vi.mock("./crm-sync", () => ({ syncLeadToCRM: vi.fn().mockResolvedValue(true) }));
 const pg = new PGlite();
 const caller = (role = "admin") =>
   leadReviewRouter.createCaller({
@@ -70,34 +73,35 @@ describe("Manual lead review", () => {
     await expect(
       caller().update({ id: 1, version: 0, status: "qualified", fields })
     ).rejects.toMatchObject({ code: "CONFLICT" });
+    vi.mocked(syncLeadToCRM).mockClear();
     await caller().update({ id: 1, version: 1, status: "qualified", fields });
     expect((await caller().list({ status: "qualified" })).total).toBe(1);
     expect((await caller().overview({})).stages).toEqual([
       { status: "qualified", count: 1 },
     ]);
+    // Calificar empuja SOLO al CRM corporativo (híbrido).
+    expect(syncLeadToCRM).toHaveBeenCalledWith(1);
   });
-  it("requires a reference and records one manual handoff with identity and time", async () => {
-    await expect(
-      caller().update({ id: 1, version: 2, status: "transferred", fields })
-    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
-    const request = {
-      id: 1,
-      version: 2,
-      status: "transferred" as const,
-      fields: { ...fields, reference: "CRM-123" },
-    };
+  it("transfiere sin referencia manual, empuja al CRM y registra el handoff", async () => {
+    vi.mocked(syncLeadToCRM).mockClear();
+    // Transferir (ya calificado) ya NO exige referencia: se auto-rellena y se
+    // empuja al CRM. Dos concurrentes → exactamente una gana (control de versión).
+    const request = { id: 1, version: 2, status: "transferred" as const, fields };
     const results = await Promise.allSettled([
       caller().update(request),
       caller().update(request),
     ]);
     expect(results.filter(r => r.status === "fulfilled")).toHaveLength(1);
+    expect(syncLeadToCRM).toHaveBeenCalledWith(1); // empujó al CRM
     const d = await caller().detail({ id: 1 });
+    expect(d.review.status).toBe("transferred");
     expect(d.review.transferredAt).toBeInstanceOf(Date);
     expect(d.review.reviewerName).toBe("Revisor");
-    expect(d.review.fields.reference).toBe("CRM-123");
+    expect(d.review.fields.reference).toMatch(/autom|CRM/i); // referencia auto-rellenada
     expect(d.history).toHaveLength(3);
     expect(d.status).toBe("proposal");
     expect(d.notes).toBe("Nota anterior");
+    // Ya transferido / versión vieja → bloquea reintentos.
     await expect(
       caller().update({ ...request, version: 3 })
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
