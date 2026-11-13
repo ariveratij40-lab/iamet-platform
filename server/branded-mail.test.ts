@@ -16,7 +16,7 @@ it('escapes customer data, supplies plain text, and shows only received as compl
  const jobs=api.messages(lead);const p=jobs[0].payload;
  expect(p.subject).toContain('ACME-RFID-00009');expect(jobs[1].payload.subject).toContain('ACME-RFID-00009');
  expect(p.html).toContain('&lt;img');expect(p.html).not.toContain('<img src=x');
- expect(p.html).toContain('https://iamet.mx/brand/iamet-lockup-on-light.png');
+ expect(p.html).toContain('https://iamet.mx/brand/iamet-email-official-v2.png');
  expect(p.html.match(/COMPLETADA/g)).toHaveLength(1);expect(p.html).not.toContain('ACME-RFID-00009</p>Asunto');
  expect(p.text).toContain('RFID');expect(p.text).toContain('Referencia: ACME-RFID-00009');expect(p.to).toEqual(['fixture@example.invalid']);
  expect(p.html).toContain('subject=Solicitud%20ACME-RFID-00009');expect(p.html).not.toContain('VISTA PREVIA');
