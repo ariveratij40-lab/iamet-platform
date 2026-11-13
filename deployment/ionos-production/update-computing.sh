@@ -22,6 +22,17 @@ cp -a "$base/compose.yaml" "$backup/compose.yaml"
 docker inspect --format '{{.Image}}' iamet_v2_app_prod > "$backup/previous-image.txt"
 previous_tag=$(docker inspect --format '{{.Config.Image}}' iamet_v2_app_prod)
 previous_revision=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' iamet_v2_app_prod)
+# Compatibility for the inspected legacy deployment: tag, release file and
+# immutable image ID must all match. Do not trust its stale /api/health release.
+if [[ -z "$previous_revision" || "$previous_revision" == '<no value>' ]]; then
+  recorded_revision=$(cat "$base/current-git-release" 2>/dev/null || true)
+  if [[ "$previous_tag" == 'iamet-v2-prod:git-7601faf' &&
+        "$recorded_revision" == '7601fafeb89e30153a6ff8d32196f991fb4baacd' &&
+        "$(cat "$backup/previous-image.txt")" == 'sha256:4768702b69a251c4e78c6122789605723dca5ba7b1f5d97af6384a4bf61e667d' ]]; then
+    previous_revision=$recorded_revision
+    echo "Instalación anterior identificada: $previous_revision"
+  fi
+fi
 [[ $previous_revision =~ ^[0-9a-f]{40}$ ]] || { echo 'No se identificó el commit activo; revisar antes de desplegar.'; exit 1; }
 git_source merge-base --is-ancestor "$previous_revision" "$release" || { echo 'El commit activo no es antecesor de esta versión; se detuvo para evitar perder cambios.'; exit 1; }
 docker tag "$(cat "$backup/previous-image.txt")" "iamet-v2-prod:rollback-$stamp"
