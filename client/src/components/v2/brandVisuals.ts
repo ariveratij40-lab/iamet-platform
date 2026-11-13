@@ -1,5 +1,6 @@
 /** Public assets shipped with the application; shared by cards and brand heroes. */
 export const serviceVisuals: Record<string, { image: string; label: string }> = {
+  "computo-licenciamiento": { image: "/images/solutions/computo-licenciamiento.png", label: "Dell · Autodesk · Microsoft" },
   infraestructura: { image: "/images/solutions/panduit-high-density-cinematic-1672.webp", label: "Panduit" },
   cctv: { image: "/images/solutions/cctv-installation-devops.png", label: "Genetec · Avigilon" },
   "control-acceso": { image: "/images/solutions/access-control-devops.png", label: "Genetec · Avigilon" },

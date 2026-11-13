@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight, Pause, Play, SkipForward,
   Network, Cctv, ShieldCheck, ScanLine,
-  Zap, BrainCircuit, Wrench
+  Zap, BrainCircuit, Wrench, Monitor
 } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -36,6 +36,12 @@ const scenes = [
     en: "RFID, identification and critical power",
   },
   {
+    id: "computing",
+    image: "/images/solutions/computo-licenciamiento.png",
+    es: "Cómputo y Licenciamiento",
+    en: "Computing & Licensing",
+  },
+  {
     id: "intelligence",
     image: "/images/solutions/software-dashboards-devops.png",
     es: "Software e inteligencia artificial",
@@ -50,6 +56,7 @@ const scenes = [
 ] as const;
 
 const serviceCategories = [
+  { icon: Monitor, destination: solutionDestinations["computo-licenciamiento"], es: "Cómputo y Licenciamiento", en: "Computing & Licensing" },
   { icon: Network, destination: solutionDestinations["infraestructura"], es: "Infraestructura y redes", en: "Infrastructure & networks" },
   { icon: Cctv, destination: solutionDestinations["seguridad-cctv"], es: "Videoseguridad CCTV", en: "CCTV security" },
   { icon: ShieldCheck, destination: solutionDestinations["control-acceso"], es: "Control de acceso", en: "Access control" },

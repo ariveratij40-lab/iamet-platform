@@ -1,4 +1,5 @@
 import {
+  Monitor,
   Bot,
   Building2,
   Cable,
@@ -203,6 +204,19 @@ export const solutions: Solution[] = [
     icon: Zap,
   },
   {
+    id: "computo-licenciamiento",
+    es: "Cómputo y Licenciamiento",
+    en: "Computing & Licensing",
+    titleEs: "El equipo y el software que su empresa necesita para avanzar.",
+    titleEn: "The hardware and software your business needs to move forward.",
+    descEs: "Integramos equipos Dell y licenciamiento Autodesk y Microsoft de acuerdo con sus usuarios, aplicaciones y presupuesto, desde la selección hasta la puesta en marcha.",
+    descEn: "We integrate Dell computers and Autodesk and Microsoft software licensing around your users, applications and budget, from selection through deployment.",
+    capabilitiesEs: ["Laptops y equipos de escritorio Dell", "Estaciones de trabajo y monitores Dell", "Microsoft 365 y Windows", "Autodesk: AutoCAD y Revit", "Suscripciones y renovaciones", "Configuración y puesta en marcha"],
+    capabilitiesEn: ["Dell laptops and desktop computers", "Dell workstations and monitors", "Microsoft 365 and Windows", "Autodesk: AutoCAD and Revit", "Subscriptions and renewals", "Configuration and deployment"],
+    image: "/images/solutions/computo-licenciamiento.png",
+    icon: Monitor,
+  },
+  {
     id: "desarrollo-ia",
     es: "Desarrollo y Aplicaciones IA",
     en: "Development & AI Applications",
@@ -264,6 +278,7 @@ export const solutions: Solution[] = [
 
 // Public solution routes use different slugs from the marketing catalog.
 export const solutionDestinations: Record<string, string> = {
+  "computo-licenciamiento": "/soluciones/computo-licenciamiento",
   infraestructura: "/soluciones/infraestructura",
   "polizas-servicios": "/soluciones/polizas-servicios",
   "edificios-inteligentes": "/soluciones/edificios-inteligentes",

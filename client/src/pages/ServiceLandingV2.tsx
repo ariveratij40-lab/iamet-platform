@@ -1,3 +1,4 @@
+import ComputingHeroV2 from "@/components/v2/ComputingHeroV2";
 import { useLocation } from "wouter";
 import { solutions, solutionDestinations } from "@/components/v2/solutionsData";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,7 +19,7 @@ export default function ServiceLandingV2() {
   useServiceMetadata(name, description);
   return (
     <div className="iamet-reference-home bg-[#051321] text-white">
-      <ServiceHeroV2
+      {service.id === "computo-licenciamiento" ? <ComputingHeroV2 landing /> : <ServiceHeroV2
         eyebrow={name}
         title={es ? service.titleEs : service.titleEn}
         description={description}
@@ -29,7 +30,7 @@ export default function ServiceLandingV2() {
         portfolioLabel={es ? "Conocer la solución" : "Explore the solution"}
         breadcrumbLabel={es ? "Ruta de navegación" : "Breadcrumb"}
         homeLabel={es ? "Inicio" : "Home"}
-      />
+      />}
       <ServiceConversionV2
         slug={path.split("/").pop()!}
         name={name}

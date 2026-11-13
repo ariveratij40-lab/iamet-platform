@@ -1,3 +1,4 @@
+import ComputingHeroV2 from "@/components/v2/ComputingHeroV2";
 import { useCallback, useState } from "react";
 import { CorporateOverviewV2 } from "./CorporatePagesV2";
 import BrandIntroV2 from "@/components/v2/BrandIntroV2";
@@ -59,6 +60,7 @@ export default function HomeV2() {
           />
         </div>
       </section>
+      <ComputingHeroV2 />
       <CorporateOverviewV2 />
       <HowWeWorkV2 />
       <WhyIAMETV2 />

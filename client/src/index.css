@@ -892,3 +892,31 @@ body:has(.iamet-reference-home) header a[href="/acceso"]:hover { background: #15
     filter: none;
   }
 }
+
+/* Computing hero: scoped motion with an explicit pause and reduced-motion support. */
+@keyframes computing-drift {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes computing-sheen {
+  0%, 25% { transform: translateX(0); opacity: 0; }
+  40% { opacity: 1; }
+  75%, 100% { transform: translateX(550%); opacity: 0; }
+}
+@keyframes computing-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.computing-hero .computing-photo { animation: computing-drift 18s ease-in-out infinite; }
+.computing-hero .computing-orb { animation: computing-drift 12s ease-in-out infinite; }
+.computing-hero .computing-sheen { animation: computing-sheen 12s ease-in-out infinite; }
+.computing-hero .computing-enter { animation: computing-enter .7s ease-out both; }
+.computing-hero[data-paused="true"] *,
+.computing-hero:has(a:focus-visible) *,
+.computing-hero:has(button:focus-visible) * { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .computing-hero *, .computing-hero *::before, .computing-hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -4,7 +4,7 @@ import { useServiceMetadata } from "@/components/v2/ServiceConversionV2";
 export default function Soluciones() {
   useServiceMetadata(
     "Servicios y soluciones",
-    "IAMET integra infraestructura física, CCTV, control de acceso, energía, RFID, aplicaciones y servicios administrados."
+    "IAMET integra infraestructura física, CCTV, control de acceso, energía, RFID, cómputo, licenciamiento, aplicaciones y servicios administrados."
   );
   return (
     <div className="iamet-reference-home min-h-screen bg-[#061524] px-5 py-20 text-white">

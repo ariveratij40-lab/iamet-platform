@@ -118,6 +118,7 @@ function Router() {
           <Route path="/soluciones/control-acceso" component={ServiceLandingV2} />
           <Route path="/soluciones/rfid" component={ServiceLandingV2} />
           <Route path="/soluciones/energia" component={ServiceLandingV2} />
+          <Route path="/soluciones/computo-licenciamiento" component={ServiceLandingV2} />
           <Route path="/soluciones/software-ia" component={ServiceLandingV2} />
           <Route path="/soluciones/:slug" component={VerticalLanding} />
           {/* Industrias */}

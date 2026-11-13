@@ -32,6 +32,12 @@ export const companyIdentity = {
 
 export const businessServices = [
   {
+    slug: "computo-licenciamiento",
+    name: "Cómputo y Licenciamiento",
+    href: "/soluciones/computo-licenciamiento",
+    summary: "Equipos Dell y licencias Autodesk y Microsoft. Selección de equipo, configuración y renovaciones según sus necesidades.",
+  },
+  {
     slug: "infraestructura",
     name: "Infraestructura física de cableado estructurado",
     href: "/soluciones/infraestructura",
