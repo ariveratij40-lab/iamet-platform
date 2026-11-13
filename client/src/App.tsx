@@ -107,19 +107,19 @@ function Router() {
           <Route path="/garantias" component={Warranties} />
           <Route path="/blog" component={BlogIndexV2} />
           <Route path="/blog/:slug" component={BlogPostV2} />
-          <Route path="/soluciones/polizas-servicios" component={ServiceLandingV2} />
+          <Route path="/soluciones/polizas-servicios">{() => <ServiceLandingV2 serviceId="polizas-servicios" />}</Route>
           {/* Soluciones — hub y verticales */}
           <Route path="/soluciones" component={Soluciones} />
           <Route path="/soluciones/cableado-estructurado/gracias" component={CablingThanksV2} />
           <Route path="/soluciones/cableado-estructurado" component={StructuredCablingV2} />
           <Route path="/soluciones/infraestructura" component={InfrastructureV2} />
-          <Route path="/soluciones/edificios-inteligentes" component={ServiceLandingV2} />
-          <Route path="/soluciones/cctv" component={ServiceLandingV2} />
-          <Route path="/soluciones/control-acceso" component={ServiceLandingV2} />
-          <Route path="/soluciones/rfid" component={ServiceLandingV2} />
-          <Route path="/soluciones/energia" component={ServiceLandingV2} />
-          <Route path="/soluciones/computo-licenciamiento" component={ServiceLandingV2} />
-          <Route path="/soluciones/software-ia" component={ServiceLandingV2} />
+          <Route path="/soluciones/edificios-inteligentes">{() => <ServiceLandingV2 serviceId="edificios-inteligentes" />}</Route>
+          <Route path="/soluciones/cctv">{() => <ServiceLandingV2 serviceId="seguridad-cctv" />}</Route>
+          <Route path="/soluciones/control-acceso">{() => <ServiceLandingV2 serviceId="control-acceso" />}</Route>
+          <Route path="/soluciones/rfid">{() => <ServiceLandingV2 serviceId="rfid" />}</Route>
+          <Route path="/soluciones/energia">{() => <ServiceLandingV2 serviceId="energia" />}</Route>
+          <Route path="/soluciones/computo-licenciamiento">{() => <ServiceLandingV2 serviceId="computo-licenciamiento" />}</Route>
+          <Route path="/soluciones/software-ia">{() => <ServiceLandingV2 serviceId="desarrollo-ia" />}</Route>
           <Route path="/soluciones/:slug" component={VerticalLanding} />
           {/* Industrias */}
           <Route path="/industrias" component={Industrias} />

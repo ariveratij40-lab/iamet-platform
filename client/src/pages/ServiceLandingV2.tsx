@@ -1,5 +1,5 @@
 import ComputingHeroV2 from "@/components/v2/ComputingHeroV2";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { solutions, solutionDestinations } from "@/components/v2/solutionsData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ServiceHeroV2 from "@/components/v2/ServiceHeroV2";
@@ -7,16 +7,24 @@ import ServiceConversionV2, {
   useServiceMetadata,
 } from "@/components/v2/ServiceConversionV2";
 
-export default function ServiceLandingV2() {
-  const [path] = useLocation();
+export default function ServiceLandingV2({ serviceId }: { serviceId: string }) {
   const { language } = useLanguage();
   const es = language === "es";
-  const service = solutions.find(
-    item => solutionDestinations[item.id] === path
-  )!;
-  const name = es ? service.es : service.en;
-  const description = es ? service.descEs : service.descEn;
+  // The matched Route supplies a stable ID. During history navigation, the
+  // global location can update before this outgoing page has unmounted.
+  const service = solutions.find(item => item.id === serviceId);
+  const name = service ? (es ? service.es : service.en) : (es ? "Solución no encontrada" : "Solution not found");
+  const description = service ? (es ? service.descEs : service.descEn) : "";
   useServiceMetadata(name, description);
+  if (!service) {
+    return <section className="min-h-64 bg-[#051321] px-6 py-16 text-white">
+      <h1 className="text-3xl font-bold">{name}</h1>
+      <Link href="/soluciones" className="mt-6 inline-block text-blue-300 underline">
+        {es ? "Ver todas las soluciones" : "View all solutions"}
+      </Link>
+    </section>;
+  }
+  const path = solutionDestinations[service.id];
   return (
     <div className="iamet-reference-home bg-[#051321] text-white">
       {service.id === "computo-licenciamiento" ? <ComputingHeroV2 landing /> : <ServiceHeroV2
