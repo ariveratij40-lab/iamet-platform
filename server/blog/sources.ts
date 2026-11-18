@@ -109,7 +109,14 @@ export function temaDelDia(fecha = new Date()): string {
  * de ese tema para que la IA tenga de dónde escoger.
  */
 export async function titularesDelDia(opts: { fecha?: Date; signal?: AbortSignal } = {}): Promise<Titular[]> {
-  const tema = temaDelDia(opts.fecha ?? new Date());
-  const lista = await traerTema(tema, opts.signal);
-  return lista.slice(0, 12);
+  const principal = temaDelDia(opts.fecha ?? new Date());
+  // Intenta el tema del día; si Google News no respondió o vino vacío (hipos
+  // transitorios como el de hoy), prueba los demás temas en orden para no
+  // quedarse sin blog por una falla pasajera de una sola fuente.
+  const orden = [principal, ...TEMAS.filter(t => t !== principal)];
+  for (const tema of orden) {
+    const lista = await traerTema(tema, opts.signal);
+    if (lista.length > 0) return lista.slice(0, 12);
+  }
+  return [];
 }

@@ -148,7 +148,10 @@ async function buscarEnPixabay(palabra: string, tags: string[], signal?: AbortSi
     // Si NINGUNA foto coincide con el tema, mejor no poner una irrelevante:
     // devolvemos null y se intenta otra fuente (o se publica sin foto).
     if (mejorPuntaje === 0 && esperadas.length > 0) return null;
-    const img = (mejor.largeImageURL ?? mejor.webformatURL ?? "").toString();
+    // webformatURL (cdn.pixabay.com, ~1280px) es estable y se puede mostrar
+    // por hotlink. largeImageURL (pixabay.com/get/...) está protegida y da 400
+    // al cargarla desde el navegador — por eso va solo como respaldo.
+    const img = (mejor.webformatURL ?? mejor.largeImageURL ?? "").toString();
     if (!img.startsWith("https://")) return null;
     const autor = (mejor?.user ?? "").toString().trim() || "Pixabay";
     return {
