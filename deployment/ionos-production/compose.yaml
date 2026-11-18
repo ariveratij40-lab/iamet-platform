@@ -43,6 +43,10 @@ services:
     image: iamet-v2-prod:official-v8
     container_name: iamet_v2_app_prod
     restart: unless-stopped
+    volumes:
+      # Fotos del blog descargadas y hospedadas local (servidas en /blog-img).
+      # Persisten entre despliegues; las URLs externas (Pixabay) expiran.
+      - blog_img:/app/dist/public/blog-img
     environment:
       NODE_ENV: production
       PORT: "3000"
@@ -92,3 +96,5 @@ volumes:
     name: iamet_v2_prod_pg_data
   redis_data:
     name: iamet_v2_prod_redis_data
+  blog_img:
+    name: iamet_v2_prod_blog_img
