@@ -9,6 +9,9 @@
  * guardamos y lo mostramos bajo la foto). Si ninguno responde, devuelve null y el
  * blog se publica sin imagen.
  */
+import fs from "node:fs";
+import path from "node:path";
+
 const UA = "IametBlogBot/1.0 (contacto@iamet.mx)";
 
 export type ImagenBlog = {
@@ -16,6 +19,46 @@ export type ImagenBlog = {
   credito: string;
   enlaceCredito: string;
 };
+
+// Carpeta servida públicamente donde guardamos las fotos del blog. serveStatic
+// sirve todo lo que esté bajo dist/public, así que /blog-img/<archivo> queda
+// accesible. Un volumen montado aquí hace que las fotos persistan entre
+// despliegues.
+function dirBlogImg(): string {
+  const servedDir =
+    process.env.NODE_ENV === "development"
+      ? path.resolve(import.meta.dirname, "../..", "dist", "public")
+      : path.resolve(import.meta.dirname, "public");
+  return path.join(servedDir, "blog-img");
+}
+
+/**
+ * Descarga la imagen elegida y la guarda LOCAL (servida por el sitio), para no
+ * depender de URLs externas que expiran (las de Pixabay, p. ej., valen ~24h y
+ * luego dan 404/400). Devuelve la ruta servible (/blog-img/<slug>.jpg) o null si
+ * falla (el llamador deja la URL externa como respaldo). Nunca lanza.
+ */
+export async function hospedarImagen(urlExterna: string, slug: string): Promise<string | null> {
+  try {
+    const r = await fetch(urlExterna, {
+      headers: { "User-Agent": UA },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) return null;
+    const tipo = (r.headers.get("content-type") ?? "").toLowerCase();
+    if (!tipo.startsWith("image/")) return null;
+    const ext = tipo.includes("png") ? "png" : "jpg";
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length < 1024) return null; // muy chica: seguramente un error, no una foto
+    const dir = dirBlogImg();
+    await fs.promises.mkdir(dir, { recursive: true });
+    const nombre = `${slug}.${ext}`;
+    await fs.promises.writeFile(path.join(dir, nombre), buf);
+    return `/blog-img/${nombre}`;
+  } catch {
+    return null;
+  }
+}
 
 const esFoto = (u: string) => /^https:\/\/.+\.(jpe?g|png)(\?|$)/i.test(u);
 const sinHtml = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();

@@ -9,7 +9,7 @@
  */
 import { titularesDelDia, type Titular } from "./sources";
 import { redactarBlog } from "./writer";
-import { buscarImagen } from "./image";
+import { buscarImagen, hospedarImagen } from "./image";
 import { crearPost, yaCubierto } from "./store";
 import { blogAutoEncendido } from "./settings";
 import { megaPendiente, limpiarMega } from "./megabomba";
@@ -49,6 +49,11 @@ export async function generarBlogDelDia(opts: { signal?: AbortSignal } = {}): Pr
 
   // 3) Código: foto gratis y legal (si se puede).
   const imagen = await buscarImagen(blog.palabraImagen, blog.tagsImagen, { signal: opts.signal });
+  // La descargamos y la hospedamos local: las URLs externas (Pixabay) expiran.
+  // Si la descarga falla, dejamos la URL externa como respaldo.
+  const imageUrl = imagen
+    ? ((await hospedarImagen(imagen.url, blog.slug)) ?? imagen.url)
+    : null;
 
   // 4) Guardar como publicado.
   const id = await crearPost({
@@ -57,7 +62,7 @@ export async function generarBlogDelDia(opts: { signal?: AbortSignal } = {}): Pr
     intro: blog.entradilla,
     body: blog.cuerpo,
     metaDescription: blog.metaDescripcion,
-    imageUrl: imagen?.url ?? null,
+    imageUrl,
     imageCredit: imagen?.credito ?? null,
     imageCreditUrl: imagen?.enlaceCredito ?? null,
     topic: blog.palabraImagen,
