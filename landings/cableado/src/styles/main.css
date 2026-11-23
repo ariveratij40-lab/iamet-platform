@@ -98,3 +98,6 @@ html, body, main {background-color:#fff;color:#162e43;color-scheme:light;}
 #nuestras-soluciones .family-card {min-width:0;}
 #nuestras-soluciones > .wrap, .panduit > .wrap {max-width:1000px;display:flow-root;}
 @media(max-width:900px){#nuestras-soluciones .family-grid {grid-template-columns:1fr;}}
+
+.process-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.process-heading h2, .process-heading .phase-request { margin: 0; }
