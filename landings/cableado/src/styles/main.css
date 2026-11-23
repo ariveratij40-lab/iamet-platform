@@ -7,9 +7,10 @@
 .panduit{display:flow-root}.partner-badge{float:right;margin:0 0 24px 40px;padding:24px;background:#071321;border-radius:12px;text-align:center}.partner-badge img{display:block;width:280px;max-width:100%;height:auto}.partner-badge figcaption{margin-top:12px;color:#b9c9df;font-size:11px;line-height:1.6}@media(max-width:1000px){.partner-badge{float:none;width:fit-content;margin:0 0 28px}}
 
  .hero {
+  --hero-photo: url('/images/banner/elevador-malla.webp');
   padding-bottom: 0;
   background: linear-gradient(90deg, rgba(3,25,44,.90), rgba(3,35,55,.49) 55%, rgba(3,25,44,.80)),
-    url('/images/banner/elevador-malla.jpg') center center / cover no-repeat #09263b;
+    var(--hero-photo) center center / cover no-repeat #09263b;
 }
 .hero .hero-copy {align-self: center; min-width: 0;}
 .hero h1 {max-width: 22ch; font-size: clamp(2.15rem, 3.5vw, 3.65rem); line-height: 1.06; letter-spacing: -.045em; color: white;}
@@ -101,3 +102,7 @@ html, body, main {background-color:#fff;color:#162e43;color-scheme:light;}
 
 .process-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
 .process-heading h2, .process-heading .phase-request { margin: 0; }
+
+@media (width <= 800px) {
+  .hero { --hero-photo: url('/images/banner/elevador-malla-movil.webp'); }
+}
