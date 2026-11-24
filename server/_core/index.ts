@@ -132,11 +132,13 @@ async function startServer() {
   const isAllowedDynamicOrigin = (origin: string) =>
     /\.manus\.computer$/.test(origin) || /\.manus\.space$/.test(origin);
 
+  const landingOrigins = (process.env.LANDING_ALLOWED_ORIGINS ?? "").split(",").map(value => value.trim()).filter(Boolean);
   app.use(
-    cors({
+    cors<express.Request>((req, done) => done(null, {
       origin: (origin, callback) => {
         // Permitir requests sin origin (curl, Postman, server-to-server)
         if (!origin) return callback(null, true);
+        if (req.path === "/api/leads" && req.method === "POST" && landingOrigins.includes(origin)) return callback(null, true);
         if (allowedOrigins.includes(origin)) return callback(null, true);
         // Permitir dominios de Manus (sandbox y publicados)
         if (isAllowedDynamicOrigin(origin)) return callback(null, true);
@@ -150,7 +152,7 @@ async function startServer() {
         "X-Requested-With",
         "X-Store-Token",
       ],
-    })
+    }))
   );
 
   // ─── Body Parser ──────────────────────────────────────────────────────────
