@@ -11,8 +11,8 @@ export const landingInput = z.object({
   phone:z.string().trim().max(32).optional(),
   problemDescription:z.string().trim().min(10).max(3000),
   website:z.literal('').optional(),
-  service:z.literal('cableado-fibra'),
-  landing:z.literal('cableado-tijuana'),
+  service:z.enum(['cableado-fibra','seguridad-genetec']),
+  landing:z.enum(['cableado-tijuana','genetec-tijuana']),
   brand:z.literal('IAMET'),
   attribution:z.object({
     utmSource:z.string().max(255).optional(),utmMedium:z.string().max(255).optional(),
@@ -20,13 +20,21 @@ export const landingInput = z.object({
     utmContent:z.string().max(255).optional(),gclid:z.string().max(255).optional(),
     fbclid:z.string().max(255).optional(),msclkid:z.string().max(255).optional(),
   }).strict().optional(),
-}).strict();
+}).strict().refine(value =>
+  (value.service === 'cableado-fibra' && value.landing === 'cableado-tijuana') ||
+  (value.service === 'seguridad-genetec' && value.landing === 'genetec-tijuana'),
+  {message:'Service and landing must match',path:['landing']});
 export class CaptureConflict extends Error {}
 export async function saveLandingLead(key:string,input:z.infer<typeof landingInput>) {
   if(isMysqlDb()) throw new Error('PostgreSQL required');
   const db=await getDb();
   if(!db) throw new Error('Database unavailable');
   const normalized=landingInput.parse(input);
+  const campaigns = {
+    'cableado-tijuana':{verticalSlug:'cableado',url:'https://cableadoestructurado.iamet.mx/'},
+    'genetec-tijuana':{verticalSlug:'genetec',url:'https://genetec.iamet.mx/'},
+  };
+  const campaign = campaigns[normalized.landing];
   const digest=createHash('sha256').update(JSON.stringify(normalized)).digest('hex');
   return db.transaction(async (tx:any)=>{
     // A database-level lock serializes concurrent retries across backend processes.
@@ -39,12 +47,12 @@ export async function saveLandingLead(key:string,input:z.infer<typeof landingInp
     }
     const {contactName,company,email,phone,problemDescription,attribution}=normalized;
     const leadId=await captureCrmV2Lead({contactName,company,email,phone,problemDescription,
-      ...attribution,verticalSlug:'cableado',source:'form',
-      landingUrl:'https://cableadoestructurado.iamet.mx/',firstPage:'/',
+      ...attribution,verticalSlug:campaign.verticalSlug,source:'form',
+      landingUrl:campaign.url,firstPage:'/',
     },tx);
     const receipt=randomUUID();
     await tx.execute(sql`insert into landing_capture_receipts (idempotency_key,payload_hash,receipt,lead_id,service,landing,brand)
-      values (${key}::uuid,${digest},${receipt}::uuid,${leadId},'cableado-fibra','cableado-tijuana','IAMET')`);
+      values (${key}::uuid,${digest},${receipt}::uuid,${leadId},${normalized.service},${normalized.landing},${normalized.brand})`);
     return {status:'saved' as const,receipt,replayed:false};
   });
 }
