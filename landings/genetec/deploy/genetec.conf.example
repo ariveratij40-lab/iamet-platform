@@ -1,0 +1,31 @@
+# Review the shared CRM upstream against the live cableado configuration before activation.
+# Keep the same outer proxy topology / trusted proxy count as cableado.
+server {
+    listen 80;
+    server_name genetec.iamet.mx;
+    location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; try_files $uri =404; }
+    location / { return 301 https://genetec.iamet.mx$request_uri; }
+}
+server {
+    listen 443 ssl;
+    server_name genetec.iamet.mx;
+    ssl_certificate /etc/letsencrypt/live/genetec.iamet.mx/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/genetec.iamet.mx/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    client_max_body_size 16k;
+    location = /api/leads {
+        proxy_pass http://iamet_v2_app_prod:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Origin $http_origin;
+        proxy_set_header Idempotency-Key $http_idempotency_key;
+    }
+    location /api/ { return 404; }
+    location / {
+        proxy_pass http://iamet_landing_genetec:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

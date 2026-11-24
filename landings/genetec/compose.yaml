@@ -1,0 +1,21 @@
+name: iamet_landing_genetec
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        PUBLIC_CAPTURE_ENABLED: ${PUBLIC_CAPTURE_ENABLED:-false}
+        PUBLIC_LEAD_ENDPOINT: /api/leads
+        PUBLIC_PRIVACY_URL: https://privacidad.iamet.mx/
+        PUBLIC_INDEXABLE: ${PUBLIC_INDEXABLE:-false}
+    image: iamet-landing-genetec:review
+    restart: unless-stopped
+    networks:
+      proxy:
+        aliases:
+          - iamet_landing_genetec
+networks:
+  proxy:
+    external: true
+    name: iamet_proxy
