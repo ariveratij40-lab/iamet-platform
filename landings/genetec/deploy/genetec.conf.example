@@ -12,7 +12,6 @@ server {
     ssl_certificate /etc/letsencrypt/live/genetec.iamet.mx/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/genetec.iamet.mx/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
-    add_header X-Robots-Tag "noindex, nofollow" always;
     client_max_body_size 16k;
     location = /api/leads {
         proxy_pass http://iamet_v2_app_prod:3000;

@@ -5,10 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile.prod
       args:
-        PUBLIC_CAPTURE_ENABLED: ${PUBLIC_CAPTURE_ENABLED:-false}
+        PUBLIC_CAPTURE_ENABLED: ${PUBLIC_CAPTURE_ENABLED:-true}
         PUBLIC_LEAD_ENDPOINT: /api/leads
         PUBLIC_PRIVACY_URL: https://privacidad.iamet.mx/
-        PUBLIC_INDEXABLE: ${PUBLIC_INDEXABLE:-false}
+        PUBLIC_INDEXABLE: ${PUBLIC_INDEXABLE:-true}
     image: iamet-landing-genetec:review
     restart: unless-stopped
     networks:
