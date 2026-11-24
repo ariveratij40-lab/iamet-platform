@@ -32,6 +32,14 @@ describe('REST capture persistence in the existing CRM schema',()=>{
    const key=randomUUID();await saveLandingLead(key,input);
    await expect(saveLandingLead(key,{...input,company:'Otra empresa'})).rejects.toBeInstanceOf(CaptureConflict);
  });
+ it('stores the integral Genetec campaign separately and rejects mismatched service',async()=>{
+   const payload={...input,service:'seguridad-genetec',landing:'genetec-tijuana'} as const;
+   const saved=await saveLandingLead(randomUUID(),payload);
+   const result=await pg.query(`SELECT l."verticalSlug", l.landing_url AS "landingUrl", r.service, r.landing
+     FROM leads l JOIN landing_capture_receipts r ON r.lead_id=l.id WHERE r.receipt=$1`,[saved.receipt]);
+   expect(result.rows[0]).toEqual({verticalSlug:'genetec',landingUrl:'https://genetec.iamet.mx/',service:'seguridad-genetec',landing:'genetec-tijuana'});
+   expect(landingInput.safeParse({...payload,service:'cableado-fibra'}).success).toBe(false);
+ });
  it('deduplicates concurrent requests',async()=>{
    const key=randomUUID();const results=await Promise.all([saveLandingLead(key,input),saveLandingLead(key,input)]);
    expect(results[0].receipt).toBe(results[1].receipt);

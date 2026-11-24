@@ -11,6 +11,7 @@ const internal = 'alvaro.rivera@iamet.mx';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function messages(lead) {
+  const genetec = lead.landing === 'genetec-tijuana';
   const reference = `IAMET-${lead.id}`;
   return [
     {
@@ -19,7 +20,7 @@ function messages(lead) {
         from: process.env.EMAIL_FROM,
         to: [internal],
         reply_to: lead.email,
-        subject: `Nueva solicitud de cableado — ${reference}`,
+        subject: `Nueva solicitud de ${genetec ? 'Genetec' : 'cableado'} — ${reference}`,
         text: [
           `Solicitud: ${reference}`,
           `Nombre: ${lead.contactName}`,
@@ -44,7 +45,7 @@ function messages(lead) {
         text: [
           `Hola ${lead.contactName},`,
           '',
-          'Recibimos tu solicitud de cableado estructurado o fibra óptica.',
+          genetec ? 'Recibimos tu solicitud de soluciones integrales de seguridad Genetec.' : 'Recibimos tu solicitud de cableado estructurado o fibra óptica.',
           `Tu referencia es ${reference}.`,
           'Nuestro equipo revisará la información y se pondrá en contacto contigo.',
           '',
@@ -63,7 +64,7 @@ function messages(lead) {
 async function tick() {
   // Snapshot the message once so retries always use the same content.
   const leads = await sql`
-    SELECT l.*
+    SELECT l.*, r.landing
     FROM leads l
     JOIN landing_capture_receipts r ON r.lead_id = l.id
     WHERE (
