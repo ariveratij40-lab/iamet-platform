@@ -199,10 +199,10 @@ export default function InfrastructureV2() {
         </div>
       </section>
       <div className="mx-auto max-w-[1344px] px-5 py-8 sm:px-8">
-        <Link href="/soluciones/cableado-estructurado" className="inline-flex items-center gap-3 font-semibold text-blue-600 hover:underline">
+        <a href="https://cableadoestructurado.iamet.mx/" className="inline-flex items-center gap-3 font-semibold text-blue-600 hover:underline">
           {es ? "Cableado estructurado Panduit: servicios y cotización" : "Panduit structured cabling: services and quotes"}
           <ArrowRight size={18} />
-        </Link>
+        </a>
       </div>
       <ServiceConversionV2
         slug="infraestructura"
