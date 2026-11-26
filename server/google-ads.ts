@@ -189,18 +189,24 @@ export function consumeAuthorization(
     throw new Error("Autorización inválida o vencida.");
   return item.verifier;
 }
+function adsHeaders(access: string) {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${access}`,
+    "Content-Type": "application/json",
+  };
+  const manager = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, "");
+  if (manager && /^\d{10}$/.test(manager))
+    headers["login-customer-id"] = manager;
+  if (process.env.GOOGLE_ADS_DEVELOPER_TOKEN)
+    headers["developer-token"] = process.env.GOOGLE_ADS_DEVELOPER_TOKEN.trim();
+  return headers;
+}
 export async function searchAds(access: string, query: string) {
   const cfg = config();
   const rows: any[] = [];
   let pageToken: string | undefined;
   for (let page = 0; page < 20; page++) {
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${access}`,
-      "Content-Type": "application/json",
-    };
-    const manager = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, "");
-    if (manager && /^\d{10}$/.test(manager))
-      headers["login-customer-id"] = manager;
+    const headers = adsHeaders(access);
     const response = await fetch(
       `https://googleads.googleapis.com/${API_VERSION}/customers/${cfg.customer}/googleAds:search`,
       {
@@ -353,4 +359,163 @@ export async function adsReport(days: number): Promise<AdsReport> {
     });
   queue = run;
   return run;
+}
+
+type AdsCity = "Tijuana" | "Mexicali" | "Tecate" | "Ensenada";
+async function planningLocation(city: AdsCity) {
+  const refresh = await savedToken();
+  if (!refresh) throw new Error("Conecte la cuenta de Google Ads.");
+  const { access_token: access } = await tokenRequest({
+    grant_type: "refresh_token",
+    refresh_token: refresh,
+  });
+  const locations = await searchAds(
+    access,
+    `SELECT geo_target_constant.resource_name, geo_target_constant.canonical_name FROM geo_target_constant WHERE geo_target_constant.country_code = 'MX' AND geo_target_constant.target_type = 'City' AND geo_target_constant.status = 'ENABLED' AND geo_target_constant.name = '${city}'`
+  );
+  const matches = locations.filter(row =>
+    row.geoTargetConstant.canonicalName
+      .split(",")
+      .map((part: string) => part.trim())
+      .includes("Baja California")
+  );
+  if (matches.length !== 1)
+    throw new Error(
+      "Google Ads no pudo identificar de forma única la ciudad en Baja California."
+    );
+  return {
+    access,
+    location: matches[0].geoTargetConstant.resourceName as string,
+  };
+}
+export async function keywordIdeas(input: {
+  city: AdsCity;
+  keywords: string[];
+}) {
+  const { access, location } = await planningLocation(input.city);
+  const [row] = await searchAds(
+    access,
+    "SELECT customer.currency_code FROM customer LIMIT 1"
+  );
+  const response = await fetch(
+    `https://googleads.googleapis.com/${API_VERSION}/customers/${config().customer}:generateKeywordIdeas`,
+    {
+      method: "POST",
+      headers: adsHeaders(access),
+      signal: AbortSignal.timeout(25000),
+      body: JSON.stringify({
+        language: "languageConstants/1003",
+        geoTargetConstants: [location],
+        keywordPlanNetwork: "GOOGLE_SEARCH",
+        keywordSeed: { keywords: input.keywords },
+        pageSize: 50,
+      }),
+    }
+  );
+  if (!response.ok)
+    throw new Error(
+      `Google Ads rechazó la investigación (HTTP ${response.status}). Revise acceso y cuota de planificación.`
+    );
+  type Monthly = { year: string; month: string; monthlySearches?: string };
+  type Idea = {
+    text: string;
+    keywordIdeaMetrics?: {
+      avgMonthlySearches?: string;
+      competition?: string;
+      lowTopOfPageBidMicros?: string;
+      highTopOfPageBidMicros?: string;
+      monthlySearchVolumes?: Monthly[];
+    };
+  };
+  const data: { results?: Idea[] } = await response.json();
+  return {
+    city: input.city,
+    currency: String(row.customer.currencyCode),
+    rows: (data.results ?? []).map(idea => {
+      const m = idea.keywordIdeaMetrics;
+      return {
+        text: idea.text,
+        volume: m?.avgMonthlySearches ?? null,
+        competition: m?.competition ?? "UNKNOWN",
+        low:
+          m?.lowTopOfPageBidMicros == null
+            ? null
+            : Number(m.lowTopOfPageBidMicros) / 1e6,
+        high:
+          m?.highTopOfPageBidMicros == null
+            ? null
+            : Number(m.highTopOfPageBidMicros) / 1e6,
+        months: m?.monthlySearchVolumes ?? [],
+      };
+    }),
+  };
+}
+export async function forecastAds(input: {
+  budget: number;
+  city: "Tijuana" | "Mexicali" | "Tecate" | "Ensenada";
+  keywords: string[];
+  match: "EXACT" | "PHRASE";
+}) {
+  const { access, location } = await planningLocation(input.city);
+  const [account] = await searchAds(
+    access,
+    "SELECT customer.time_zone FROM customer LIMIT 1"
+  );
+  const today = reportingDates(1, account.customer.timeZone).end;
+  const future = (offset: number) =>
+    new Date(Date.parse(today + "T12:00:00Z") + offset * 86400000)
+      .toISOString()
+      .slice(0, 10);
+  const period = { startDate: future(1), endDate: future(30) };
+  const response = await fetch(
+    `https://googleads.googleapis.com/${API_VERSION}/customers/${config().customer}:generateKeywordForecastMetrics`,
+    {
+      method: "POST",
+      headers: adsHeaders(access),
+      signal: AbortSignal.timeout(25000),
+      body: JSON.stringify({
+        currencyCode: "MXN",
+        forecastPeriod: period,
+        campaign: {
+          geoTargetConstants: [location],
+          languageConstants: ["languageConstants/1003"],
+          biddingStrategy: {
+            maximizeClicksBiddingStrategy: {
+              dailyTargetSpendMicros: String(
+                Math.round((input.budget * 1e6) / 30)
+              ),
+            },
+          },
+          adGroups: [
+            {
+              keywords: [...new Set(input.keywords)].map(text => ({
+                text,
+                matchType: input.match,
+              })),
+            },
+          ],
+        },
+      }),
+    }
+  );
+  if (!response.ok)
+    throw new Error(
+      `Google Ads rechazó la previsión (HTTP ${response.status}). Revise los permisos de planificación y la cuota de la cuenta.`
+    );
+  const metrics = (await response.json()).campaignForecastMetrics;
+  if (
+    !metrics ||
+    [metrics.clicks, metrics.impressions, metrics.costMicros].every(
+      v => v == null
+    )
+  )
+    throw new Error("Google Ads no devolvió una previsión para este segmento.");
+  return {
+    ...input,
+    period,
+    clicks: metrics.clicks == null ? null : Number(metrics.clicks),
+    impressions:
+      metrics.impressions == null ? null : Number(metrics.impressions),
+    cost: metrics.costMicros == null ? null : Number(metrics.costMicros) / 1e6,
+  };
 }
