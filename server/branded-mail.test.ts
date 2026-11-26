@@ -1,6 +1,7 @@
 import {it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {createHash} from 'node:crypto';
 const source=readFileSync('deployment/branded-mail/template.js','utf8');
 const api=vm.runInNewContext(source+';({leadIdentity,brandedCustomer,messages})',{
  process:{env:{EMAIL_FROM:'IAMET <mail@example.invalid>'}},internal:'alvaro.rivera@iamet.mx',
@@ -20,7 +21,9 @@ it('escapes customer data, supplies plain text, and shows only received as compl
  expect(p.html).toContain('mailto:contacto@iamet.mx?subject=');
  expect(p.html).toContain('src="cid:iamet-logo"');
  expect(p.attachments[0].content_id).toBe('iamet-logo');
- expect(Buffer.from(p.attachments[0].content,'base64')).toEqual(readFileSync('client/public/brand/iamet-email-official-v2.png'));
+ const logo = Buffer.from(p.attachments[0].content,'base64');
+ expect(logo[25]).toBe(2); // PNG RGB opaco
+ expect(createHash('sha256').update(logo).digest('hex')).toBe('b2388bcca26389512f0048595e813e866f4daa5bda352d71a8d889868242d22b');
  expect(p.html.match(/COMPLETADA/g)).toHaveLength(1);expect(p.html).not.toContain('ACME-RFID-00009</p>Asunto');
  expect(p.text).toContain('RFID');expect(p.text).toContain('Referencia: ACME-RFID-00009');expect(p.to).toEqual(['fixture@example.invalid']);
  expect(p.html).toContain('subject=Solicitud%20ACME-RFID-00009');expect(p.html).not.toContain('VISTA PREVIA');
