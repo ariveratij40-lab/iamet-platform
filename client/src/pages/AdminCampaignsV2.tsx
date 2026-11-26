@@ -4,6 +4,240 @@ import AdminWorkspaceV2 from "@/components/v2/AdminWorkspaceV2";
 import { BarChart3, RefreshCw } from "lucide-react";
 const control =
   "rounded-xl border border-slate-700 bg-[#101f32] px-4 py-2 text-sm text-white disabled:opacity-50";
+function ForecastPlanner() {
+  const [budget, setBudget] = useState("4000");
+  const [city, setCity] = useState<
+    "Tijuana" | "Mexicali" | "Tecate" | "Ensenada"
+  >("Tijuana");
+  const [match, setMatch] = useState<"EXACT" | "PHRASE">("PHRASE");
+  const [keywords, setKeywords] = useState(
+    "instalación de cableado estructurado\nintegrador Panduit"
+  );
+  const ideas = trpc.googleAds.ideas.useMutation();
+  const terms = keywords
+    .split("\n")
+    .map(k => k.trim())
+    .filter(Boolean);
+  const forecast = trpc.googleAds.forecast.useMutation();
+  const [results, setResults] = useState<NonNullable<typeof forecast.data>[]>(
+    []
+  );
+  return (
+    <section className="mb-6 space-y-4 rounded-2xl border border-white/10 bg-[#0c1a2b] p-6">
+      <h2 className="text-xl font-semibold">
+        Evaluar presupuesto y segmentación
+      </h2>
+      <p className="text-sm text-slate-300">
+        Previsión de Google Ads para los próximos 30 días de búsqueda en
+        español.
+      </p>
+      <form
+        className="flex flex-wrap items-end gap-4"
+        onSubmit={e => {
+          e.preventDefault();
+          forecast.mutate(
+            {
+              budget: Number(budget),
+              city,
+              match,
+              keywords: keywords
+                .split("\n")
+                .map(k => k.trim())
+                .filter(Boolean),
+            },
+            { onSuccess: r => setResults(prev => [r, ...prev]) }
+          );
+        }}
+      >
+        <label>
+          Presupuesto total (MXN)
+          <input
+            required
+            type="number"
+            min="1"
+            max="10000000"
+            step="0.01"
+            value={budget}
+            onChange={e => setBudget(e.target.value)}
+            className={control + " block"}
+          />
+        </label>
+        <label>
+          Ciudad
+          <select
+            className={control + " block"}
+            value={city}
+            onChange={e => setCity(e.target.value as typeof city)}
+          >
+            {["Tijuana", "Mexicali", "Tecate", "Ensenada"].map(c => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Concordancia
+          <select
+            className={control + " block"}
+            value={match}
+            onChange={e => setMatch(e.target.value as typeof match)}
+          >
+            <option value="PHRASE">De frase</option>
+            <option value="EXACT">Exacta</option>
+          </select>
+        </label>
+        <label>
+          Palabras clave (una por línea)
+          <textarea
+            required
+            value={keywords}
+            onChange={e => setKeywords(e.target.value)}
+            className={control + " block"}
+          />
+        </label>
+        <button className={control} disabled={forecast.isPending}>
+          {forecast.isPending ? "Consultando…" : "Evaluar escenario"}
+        </button>
+      </form>
+      <h3 className="text-lg font-semibold">Investigación de palabras clave</h3>
+      <button
+        type="button"
+        className={control}
+        disabled={ideas.isPending || !terms.length || terms.length > 20}
+        onClick={() => ideas.mutate({ city, keywords: terms })}
+      >
+        {ideas.isPending ? "Buscando…" : "Obtener ideas de Google Ads"}
+      </button>
+      <p className="text-sm text-slate-300">
+        Use hasta 20 términos de partida. Puede añadir ideas al presupuesto de
+        arriba.
+      </p>
+      {ideas.error && <p role="alert">{ideas.error.message}</p>}
+      {ideas.data && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <caption>
+              Google Ads · {ideas.data.city} · Español · Hasta 50 ideas
+            </caption>
+            <thead>
+              <tr>
+                {[
+                  "Palabra clave",
+                  "Búsquedas mensuales (promedio de 12 meses)",
+                  "Historial mensual",
+                  "Competencia publicitaria",
+                  "Puja de parte superior (" + ideas.data.currency + ")",
+                  "Escenario",
+                ].map(h => (
+                  <th className="p-2" key={h}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ideas.data.rows.map(r => (
+                <tr key={r.text} className="border-t border-white/10">
+                  <td className="p-2">{r.text}</td>
+                  <td>{r.volume ?? "Sin dato"}</td>
+                  <td>
+                    {r.months.length ? (
+                      <details>
+                        <summary>Ver meses</summary>
+                        {r.months.map(m => (
+                          <div key={m.year + m.month}>
+                            {m.month} {m.year} ·{" "}
+                            {m.monthlySearches ?? "Sin dato"}
+                          </div>
+                        ))}
+                      </details>
+                    ) : (
+                      "Sin dato"
+                    )}
+                  </td>
+                  <td>
+                    {(
+                      { LOW: "Baja", MEDIUM: "Media", HIGH: "Alta" } as Record<
+                        string,
+                        string
+                      >
+                    )[r.competition] ?? "Sin dato"}
+                  </td>
+                  <td>
+                    {r.low?.toFixed(2) ?? "—"} – {r.high?.toFixed(2) ?? "—"}
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className={control}
+                      disabled={
+                        terms.includes(r.text) ||
+                        terms.length >= 30 ||
+                        ideas.data?.city !== city
+                      }
+                      onClick={() =>
+                        setKeywords(k =>
+                          [k.trim(), r.text].filter(Boolean).join("\n")
+                        )
+                      }
+                    >
+                      {terms.includes(r.text) ? "Añadida" : "Añadir"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!ideas.data.rows.length && (
+            <p>Google Ads no devolvió ideas para estos términos.</p>
+          )}
+        </div>
+      )}
+      {forecast.error && <p role="alert">{forecast.error.message}</p>}
+      {results.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <caption>Escenarios estimados por Google Ads</caption>
+            <thead>
+              <tr>
+                {[
+                  "Segmento y periodo",
+                  "Presupuesto MXN",
+                  "Costo estimado MXN",
+                  "Impresiones",
+                  "Clics",
+                ].map(h => (
+                  <th key={h} className="p-2">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((r, i) => (
+                <tr key={i} className="border-t border-white/10">
+                  <td className="p-2">
+                    {r.city} · {r.match === "EXACT" ? "Exacta" : "De frase"}
+                    <br />
+                    {r.keywords.join(", ")}
+                    <br />
+                    {r.period.startDate} — {r.period.endDate}
+                  </td>
+                  {[r.budget, r.cost, r.impressions, r.clicks].map((v, j) => (
+                    <td key={j} className="p-2">
+                      {v?.toLocaleString("es-MX", {
+                        maximumFractionDigits: 2,
+                      }) ?? "Sin dato"}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
 export default function AdminCampaignsV2() {
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
@@ -119,6 +353,7 @@ export default function AdminCampaignsV2() {
       )}
       {status.data?.connected && (
         <>
+          <ForecastPlanner />
           <div className="mb-5 flex flex-wrap items-center gap-3">
             <label className="text-sm text-slate-300">
               Período{" "}
