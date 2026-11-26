@@ -620,9 +620,9 @@ export default function AdminCRMV2() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {prospects.data.items.map((l: any) => (
-                      <tr key={l.id} className="border-t border-white/10">
+                  {prospects.data.items.map((l: any) => (
+                    <tbody key={l.id}>
+                      <tr className="border-t border-white/10">
                         <td className="p-4">
                           <strong>{l.company}</strong>
                           <p className="mt-1 text-xs text-slate-400">
@@ -639,15 +639,38 @@ export default function AdminCRMV2() {
                         </td>
                         <td className="p-4">
                           <button
-                            onClick={() => setSelected(l.id)}
+                            id={`abrir-prospecto-${l.id}`}
+                            type="button"
+                            aria-expanded={selected === l.id}
+                            aria-label={`${selected === l.id ? "Compactar" : "Abrir"} ficha de ${l.company || l.contactName}`}
+                            onClick={() =>
+                              setSelected(actual =>
+                                actual === l.id ? null : l.id
+                              )
+                            }
                             className="text-blue-300 underline"
                           >
-                            Abrir
+                            {selected === l.id ? "Compactar" : "Abrir"}
                           </button>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
+                      {selected === l.id && (
+                        <tr>
+                          <td colSpan={6} className="p-3">
+                            <LeadDetail
+                              id={l.id}
+                              close={() => {
+                                setSelected(null);
+                                document
+                                  .getElementById(`abrir-prospecto-${l.id}`)
+                                  ?.focus();
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  ))}
                 </table>
                 {!prospects.data.items.length && (
                   <p className="p-6 text-sm text-slate-400">
@@ -677,13 +700,6 @@ export default function AdminCRMV2() {
                 </div>
               </div>
             </>
-          )}
-          {selected && (
-            <LeadDetail
-              key={selected}
-              id={selected}
-              close={() => setSelected(null)}
-            />
           )}
         </div>
       )}
