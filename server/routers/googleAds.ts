@@ -4,6 +4,8 @@ import { adminProcedure, router } from "../_core/trpc";
 import {
   adsConfig,
   adsReport,
+  forecastAds,
+  keywordIdeas,
   disconnectAds,
   savedToken,
   startAuthorization,
@@ -49,6 +51,24 @@ export const googleAdsRouter = router({
       return { success: true };
     })
   ),
+  ideas: adminProcedure
+    .input(
+      z.object({
+        city: z.enum(["Tijuana", "Mexicali", "Tecate", "Ensenada"]),
+        keywords: z.array(z.string().trim().min(1).max(80)).min(1).max(20),
+      })
+    )
+    .mutation(({ input }) => safe(() => keywordIdeas(input))),
+  forecast: adminProcedure
+    .input(
+      z.object({
+        budget: z.number().finite().min(1).max(10000000),
+        city: z.enum(["Tijuana", "Mexicali", "Tecate", "Ensenada"]),
+        keywords: z.array(z.string().trim().min(1).max(80)).min(1).max(30),
+        match: z.enum(["EXACT", "PHRASE"]),
+      })
+    )
+    .mutation(({ input }) => safe(() => forecastAds(input))),
   report: adminProcedure
     .input(
       z.object({ days: z.union([z.literal(7), z.literal(30), z.literal(90)]) })
